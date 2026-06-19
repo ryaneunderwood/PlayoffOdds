@@ -33,6 +33,16 @@ are embedded inline, so it loads straight from disk with no web server).
 | `--out` | `index.html` | output web page |
 | `--json` | `data.json` | raw odds output |
 
+## Interactive what-if
+
+Click any team in the seed grid to open its detail panel: its playoff/division/
+conference/title odds, a seed-probability strip, and its full schedule. Every
+remaining game has a **Win / Loss / Auto** toggle. Forcing an outcome re-runs a
+live Monte Carlo simulation **in your browser** (the Elo ratings and schedule are
+embedded in the page) and shows how each odd shifts versus the un-forced
+baseline. No server or rebuild needed — it all runs client-side from the single
+HTML file.
+
 ## How it works
 
 1. **Build Elo** from `--start` through the last completed season (regular

@@ -449,6 +449,35 @@ def upcoming_games(sport: SportConfig, ratings: Dict[str, float], weekly_schedul
     return out
 
 
+def build_schedule(sport: SportConfig, ratings: Dict[str, float], weekly_schedule):
+    """Flat per-game list for the in-browser simulator.
+
+    Each game carries its home-win probability so the client can re-simulate
+    the season under user-forced outcomes without re-deriving Elo.
+    """
+    out = []
+    gid = 0
+    for wk in sorted(weekly_schedule):
+        for home, away, hs, as_, neutral in weekly_schedule[wk]:
+            h, a = sport.canon(home), sport.canon(away)
+            if h not in sport.team_conf or a not in sport.team_conf:
+                continue
+            H = 0.0 if neutral else sport.home_field
+            p = elo_expected(ratings.get(h, sport.mean),
+                             ratings.get(a, sport.mean), H)
+            played = hs is not None and as_ is not None
+            winner = None
+            if played:
+                winner = "home" if hs > as_ else ("away" if hs < as_ else "tie")
+            out.append({
+                "id": gid, "week": wk, "home": h, "away": a,
+                "neutral": neutral, "played": played, "winner": winner,
+                "p_home": round(p, 4),
+            })
+            gid += 1
+    return out
+
+
 # ----------------------------------------------------------------------------
 # Orchestration
 # ----------------------------------------------------------------------------
@@ -472,14 +501,15 @@ def run(sport_key: str, season: int, start_year: int, sims: int):
     bracket = simulate_bracket(sport, ratings, season_res)
 
     games = upcoming_games(sport, ratings, weekly)
+    schedule = build_schedule(sport, ratings, weekly)
 
     data = assemble_payload(sport, season, start_year, ratings, last_completed,
-                            season_res, bracket, games)
+                            season_res, bracket, games, schedule)
     return sport, data
 
 
 def assemble_payload(sport, season, start_year, ratings, last_completed,
-                     season_res, bracket, games):
+                     season_res, bracket, games, schedule):
     sims = season_res["sims"]
     teams = sport.teams
     rows = []
@@ -510,10 +540,18 @@ def assemble_payload(sport, season, start_year, ratings, last_completed,
         "last_completed": last_completed,
         "sims": sims,
         "seeds_per_conf": sport.seeds_per_conf,
+        "division_winner_seeds": sport.division_winner_seeds,
+        "wildcard_seeds": sport.wildcard_seeds,
+        "byes": sport.byes,
+        "home_field": sport.home_field,
+        "mean": sport.mean,
         "conferences": sport.conferences,
         "divisions": {d: tlist for d, tlist in sport.divisions.items()},
+        "teams": sport.teams,
+        "ratings": {t: round(ratings.get(t, sport.mean), 1) for t in sport.teams},
         "rows": rows,
         "upcoming": games,
+        "schedule": schedule,
     }
 
 
