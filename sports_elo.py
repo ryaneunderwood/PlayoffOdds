@@ -426,6 +426,81 @@ def simulate_bracket(sport: SportConfig, ratings: Dict[str, float], season_res):
 
 
 # ----------------------------------------------------------------------------
+# Mathematical feasibility (clinch / elimination)
+# ----------------------------------------------------------------------------
+# A team's seed is encoded 1..seeds_per_conf, with `seeds_per_conf + 1` meaning
+# "missed the playoffs". We determine which seeds are *achievable* by combining
+# (a) every seed actually reached across the Monte Carlo trials with (b) two
+# deterministic contrived scenarios (maximally favorable / unfavorable) for the
+# remaining games. A seed shown as X was reached by neither -- i.e. there is no
+# scenario, contrived or simulated, that produces it. A cell shown as ^ is the
+# team's only achievable outcome.
+def _score_from_wins(sport, ratings, wins, favor=None, favor_high=True):
+    """Deterministic standings score. Wins dominate; a small favor term breaks
+    ties for/against `favor`; Elo breaks any remaining ties reproducibly."""
+    out = {}
+    for t in sport.teams:
+        fav = (0.5 if favor_high else -0.5) if (favor is not None and t == favor) else 0.0
+        out[t] = wins.get(t, 0.0) + fav + ratings.get(t, sport.mean) * 1e-6
+    return out
+
+
+def _seeds_from_score(sport, score):
+    """Apply seeding rules to a deterministic score map -> {team: seed or 0}."""
+    final = {t: 0 for t in sport.teams}
+    for conf in sport.conferences:
+        conf_divs = [d for d in sport.divisions if d.split()[0] == conf]
+        dw = [max(sport.divisions[d], key=lambda t: score[t]) for d in conf_divs]
+        dwset = set(dw)
+        for r, t in enumerate(sorted(dw, key=lambda t: -score[t])):
+            final[t] = r + 1
+        pool = sorted([t for d in conf_divs for t in sport.divisions[d]
+                       if t not in dwset], key=lambda t: -score[t])
+        for w in range(sport.wildcard_seeds):
+            final[pool[w]] = sport.division_winner_seeds + w + 1
+    return final
+
+
+def seed_bounds(sport, ratings, base_wins, open_games, team, forced):
+    """Best (lowest) and worst (highest, miss = seeds_per_conf+1) seed `team`
+    can reach over the remaining games, given any user-`forced` results."""
+    miss = sport.seeds_per_conf + 1
+
+    def strength(t):
+        return (base_wins.get(t, 0.0), ratings.get(t, sport.mean))
+
+    # Favorable scenario: team wins its open games; in every other open game the
+    # weaker side wins (suppresses would-be rivals).
+    wb = dict(base_wins)
+    for gid, h, a in open_games:
+        f = forced.get(gid)
+        if f == "home": w = h
+        elif f == "away": w = a
+        elif team in (h, a): w = team
+        else: w = h if strength(h) <= strength(a) else a
+        wb[w] = wb.get(w, 0.0) + 1
+    sb = _seeds_from_score(sport, _score_from_wins(sport, ratings, wb,
+                                                   favor=team, favor_high=True))
+    best = sb[team] if sb[team] >= 1 else miss
+
+    # Unfavorable scenario: team loses its open games; the stronger side wins
+    # elsewhere (piles up rivals above the team).
+    ww = dict(base_wins)
+    for gid, h, a in open_games:
+        f = forced.get(gid)
+        if f == "home": w = h
+        elif f == "away": w = a
+        elif team == h: w = a
+        elif team == a: w = h
+        else: w = h if strength(h) >= strength(a) else a
+        ww[w] = ww.get(w, 0.0) + 1
+    sw = _seeds_from_score(sport, _score_from_wins(sport, ratings, ww,
+                                                   favor=team, favor_high=False))
+    worst = sw[team] if sw[team] >= 1 else miss
+    return best, worst
+
+
+# ----------------------------------------------------------------------------
 # Upcoming-game probabilities
 # ----------------------------------------------------------------------------
 def upcoming_games(sport: SportConfig, ratings: Dict[str, float], weekly_schedule):
@@ -512,11 +587,37 @@ def assemble_payload(sport, season, start_year, ratings, last_completed,
                      season_res, bracket, games, schedule):
     sims = season_res["sims"]
     teams = sport.teams
+    miss_seed = sport.seeds_per_conf + 1
+
+    # Base wins from already-played games and the list of still-open games, used
+    # for the deterministic clinch/elimination scenarios.
+    base_wins = {t: 0.0 for t in teams}
+    open_games = []
+    for g in schedule:
+        if g["played"]:
+            if g["winner"] == "home": base_wins[g["home"]] += 1
+            elif g["winner"] == "away": base_wins[g["away"]] += 1
+            elif g["winner"] == "tie":
+                base_wins[g["home"]] += 0.5; base_wins[g["away"]] += 0.5
+        else:
+            open_games.append((g["id"], g["home"], g["away"]))
+
+    idx = season_res["idx"]
+    final_seed = season_res["final_seed"]
+
     rows = []
     for t in teams:
         sc = season_res["seed_counts"][t]
         seed_probs = [round(100 * sc[i] / sims, 1) for i in range(sport.seeds_per_conf)]
         miss = round(100 * sc[sport.seeds_per_conf] / sims, 1)
+
+        # Achievable seeds = those hit in any MC trial, unioned with the
+        # contiguous best..worst range from the contrived scenarios.
+        fs = final_seed[:, idx[t]]
+        mc_hit = {int(x) if x >= 1 else miss_seed for x in np.unique(fs)}
+        best, worst = seed_bounds(sport, ratings, base_wins, open_games, t, {})
+        ach = sorted(set(range(best, worst + 1)) | mc_hit)
+
         rows.append({
             "team": t,
             "conf": sport.team_conf[t],
@@ -525,6 +626,7 @@ def assemble_payload(sport, season, start_year, ratings, last_completed,
             "proj_wins": round(float(np.mean(season_res["win_dist"][t])), 1),
             "seed_probs": seed_probs,
             "miss": miss,
+            "ach": ach,
             "make_playoffs": round(100 * season_res["make_playoffs"][t] / sims, 1),
             "win_div": round(100 * season_res["div_winner"][t] / sims, 1),
             "win_conf": round(100 * bracket["conf_champ"][t] / sims, 1),

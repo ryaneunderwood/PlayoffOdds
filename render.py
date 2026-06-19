@@ -52,6 +52,9 @@ TEMPLATE = r"""<!DOCTYPE html>
                font-weight:700;font-size:12px;letter-spacing:.4px}
   .pct{font-weight:600}
   .dim{color:#5d6680}
+  td.elim{color:#6b7488;font-weight:700}
+  td.clinch{color:#dce9ff;font-weight:800}
+  .big-sym{font-size:24px}
   .sep{border-left:2px solid var(--line)}
   .swatch{display:inline-block;width:10px;height:10px;border-radius:2px;
           margin-right:6px;vertical-align:middle}
@@ -157,10 +160,39 @@ function heat(p){
   const a = Math.min(1, 0.08 + p/100*0.92);
   return `rgba(91,140,255,${a.toFixed(3)})`;
 }
-function fmt(p){ return p<0.05 ? "·" : (p>=99.95 ? "100" : p.toFixed(p<10?1:0)); }
-function pcell(p, extra){
-  const cls = (p<0.05 ? "dim" : "pct") + (extra ? " "+extra : "");
-  return `<td class="${cls}" style="background:${heat(p)}">${fmt(p)}</td>`;
+// Display token honoring mathematical feasibility:
+//   X      -> impossible (no scenario, simulated or contrived, achieves it)
+//   ^      -> mathematically guaranteed (the only achievable outcome)
+//   <0.1   -> possible but never came up in the trials (sub-0.1%)
+//   >99.9  -> all-but-certain in trials, yet not mathematically clinched
+//   else   -> the rounded probability, never rounded to the 0/100 extremes
+function token(prob, st){
+  if(!st.poss) return "X";
+  if(st.guar)  return "^";
+  if(prob < 0.1)  return "<0.1";
+  if(prob > 99.9) return ">99.9";
+  return prob.toFixed((prob<10 || prob>99) ? 1 : 0);
+}
+function statusSet(ach){
+  const set = new Set(ach), arr = ach;
+  const MISS = DATA.seeds_per_conf + 1, DWS = DATA.division_winner_seeds;
+  return {
+    seed:  s => ({poss:set.has(s), guar:set.size===1 && set.has(s)}),
+    miss:  {poss:set.has(MISS), guar:set.size===1 && set.has(MISS)},
+    make:  {poss:arr.some(s=>s<=DATA.seeds_per_conf), guar:!set.has(MISS)},
+    div:   {poss:arr.some(s=>s<=DWS), guar:Math.max(...arr)<=DWS},
+    brkt:  {poss:arr.some(s=>s<=DATA.seeds_per_conf), guar:false},
+  };
+}
+function pcell(prob, st, extra){
+  const tk = token(prob, st);
+  let bg, cls;
+  if(tk==="X"){ bg="transparent"; cls="elim"; }
+  else if(tk==="^"){ bg=heat(100); cls="clinch"; }
+  else if(tk==="<0.1"){ bg=heat(0.4); cls="dim"; }
+  else if(tk===">99.9"){ bg=heat(99.9); cls="pct"; }
+  else { bg=heat(prob); cls = prob<0.05 ? "dim" : "pct"; }
+  return `<td class="${cls}${extra?" "+extra:""}" style="background:${bg}">${tk}</td>`;
 }
 
 const rowsByTeam = {};
@@ -183,16 +215,17 @@ function seedTable(conf){
     const ts = DATA.divisions[d].map(t=>rowsByTeam[t])
                  .sort((a,b)=>b.make_playoffs-a.make_playoffs||b.proj_wins-a.proj_wins);
     ts.forEach(r=>{
+      const S = statusSet(r.ach);
       h += "<tr>";
       h += `<td class="team clickable" data-team="${r.team}">${tname(r.team)}</td>`;
       h += `<td class="dim">${r.elo}</td>`;
       h += `<td>${r.proj_wins.toFixed(1)}</td>`;
-      r.seed_probs.forEach((p,i)=> h += pcell(p, i===0?"sep":"") );
-      h += pcell(r.miss, "sep");
-      h += pcell(r.make_playoffs, "sep");
-      h += pcell(r.win_div);
-      h += pcell(r.win_conf);
-      h += pcell(r.win_title);
+      r.seed_probs.forEach((p,i)=> h += pcell(p, S.seed(i+1), i===0?"sep":"") );
+      h += pcell(r.miss, S.miss, "sep");
+      h += pcell(r.make_playoffs, S.make, "sep");
+      h += pcell(r.win_div, S.div);
+      h += pcell(r.win_conf, S.brkt);
+      h += pcell(r.win_title, S.brkt);
       h += "</tr>";
     });
   });
@@ -206,7 +239,12 @@ function seedsView(){
     h += `<div class="conf-h"><h2>${c}</h2><span class="note">probability (%) of finishing in each playoff seed &middot; <b>click a team</b> to explore its schedule</span></div>`;
     h += seedTable(c);
   });
-  h += `<div style="margin-top:10px"><span class="swatch" style="background:${heat(8)}"></span>low &nbsp; <span class="swatch" style="background:${heat(45)}"></span>mid &nbsp; <span class="swatch" style="background:${heat(90)}"></span>high</div>`;
+  h += `<div style="margin-top:10px;color:var(--muted);font-size:12px">
+    <span class="swatch" style="background:${heat(8)}"></span>low
+    <span class="swatch" style="background:${heat(45)};margin-left:10px"></span>mid
+    <span class="swatch" style="background:${heat(90)};margin-left:10px"></span>high
+    &nbsp;&middot;&nbsp; <b>^</b> clinched &nbsp; <b>X</b> eliminated &nbsp;
+    <b>&lt;0.1</b> possible but &lt;0.1% &nbsp; <b>&gt;99.9</b> near-certain, not clinched</div>`;
   return h;
 }
 
@@ -354,6 +392,76 @@ function simulate(nSims, forced){
   return res;
 }
 
+/* --------- deterministic clinch / elimination (mirrors sports_elo.py) ------- */
+const MISS = NSEED + 1;
+
+function scoreFromWins(wins, favorIdx, favorHigh){
+  const sc = new Float64Array(NT);
+  for(let i=0;i<NT;i++){
+    const fav = (i===favorIdx) ? (favorHigh?0.5:-0.5) : 0;
+    sc[i] = wins[i] + fav + (RAT[TEAMS[i]]!=null?RAT[TEAMS[i]]:MEAN)*1e-6;
+  }
+  return sc;
+}
+function seedsDet(score){
+  const fs = new Int8Array(NT);
+  for(let ci=0;ci<CONFS.length;ci++){
+    const c=CONFS[ci], divs=CONF_DIVS[c], dw=[];
+    for(let d=0;d<divs.length;d++){
+      let best=divs[d][0];
+      for(let j=1;j<divs[d].length;j++) if(score[divs[d][j]]>score[best]) best=divs[d][j];
+      dw.push(best);
+    }
+    const dwset=new Set(dw);
+    dw.sort((a,b)=>score[b]-score[a]);
+    for(let r=0;r<dw.length;r++) fs[dw[r]]=r+1;
+    const pool=CONF_IDX[c].filter(ti=>!dwset.has(ti)).sort((a,b)=>score[b]-score[a]);
+    for(let w=0;w<WCS;w++) fs[pool[w]]=DWS+w+1;
+  }
+  return fs;
+}
+// stronger team = (more base wins, then higher Elo)
+function strongerHome(g){
+  const sh=BASEWINS[g.hi], sa=BASEWINS[g.ai];
+  if(sh!==sa) return sh>sa;
+  return (RAT[TEAMS[g.hi]]||MEAN) >= (RAT[TEAMS[g.ai]]||MEAN);
+}
+function seedBounds(team, forced){
+  const ti=TIDX[team];
+  // favorable: team wins its open games; weaker side wins elsewhere
+  const wb=new Float64Array(NT);
+  for(let i=0;i<NT;i++) wb[i]=BASEWINS[i];
+  OPEN.forEach(g=>{
+    const f=forced[g.id];
+    let w = f==="home"?g.hi : f==="away"?g.ai
+          : (g.hi===ti||g.ai===ti)? ti : (strongerHome(g)?g.ai:g.hi);
+    wb[w]++;
+  });
+  const best0 = seedsDet(scoreFromWins(wb,ti,true))[ti];
+  const best = best0>=1?best0:MISS;
+  // unfavorable: team loses its open games; stronger side wins elsewhere
+  const ww=new Float64Array(NT);
+  for(let i=0;i<NT;i++) ww[i]=BASEWINS[i];
+  OPEN.forEach(g=>{
+    const f=forced[g.id];
+    let w = f==="home"?g.hi : f==="away"?g.ai
+          : g.hi===ti? g.ai : g.ai===ti? g.hi : (strongerHome(g)?g.hi:g.ai);
+    ww[w]++;
+  });
+  const worst0 = seedsDet(scoreFromWins(ww,ti,false))[ti];
+  const worst = worst0>=1?worst0:MISS;
+  return [best, worst];
+}
+// achievable seed set = contrived best..worst range U seeds hit in the live sim
+function achievableFor(team, forced, odds){
+  const [best,worst]=seedBounds(team, forced);
+  const set=new Set();
+  for(let s=best;s<=worst;s++) set.add(s);
+  for(let s=0;s<NSEED;s++) if(odds.seed_probs[s]>0) set.add(s+1);
+  if(odds.miss>0) set.add(MISS);
+  return [...set].sort((a,b)=>a-b);
+}
+
 /* ----------------------- team detail modal ----------------------- */
 const PANEL_SIMS = 8000;
 let activeTeam=null, forced={}, baseOdds=null;
@@ -393,13 +501,19 @@ function delta(cur, base){
   const cls = d>0?"up":"down";
   return `<span class="delta ${cls}">${d>0?"+":""}${d.toFixed(1)}</span>`;
 }
-function oddsCard(lab, cur, base, showDelta){
+function oddsCard(lab, cur, base, st, showDelta){
+  const tk = token(cur, st);
+  const val = (tk==="X"||tk==="^") ? `<span class="big-sym">${tk}</span>`
+            : (tk==="<0.1"||tk===">99.9") ? tk+"%" : tk+"%";
+  const dShow = showDelta && tk!=="X" && tk!=="^";
   return `<div class="odds-card"><div class="lab">${lab}</div>
-    <div class="val">${cur<0.05?"0":cur.toFixed(cur<10?1:0)}%${showDelta?delta(cur,base):""}</div></div>`;
+    <div class="val">${val}${dShow?delta(cur,base):""}</div></div>`;
 }
 
 function renderModal(cur){
   const team=activeTeam, base=baseOdds, show=nForced()>0;
+  const ach = achievableFor(team, forced, cur);
+  const S = statusSet(ach);
   let h = `<div class="modal-h">
       <h2>${tname(team)} <span class="dim" style="font-weight:400;font-size:13px">&middot; ${DATA.season} ${teamDivName(team)}</span></h2>
       <button class="x" onclick="closeModal()">&times;</button>
@@ -407,20 +521,23 @@ function renderModal(cur){
 
   // headline odds
   h += `<div class="odds-grid">
-    ${oddsCard("Make Playoffs", cur.make_playoffs, base.make_playoffs, show)}
-    ${oddsCard("Win Division", cur.win_div, base.win_div, show)}
-    ${oddsCard("Win Conference", cur.win_conf, base.win_conf, show)}
-    ${oddsCard("Win Title", cur.win_title, base.win_title, show)}
+    ${oddsCard("Make Playoffs", cur.make_playoffs, base.make_playoffs, S.make, show)}
+    ${oddsCard("Win Division", cur.win_div, base.win_div, S.div, show)}
+    ${oddsCard("Win Conference", cur.win_conf, base.win_conf, S.brkt, show)}
+    ${oddsCard("Win Title", cur.win_title, base.win_title, S.brkt, show)}
   </div>`;
 
-  // seed distribution mini-bar
+  // seed distribution mini-bar (X = impossible, ^ = clinched)
   h += `<div class="dim" style="font-size:12px;margin-top:10px">Seed probability (#1&ndash;#${NSEED}, then Miss)</div>`;
   h += `<div class="seedmini">`;
   for(let s=0;s<NSEED;s++){
-    const p=cur.seed_probs[s];
-    h += `<div class="sc" title="Seed ${s+1}: ${p.toFixed(1)}%" style="background:${heat(p)}">${p>=4?("#"+(s+1)):""}</div>`;
+    const p=cur.seed_probs[s], tk=token(p, S.seed(s+1));
+    const lab = tk==="X" ? "X" : tk==="^" ? ("#"+(s+1)) : (p>=4?("#"+(s+1)):"");
+    const bg  = tk==="X" ? "#141c30" : heat(p);
+    h += `<div class="sc" title="Seed ${s+1}: ${tk==='X'||tk==='^'?tk:p.toFixed(1)+'%'}" style="background:${bg}">${lab}</div>`;
   }
-  h += `<div class="sc" title="Miss: ${cur.miss.toFixed(1)}%" style="background:#2a3450">${cur.miss>=6?"Miss":""}</div></div>`;
+  const mt=token(cur.miss, S.miss);
+  h += `<div class="sc" title="Miss: ${mt==='X'||mt==='^'?mt:cur.miss.toFixed(1)+'%'}" style="background:${mt==='X'?'#141c30':'#2a3450'}">${mt==='X'?'':'Miss'}</div></div>`;
 
   // controls
   h += `<div class="ctrlbar">
