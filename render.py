@@ -64,8 +64,10 @@ TEMPLATE = r"""<!DOCTYPE html>
   .game .away{text-align:right;font-weight:700}
   .game .home{text-align:left;font-weight:700}
   .game .p{font-weight:700}
-  .bar{height:8px;border-radius:5px;background:#2a3450;overflow:hidden;position:relative}
-  .bar>i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);display:block}
+  .bar{height:8px;border-radius:5px;background:#2a3450;overflow:hidden;display:flex}
+  .bar>i{display:block;height:100%}
+  .bar>i.away{background:#7c89a8}
+  .bar>i.home{background:var(--accent)}
   .foot{color:var(--muted);font-size:12px;margin-top:30px;line-height:1.6}
   code{background:#0d1322;padding:1px 5px;border-radius:4px;color:#cdd7ee}
 </style>
@@ -165,7 +167,7 @@ function gamesView(){
       h += `<div class="game">
         <div class="away">${tname(g.away)}</div>
         <div class="p" style="text-align:right;color:${!favHome?'#fff':'var(--muted)'}">${ap.toFixed(0)}%</div>
-        <div class="bar"><i style="width:${hp}%"></i></div>
+        <div class="bar"><i class="away" style="width:${ap}%"></i><i class="home" style="width:${hp}%"></i></div>
         <div class="p" style="color:${favHome?'#fff':'var(--muted)'}">${hp.toFixed(0)}%</div>
         <div class="home">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''} <span class="dim">(H)</span></div>
       </div>`;
