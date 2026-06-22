@@ -6,6 +6,8 @@ Walk-forward (no lookahead): build Elo from 2018-2022, then for every game in
 the closing Vegas moneyline, and the result -- updating the ratings only after
 the game. Then evaluate four flat-$100 betting strategies.
 """
+from collections import namedtuple
+
 import numpy as np
 import nfl_data_py as nfl
 
@@ -113,16 +115,20 @@ def strat_bets(records, key):
         return [(g, g["vegas_fav"]) for g in records if g["vegas_fav"]]
 
 
+Res = namedtuple("Res", "n settled wins losses winpct net roi")
+
+
 def tally(bets):
-    """-> (n, win%, net, roi%) for a list of (game, side) bets."""
+    """Settle a list of (game, side) bets. Pushes (ties) are excluded from the
+    W-L record and from staked, but counted in n."""
     settled = [(g, s) for (g, s) in bets if not g["tie"]]
     net = sum(bet_side(g, s) for (g, s) in bets)
     wins = sum(1 for (g, s) in settled
                if (g["home_won"] if s == "home" else not g["home_won"]))
-    staked = STAKE * len(settled)
-    winpct = (wins / len(settled) * 100) if settled else 0.0
-    roi = (net / staked * 100) if staked else 0.0
-    return len(bets), winpct, net, roi
+    ns = len(settled)
+    winpct = (wins / ns * 100) if ns else 0.0
+    roi = (net / (STAKE * ns) * 100) if ns else 0.0
+    return Res(len(bets), ns, wins, ns - wins, winpct, net, roi)
 
 
 def acc(records, fav_key):
@@ -153,8 +159,8 @@ def evaluate(records):
         "f": "f) $100 on the Vegas favorite, every game",
     }
     for k in "abcdef":
-        n, wp, net, roi = tally(strat_bets(records, k))
-        print(f"{names[k]:56} {n:>4} {wp:>5.1f}% {net:>+10.0f} {roi:>+6.1f}%")
+        R = tally(strat_bets(records, k))
+        print(f"{names[k]:56} {R.n:>4} {R.winpct:>5.1f}% {R.net:>+10.0f} {R.roi:>+6.1f}%")
 
 
 def by_season(records):
@@ -169,8 +175,8 @@ def by_season(records):
         label = "ALL" if yr is None else str(yr)
         print(f"{label:7} {len(sub):>5} {acc(sub,'model_fav'):>6.1f}% "
               f"{acc(sub,'vegas_fav'):>6.1f}% "
-              f"{r['a'][3]:>+6.1f}% {r['b'][3]:>+6.1f}% {r['c'][3]:>+6.1f}% "
-              f"{r['d'][3]:>+6.1f}% {r['e'][3]:>+6.1f}% {r['f'][3]:>+6.1f}%")
+              f"{r['a'].roi:>+6.1f}% {r['b'].roi:>+6.1f}% {r['c'].roi:>+6.1f}% "
+              f"{r['d'].roi:>+6.1f}% {r['e'].roi:>+6.1f}% {r['f'].roi:>+6.1f}%")
 
 
 def week_bucket(g):
@@ -191,25 +197,26 @@ def week_bucket(g):
 
 
 def by_week(records):
-    print("\n\nBY POINT IN SEASON  (ROI per strategy a-f; weeks 1-3 absolute, then "
-          "grouped by games remaining)\n" + "=" * 90)
+    print("\n\nBY POINT IN SEASON  (each cell = W-L  ROI%;  weeks 1-3 absolute, then "
+          "grouped by games remaining)\n" + "=" * 116)
     groups = {}
     for g in records:
         key, sub, label = week_bucket(g)
         groups.setdefault((key, sub, label), []).append(g)
-    print(f"{'bucket':9} {'games':>5} {'mdlAcc':>7} {'vegAcc':>7} "
-          f"{'a ROI':>7} {'b ROI':>7} {'c ROI':>7} {'d ROI':>7} {'e ROI':>7} {'f ROI':>7}")
-    print("-" * 90)
+
+    def cell(R):
+        return f"{R.wins}-{R.losses} {R.roi:+.0f}%"
+
+    hdr = "".join(f"{('  ' + k):>15}" for k in "abcdef")
+    print(f"{'bucket':9} {'gms':>4}{hdr}")
+    print("-" * 116)
     for (key, sub, label) in sorted(groups):
         sub_recs = groups[(key, sub, label)]
-        r = {k: tally(strat_bets(sub_recs, k)) for k in "abcdef"}
-        print(f"{label:9} {len(sub_recs):>5} {acc(sub_recs,'model_fav'):>6.1f}% "
-              f"{acc(sub_recs,'vegas_fav'):>6.1f}% "
-              f"{r['a'][3]:>+6.1f}% {r['b'][3]:>+6.1f}% {r['c'][3]:>+6.1f}% "
-              f"{r['d'][3]:>+6.1f}% {r['e'][3]:>+6.1f}% {r['f'][3]:>+6.1f}%")
-    print("-" * 90)
-    print("'N left' = N regular-season games remaining for a team incl. that week "
-          "(so the final week is '1 left').")
+        cells = "".join(f"{cell(tally(strat_bets(sub_recs, k))):>15}" for k in "abcdef")
+        print(f"{label:9} {len(sub_recs):>4}{cells}")
+    print("-" * 116)
+    print("W-L excludes pushes (tie games). 'N left' = N regular-season games "
+          "remaining for a team incl. that week (final week = '1 left').")
 
 
 def by_team(records):
@@ -219,11 +226,11 @@ def by_team(records):
     rows = []
     for t in teams:
         sub = [g for g in records if g["home"] == t or g["away"] == t]
-        n, wp, net, roi = tally(strat_bets(sub, "b"))
-        _, _, dnet, _ = tally(strat_bets(sub, "a"))      # disagreement subset
-        nag, _, enet, eroi = tally(strat_bets(sub, "e")) # agreement subset
+        b = tally(strat_bets(sub, "b"))
+        a_ = tally(strat_bets(sub, "a"))    # disagreement subset
+        e_ = tally(strat_bets(sub, "e"))    # agreement subset
         ndis = sum(g["disagree"] for g in sub)
-        rows.append((t, n, wp, net, roi, ndis, dnet, nag, enet, eroi))
+        rows.append((t, b.n, b.winpct, b.net, b.roi, ndis, a_.net, e_.n, e_.net, e_.roi))
     rows.sort(key=lambda r: -r[3])  # by net P/L of strategy b
     print(f"{'team':4} {'G':>3} {'win%':>6} {'bet-model P/L':>13} {'ROI':>7}   "
           f"{'agree':>5} {'agree P/L':>9}  {'disagr':>6} {'disagr P/L':>10}")
