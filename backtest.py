@@ -103,6 +103,8 @@ def strat_bets(records, key):
     if key == "e":  # agreed favorite, only when model & Vegas agree
         return [(g, g["model_fav"]) for g in records
                 if g["model_fav"] and g["vegas_fav"] and g["model_fav"] == g["vegas_fav"]]
+    if key == "f":  # Vegas favorite, every game
+        return [(g, g["vegas_fav"]) for g in records if g["vegas_fav"]]
 
 
 def tally(bets):
@@ -141,8 +143,9 @@ def evaluate(records):
         "c": "c) $100 against model (= Vegas pick), only on disagreements",
         "d": "d) $100 against model's favorite, every game",
         "e": "e) $100 on the agreed favorite, only when model & Vegas agree",
+        "f": "f) $100 on the Vegas favorite, every game",
     }
-    for k in "abcde":
+    for k in "abcdef":
         n, wp, net, roi = tally(strat_bets(records, k))
         print(f"{names[k]:56} {n:>4} {wp:>5.1f}% {net:>+10.0f} {roi:>+6.1f}%")
 
@@ -151,16 +154,18 @@ def by_season(records):
     print("\n\nBY SEASON  (ROI per strategy; e = bet agreed favorite on agreements)\n"
           + "=" * 84)
     print(f"{'season':7} {'games':>5} {'mdlAcc':>7} {'vegAcc':>7} "
-          f"{'a ROI':>7} {'b ROI':>7} {'c ROI':>7} {'d ROI':>7} {'e ROI':>7} {'e P/L':>9}")
-    print("-" * 84)
+          f"{'a ROI':>7} {'b ROI':>7} {'c ROI':>7} {'d ROI':>7} {'e ROI':>7} "
+          f"{'f ROI':>7} {'e P/L':>8} {'f P/L':>8}")
+    print("-" * 100)
     for yr in (2023, 2024, 2025, None):
         sub = records if yr is None else [g for g in records if g["year"] == yr]
-        r = {k: tally(strat_bets(sub, k)) for k in "abcde"}
+        r = {k: tally(strat_bets(sub, k)) for k in "abcdef"}
         label = "ALL" if yr is None else str(yr)
         print(f"{label:7} {len(sub):>5} {acc(sub,'model_fav'):>6.1f}% "
               f"{acc(sub,'vegas_fav'):>6.1f}% "
               f"{r['a'][3]:>+6.1f}% {r['b'][3]:>+6.1f}% {r['c'][3]:>+6.1f}% "
-              f"{r['d'][3]:>+6.1f}% {r['e'][3]:>+6.1f}% {r['e'][2]:>+9.0f}")
+              f"{r['d'][3]:>+6.1f}% {r['e'][3]:>+6.1f}% {r['f'][3]:>+6.1f}% "
+              f"{r['e'][2]:>+8.0f} {r['f'][2]:>+8.0f}")
 
 
 def by_team(records):
