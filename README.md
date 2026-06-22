@@ -51,11 +51,27 @@ HTML file.
    curve with a home-field edge and margin-of-victory scaling of the K-factor.
 2. **Project the upcoming season.** Every remaining game is simulated from the
    starting ratings; already-played games count as fixed results.
-3. **Seed the field** with the league's rules — division winners take the top
-   seeds, the best remaining teams take the wild cards (ties broken randomly and
-   unbiased within each simulation).
+3. **Seed the field** with the **real NFL tiebreakers** (`seeding.py`): division
+   winners then wild cards, breaking ties by head-to-head, division record,
+   common games (min 4 for wild cards), conference record, strength of victory
+   and strength of schedule. (The points-based steps and the final coin toss a
+   win/loss model can't compute are replaced by a random draw; they're reached
+   essentially never.)
 4. **Run the bracket** each simulation for conference- and title-win odds.
 5. **Render** a self-contained `index.html`.
+
+### Clinch / elimination (the `X` and `^` markers)
+
+`X` (mathematically eliminated) and `^` (clinched) come from a **pruned,
+tiebreaker-aware feasibility search**, not from the simulation count. For each
+team it limits attention to the contenders within two wins of the cut, fixes the
+other games favorably/unfavorably, and then **exhaustively enumerates the games
+between two contenders** — the *coupled* games — applying the real tiebreakers to
+each. This captures interactions like: a bubble team can pass the current #7 seed
+by record, yet still be eliminated because the games that knock the #7 down
+necessarily lift whoever beats them. When too many coupled games remain to
+enumerate (early season), the team is reported as fully live — never a false
+`X`/`^`.
 
 ## Franchise continuity
 
@@ -73,6 +89,9 @@ sim, and renderer are all sport-agnostic.
 
 ## Files
 
-- `sports_elo.py` — Elo engine, sport config, Monte Carlo, CLI.
-- `render.py` — self-contained HTML renderer.
+- `sports_elo.py` — Elo engine, sport config, Monte Carlo, feasibility, CLI.
+- `seeding.py` — NFL tiebreaker + conference-seeding engine and the
+  clinch/elimination feasibility search.
+- `render.py` — self-contained HTML renderer; the in-browser engine is a faithful
+  JS port of `seeding.py` (validated by cross-check against the Python).
 - `Sports Monte Carlo.ipynb` — the original notebook this was derived from.

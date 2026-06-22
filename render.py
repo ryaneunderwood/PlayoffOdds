@@ -122,7 +122,10 @@ TEMPLATE = r"""<!DOCTYPE html>
   .toggle button.on-auto{background:#33406a;color:#fff}
   .resultpill{font-size:11px;font-weight:700;text-align:center;border-radius:6px;
     padding:5px 0;background:#16203a;color:var(--muted)}
-  .calc{color:var(--accent);font-size:12px;font-weight:600}
+  .calc{color:var(--accent);font-size:13px;font-weight:600;padding:24px 0;text-align:center}
+  #calcbadge{position:absolute;top:14px;right:52px;background:var(--accent);color:#fff;
+    font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;opacity:.92}
+  .modal{position:relative}
 </style>
 </head>
 <body>
@@ -293,16 +296,48 @@ CONFS.forEach(c=>{
   });
 });
 
-// Games: fixed (played) contribute to base wins; open games get simulated.
-const BASEWINS = new Float64Array(NT);
-DATA.schedule.forEach(g=>{
-  if(!g.played) return;
-  if(g.winner==="home") BASEWINS[TIDX[g.home]]+=1;
-  else if(g.winner==="away") BASEWINS[TIDX[g.away]]+=1;
-  else { BASEWINS[TIDX[g.home]]+=0.5; BASEWINS[TIDX[g.away]]+=0.5; }
-});
-const OPEN = DATA.schedule.filter(g=>!g.played)
-  .map(g=>({id:g.id, hi:TIDX[g.home], ai:TIDX[g.away], p:g.p_home}));
+// ---- static league structure (mirrors seeding.py League) ----
+const TEAMDIV=[], TEAMCONFI=[], DIV_TEAMS={}, CONF_DIV_LABELS={};
+TEAMS.forEach((t,i)=>{ for(const d in DATA.divisions){ if(DATA.divisions[d].includes(t)){ TEAMDIV[i]=d; TEAMCONFI[i]=d.split(" ")[0]; } } });
+for(const d in DATA.divisions){ DIV_TEAMS[d]=DATA.divisions[d].map(t=>TIDX[t]); const c=d.split(" ")[0]; (CONF_DIV_LABELS[c]=CONF_DIV_LABELS[c]||[]).push(d); }
+
+const NG=DATA.schedule.length;
+const GAMES=DATA.schedule.map(g=>{ const hi=TIDX[g.home], ai=TIDX[g.away];
+  return { id:g.id, hi, ai, p:g.p_home, played:g.played,
+    fixed: g.played&&g.winner==="home"?hi : g.played&&g.winner==="away"?ai : -1,
+    isDiv: TEAMDIV[hi]===TEAMDIV[ai], isConf: TEAMCONFI[hi]===TEAMCONFI[ai] }; });
+const OPENG=[]; GAMES.forEach((g,gi)=>{ if(g.fixed<0) OPENG.push(gi); });
+
+const TEAMGAMES=[], DIVGAMES=[], CONFGAMES=[], OPPSET=[], TOTG=new Int32Array(NT), PAIRMAP=new Map();
+for(let i=0;i<NT;i++){ TEAMGAMES.push([]); DIVGAMES.push([]); CONFGAMES.push([]); OPPSET.push(new Set()); }
+GAMES.forEach((g,gi)=>{ const h=g.hi,a=g.ai;
+  TEAMGAMES[h].push([gi,a]); TEAMGAMES[a].push([gi,h]);
+  OPPSET[h].add(a); OPPSET[a].add(h); TOTG[h]++; TOTG[a]++;
+  if(g.isDiv){ DIVGAMES[h].push(gi); DIVGAMES[a].push(gi); }
+  if(g.isConf){ CONFGAMES[h].push(gi); CONFGAMES[a].push(gi); }
+  const k=h<a?h*NT+a:a*NT+h; if(!PAIRMAP.has(k)) PAIRMAP.set(k,[]); PAIRMAP.get(k).push(gi); });
+function PAIR(a,b){ return PAIRMAP.get(a<b?a*NT+b:b*NT+a)||[]; }
+
+// ---- NFL tiebreaker criteria (mirror seeding.py; null = not applicable) ----
+function h2hBest(winners,t,group){ let w=0,g=0; for(const o of group){ if(o===t) continue; for(const gi of PAIR(t,o)){ g++; if(winners[gi]===t) w++; } } return g?w/g:null; }
+function h2hSweep(winners,t,group){ let tot=0,wins=0; for(const o of group){ if(o===t) continue; const pl=PAIR(t,o); if(!pl.length) return null; for(const gi of pl){ tot++; if(winners[gi]===t) wins++; } } if(!tot) return null; if(wins===tot) return 1; if(wins===0) return 0; return null; }
+function divPct(dW,t){ const g=DIVGAMES[t].length; return g?dW[t]/g:0; }
+function confPct(cW,t){ const g=CONFGAMES[t].length; return g?cW[t]/g:0; }
+function commonPct(winners,group,t,minG){ let inter=null; for(const x of group){ if(inter===null) inter=new Set(OPPSET[x]); else { const s=OPPSET[x]; inter=new Set([...inter].filter(y=>s.has(y))); } } if(!inter||!inter.size) return null; let w=0,g=0; for(const [gi,o] of TEAMGAMES[t]){ if(inter.has(o)){ g++; if(winners[gi]===t) w++; } } if(g<minG||g===0) return null; return w/g; }
+function sov(winners,W,t){ let tw=0,tg=0; for(const [gi,o] of TEAMGAMES[t]){ if(winners[gi]===t){ tw+=W[o]; tg+=TOTG[o]; } } return tg?tw/tg:0; }
+function sos(winners,W,t){ let tw=0,tg=0; for(const [gi,o] of TEAMGAMES[t]){ tw+=W[o]; tg+=TOTG[o]; } return tg?tw/tg:0; }
+function filterMax(group,fn){ const v=group.map(fn); let mx=-Infinity,any=false; for(const x of v){ if(x!=null){ any=true; if(x>mx) mx=x; } } if(!any) return group; const keep=group.filter((t,i)=>v[i]!=null&&v[i]===mx); return keep.length?keep:group; }
+function pickTopDivision(winners,dW,cW,W,group){ let cur=group.slice(); const L=[t=>h2hBest(winners,t,cur),t=>divPct(dW,t),t=>commonPct(winners,cur,t,0),t=>confPct(cW,t),t=>sov(winners,W,t),t=>sos(winners,W,t)]; for(const c of L){ cur=filterMax(cur,c); if(cur.length===1) return cur[0]; } return cur[(Math.random()*cur.length)|0]; }
+function pickTopWildcard(winners,dW,cW,W,group){ let cur=group.slice();
+  if(cur.length>2){ const bd={}; cur.forEach(t=>{ (bd[TEAMDIV[t]]=bd[TEAMDIV[t]]||[]).push(t); }); const red=[]; for(const d in bd){ const m=bd[d]; red.push(m.length===1?m[0]:pickTopDivision(winners,dW,cW,W,m)); } cur=red; if(cur.length===1) return cur[0]; }
+  const L=[t=> cur.length>2?h2hSweep(winners,t,cur):h2hBest(winners,t,cur),t=>confPct(cW,t),t=>commonPct(winners,cur,t,4),t=>sov(winners,W,t),t=>sos(winners,W,t)]; for(const c of L){ cur=filterMax(cur,c); if(cur.length===1) return cur[0]; } return cur[(Math.random()*cur.length)|0]; }
+function orderByRecord(W,teams,pickTop){ const rem=teams.slice(),out=[]; while(rem.length){ let best=-Infinity; for(const t of rem) if(W[t]>best) best=W[t]; const tied=rem.filter(t=>W[t]===best); const win=tied.length===1?tied[0]:pickTop(tied); out.push(win); rem.splice(rem.indexOf(win),1); } return out; }
+function seedConference(conf,winners,W,dW,cW){ const pwc=g=>pickTopWildcard(winners,dW,cW,W,g);
+  const divW=[]; for(const d of CONF_DIV_LABELS[conf]){ const mem=DIV_TEAMS[d]; let best=-Infinity; for(const t of mem) if(W[t]>best) best=W[t]; const tied=mem.filter(t=>W[t]===best); divW.push(tied.length===1?tied[0]:pickTopDivision(winners,dW,cW,W,tied)); }
+  const ranked=orderByRecord(W,divW,pwc); const seeds={}; ranked.forEach((t,i)=>seeds[t]=i+1);
+  const dwset=new Set(divW); const nonwin=CONF_IDX[conf].filter(t=>!dwset.has(t)); const wc=orderByRecord(W,nonwin,pwc);
+  for(let i=0;i<WCS;i++) seeds[wc[i]]=DWS+1+i; return seeds; }
+function recordsFrom(winners){ const W=new Float64Array(NT),dW=new Float64Array(NT),cW=new Float64Array(NT); for(let gi=0;gi<NG;gi++){ const w=winners[gi]; W[w]++; if(GAMES[gi].isDiv) dW[w]++; if(GAMES[gi].isConf) cW[w]++; } return [W,dW,cW]; }
 
 function winProbElo(ta, tb, homeForA){
   const ra = RAT[ta]!=null?RAT[ta]:MEAN, rb = RAT[tb]!=null?RAT[tb]:MEAN;
@@ -311,159 +346,111 @@ function winProbElo(ta, tb, homeForA){
 }
 
 // forced: {gameId: 'home'|'away'} -> returns {team: oddsObj}
+// Each simulated season is seeded with the real NFL tiebreakers (seedConference).
 function simulate(nSims, forced){
   forced = forced || {};
-  const seedHits = []; for(let i=0;i<NT;i++) seedHits.push(new Float64Array(NSEED+1));
+  const seedHits=[]; for(let i=0;i<NT;i++) seedHits.push(new Float64Array(NSEED+1));
   const makeP=new Float64Array(NT), winDiv=new Float64Array(NT);
   const confCh=new Float64Array(NT), title=new Float64Array(NT);
-  const wins=new Float64Array(NT), score=new Float64Array(NT);
-  const finalSeed=new Int8Array(NT);
+  const winners=new Int32Array(NG);
+  for(let gi=0;gi<NG;gi++) if(GAMES[gi].fixed>=0) winners[gi]=GAMES[gi].fixed;
 
   for(let s=0;s<nSims;s++){
-    for(let i=0;i<NT;i++) wins[i]=BASEWINS[i];
-    for(let k=0;k<OPEN.length;k++){
-      const g=OPEN[k], f=forced[g.id];
-      const homeWin = f==="home" ? true : f==="away" ? false : (Math.random()<g.p);
-      if(homeWin) wins[g.hi]++; else wins[g.ai]++;
-    }
-    for(let i=0;i<NT;i++){ finalSeed[i]=0; score[i]=wins[i]+Math.random()*1e-3; }
+    for(let k=0;k<OPENG.length;k++){ const gi=OPENG[k], g=GAMES[gi], f=forced[g.id];
+      winners[gi] = f==="home"?g.hi : f==="away"?g.ai : (Math.random()<g.p?g.hi:g.ai); }
+    const [W,dW,cW]=recordsFrom(winners);
+    const finalSeed=new Int8Array(NT), confSeedTeam={};
+    for(let ci=0;ci<CONFS.length;ci++){ const c=CONFS[ci]; const seeds=seedConference(c,winners,W,dW,cW);
+      const st={}; for(const ti in seeds){ const k=+ti, sd=seeds[ti]; finalSeed[k]=sd; st[sd]=k; } confSeedTeam[c]=st; }
 
-    const confSeedTeam={};
-    for(let ci=0; ci<CONFS.length; ci++){
-      const c=CONFS[ci], divs=CONF_DIVS[c];
-      const dw=[];
-      for(let d=0; d<divs.length; d++){
-        let best=divs[d][0];
-        for(let j=1;j<divs[d].length;j++) if(score[divs[d][j]]>score[best]) best=divs[d][j];
-        dw.push(best);
-      }
-      const dwset=new Set(dw);
-      dw.sort((a,b)=>score[b]-score[a]);
-      const cst={};
-      for(let r=0;r<dw.length;r++){ finalSeed[dw[r]]=r+1; cst[r+1]=dw[r]; }
-      const pool=CONF_IDX[c].filter(ti=>!dwset.has(ti)).sort((a,b)=>score[b]-score[a]);
-      for(let w=0;w<WCS;w++){ const ti=pool[w]; finalSeed[ti]=DWS+w+1; cst[DWS+w+1]=ti; }
-      confSeedTeam[c]=cst;
-    }
-
-    for(let i=0;i<NT;i++){
-      const sd=finalSeed[i];
-      if(sd>=1){ seedHits[i][sd-1]++; makeP[i]++; if(sd<=DWS) winDiv[i]++; }
-      else seedHits[i][NSEED]++;
-    }
+    for(let i=0;i<NT;i++){ const sd=finalSeed[i];
+      if(sd>=1){ seedHits[i][sd-1]++; makeP[i]++; if(sd<=DWS) winDiv[i]++; } else seedHits[i][NSEED]++; }
 
     // playoff bracket (reseeding, top BYES seeds idle round 1)
     const confWinners=[];
     for(let ci=0;ci<CONFS.length;ci++){
-      const st=confSeedTeam[CONFS[ci]];
-      if(Object.keys(st).length<NSEED) continue;
-      let alive=[]; for(let sd=1;sd<=NSEED;sd++) alive.push(sd);
-      let byes=BYES;
+      const st=confSeedTeam[CONFS[ci]]; if(Object.keys(st).length<NSEED) continue;
+      let alive=[]; for(let sd=1;sd<=NSEED;sd++) alive.push(sd); let byes=BYES;
       while(alive.length>1){
         alive.sort((a,b)=>a-b);
         const playing = alive.length>byes?alive.slice(byes):alive.slice();
         const next = alive.length>byes?alive.slice(0,byes):[];
         let lo=0, hi=playing.length-1;
-        while(lo<hi){
-          const sa=playing[lo], sb=playing[hi];
+        while(lo<hi){ const sa=playing[lo], sb=playing[hi];
           const win = Math.random()<winProbElo(TEAMS[st[sa]],TEAMS[st[sb]],true) ? sa : sb;
-          next.push(win); lo++; hi--;
-        }
+          next.push(win); lo++; hi--; }
         if(lo===hi) next.push(playing[lo]);
         alive=next; byes=0;
       }
       confWinners.push(st[alive[0]]); confCh[st[alive[0]]]++;
     }
-    if(confWinners.length===CONFS.length){
-      const a=confWinners[0], b=confWinners[1];
-      if(Math.random()<winProbElo(TEAMS[a],TEAMS[b],false)) title[a]++; else title[b]++;
-    }
+    if(confWinners.length===CONFS.length){ const a=confWinners[0], b=confWinners[1];
+      if(Math.random()<winProbElo(TEAMS[a],TEAMS[b],false)) title[a]++; else title[b]++; }
   }
 
   const res={};
-  for(let i=0;i<NT;i++){
-    const sp=[]; for(let sd=0;sd<NSEED;sd++) sp.push(100*seedHits[i][sd]/nSims);
-    res[TEAMS[i]]={
-      seed_probs:sp, miss:100*seedHits[i][NSEED]/nSims,
+  for(let i=0;i<NT;i++){ const sp=[]; for(let sd=0;sd<NSEED;sd++) sp.push(100*seedHits[i][sd]/nSims);
+    res[TEAMS[i]]={ seed_probs:sp, miss:100*seedHits[i][NSEED]/nSims,
       make_playoffs:100*makeP[i]/nSims, win_div:100*winDiv[i]/nSims,
-      win_conf:100*confCh[i]/nSims, win_title:100*title[i]/nSims,
-    };
-  }
+      win_conf:100*confCh[i]/nSims, win_title:100*title[i]/nSims }; }
   return res;
 }
 
-/* --------- deterministic clinch / elimination (mirrors sports_elo.py) ------- */
-const MISS = NSEED + 1;
+/* --------- clinch / elimination with real tiebreakers (mirrors seeding.py) --- */
+const MISS = NSEED + 1, SEARCH_CAP = 14;
 
-function scoreFromWins(wins, favorIdx, favorHigh){
-  const sc = new Float64Array(NT);
-  for(let i=0;i<NT;i++){
-    const fav = (i===favorIdx) ? (favorHigh?0.5:-0.5) : 0;
-    sc[i] = wins[i] + fav + (RAT[TEAMS[i]]!=null?RAT[TEAMS[i]]:MEAN)*1e-6;
+function seedOf(conf,winners,W,dW,cW,ti){ const s=seedConference(conf,winners,W,dW,cW); return (ti in s)?s[ti]:MISS; }
+function recordsSkip(winners,skip){ const W=new Float64Array(NT),dW=new Float64Array(NT),cW=new Float64Array(NT);
+  for(let gi=0;gi<NG;gi++){ if(skip.has(gi)) continue; const w=winners[gi]; if(w<0) continue; W[w]++; if(GAMES[gi].isDiv) dW[w]++; if(GAMES[gi].isConf) cW[w]++; } return [W,dW,cW]; }
+
+// Best (wantMin) or worst seed `ti` can reach. Games vs ti are fixed win/lose;
+// games between two contenders are enumerated; others fixed favorably/not.
+function searchExtreme(base, ti, conf, openIdx, cset, teamWinsOut, wantMin){
+  const winners=base.slice(), mutual=[];
+  for(const gi of openIdx){ const g=GAMES[gi], h=g.hi, a=g.ai;
+    if(h===ti||a===ti){ winners[gi]= teamWinsOut?ti:(h===ti?a:h); }
+    else if(cset.has(h)&&cset.has(a)){ mutual.push(gi); }
+    else { const cs= cset.has(h)?h:(cset.has(a)?a:-1), os= cs===h?a:h; winners[gi]= cs<0?h:(wantMin?os:cs); } }
+  const m=mutual.length; if(m>SEARCH_CAP) return null;
+  const skip=new Set(mutual); const [W0,dW0,cW0]=recordsSkip(winners,skip);
+  const mg=mutual.map(gi=>[gi,GAMES[gi].hi,GAMES[gi].ai,GAMES[gi].isDiv,GAMES[gi].isConf]);
+  let extreme=null;
+  for(let bits=0; bits<(1<<m); bits++){
+    const W=W0.slice(),dW=dW0.slice(),cW=cW0.slice();
+    for(let k=0;k<m;k++){ const e=mg[k], w=((bits>>k)&1)?e[1]:e[2]; winners[e[0]]=w; W[w]++; if(e[3]) dW[w]++; if(e[4]) cW[w]++; }
+    const sd=seedOf(conf,winners,W,dW,cW,ti);
+    if(extreme===null || (wantMin? sd<extreme : sd>extreme)) extreme=sd;
+    if(wantMin && extreme===1) break;
+    if(!wantMin && extreme===MISS) break;
   }
-  return sc;
+  return extreme;
 }
-function seedsDet(score){
-  const fs = new Int8Array(NT);
-  for(let ci=0;ci<CONFS.length;ci++){
-    const c=CONFS[ci], divs=CONF_DIVS[c], dw=[];
-    for(let d=0;d<divs.length;d++){
-      let best=divs[d][0];
-      for(let j=1;j<divs[d].length;j++) if(score[divs[d][j]]>score[best]) best=divs[d][j];
-      dw.push(best);
-    }
-    const dwset=new Set(dw);
-    dw.sort((a,b)=>score[b]-score[a]);
-    for(let r=0;r<dw.length;r++) fs[dw[r]]=r+1;
-    const pool=CONF_IDX[c].filter(ti=>!dwset.has(ti)).sort((a,b)=>score[b]-score[a]);
-    for(let w=0;w<WCS;w++) fs[pool[w]]=DWS+w+1;
-  }
-  return fs;
-}
-// stronger team = (more base wins, then higher Elo)
-function strongerHome(g){
-  const sh=BASEWINS[g.hi], sa=BASEWINS[g.ai];
-  if(sh!==sa) return sh>sa;
-  return (RAT[TEAMS[g.hi]]||MEAN) >= (RAT[TEAMS[g.ai]]||MEAN);
-}
-function seedBounds(team, forced){
-  const ti=TIDX[team];
-  // favorable: team wins its open games; weaker side wins elsewhere
-  const wb=new Float64Array(NT);
-  for(let i=0;i<NT;i++) wb[i]=BASEWINS[i];
-  OPEN.forEach(g=>{
-    const f=forced[g.id];
-    let w = f==="home"?g.hi : f==="away"?g.ai
-          : (g.hi===ti||g.ai===ti)? ti : (strongerHome(g)?g.ai:g.hi);
-    wb[w]++;
-  });
-  const best0 = seedsDet(scoreFromWins(wb,ti,true))[ti];
-  const best = best0>=1?best0:MISS;
-  // unfavorable: team loses its open games; stronger side wins elsewhere
-  const ww=new Float64Array(NT);
-  for(let i=0;i<NT;i++) ww[i]=BASEWINS[i];
-  OPEN.forEach(g=>{
-    const f=forced[g.id];
-    let w = f==="home"?g.hi : f==="away"?g.ai
-          : g.hi===ti? g.ai : g.ai===ti? g.hi : (strongerHome(g)?g.hi:g.ai);
-    ww[w]++;
-  });
-  const worst0 = seedsDet(scoreFromWins(ww,ti,false))[ti];
-  const worst = worst0>=1?worst0:MISS;
-  return [best, worst];
-}
-// achievable seed set = contrived best..worst range U seeds hit in the live sim
-function achievableFor(team, forced, odds){
-  const [best,worst]=seedBounds(team, forced);
-  const set=new Set();
-  for(let s=best;s<=worst;s++) set.add(s);
-  for(let s=0;s<NSEED;s++) if(odds.seed_probs[s]>0) set.add(s+1);
-  if(odds.miss>0) set.add(MISS);
+function achievableSeeds(base, ti, mcSeeds){
+  const conf=TEAMCONFI[ti], confteams=CONF_IDX[conf];
+  const openIdx=[]; for(let gi=0;gi<NG;gi++) if(base[gi]<0) openIdx.push(gi);
+  const cw={}; confteams.forEach(t=>cw[t]=0);
+  for(let gi=0;gi<NG;gi++){ const w=base[gi]; if(w>=0 && (w in cw)) cw[w]++; }
+  const line=confteams.map(t=>cw[t]).sort((a,b)=>b-a)[6];
+  const myDiv=TEAMDIV[ti];
+  const cset=new Set(confteams.filter(t=>t!==ti && (Math.abs(cw[t]-line)<=2 || TEAMDIV[t]===myDiv)));
+  const best=searchExtreme(base,ti,conf,openIdx,cset,true,true);
+  const worst=searchExtreme(base,ti,conf,openIdx,cset,false,false);
+  const set=new Set(mcSeeds);
+  if(best===null||worst===null){ for(let s=1;s<=MISS;s++) set.add(s); }
+  else { for(let s=best;s<=worst;s++) set.add(s); }
   return [...set].sort((a,b)=>a-b);
+}
+// achievable seed set for the focal team given played + user-forced results
+function achievableFor(team, forced, odds){
+  const base=new Int32Array(NG).fill(-1);
+  for(let gi=0;gi<NG;gi++){ if(GAMES[gi].fixed>=0) base[gi]=GAMES[gi].fixed;
+    const f=forced[GAMES[gi].id]; if(f) base[gi]= f==="home"?GAMES[gi].hi:GAMES[gi].ai; }
+  const mc=[]; for(let s=0;s<NSEED;s++) if(odds.seed_probs[s]>0) mc.push(s+1); if(odds.miss>0) mc.push(MISS);
+  return achievableSeeds(base, TIDX[team], mc);
 }
 
 /* ----------------------- team detail modal ----------------------- */
-const PANEL_SIMS = 8000;
+const PANEL_SIMS = 5000;
 let activeTeam=null, forced={}, baseOdds=null;
 
 function teamSchedule(team){
@@ -472,15 +459,28 @@ function teamSchedule(team){
 }
 function nForced(){ return Object.keys(forced).length; }
 
+// Heavy sims block the main thread, so paint a "simulating" state first and
+// defer the work one tick so the spinner is visible.
+function calcBadge(on){
+  let b=document.getElementById("calcbadge");
+  if(on){ if(!b){ b=document.createElement("div"); b.id="calcbadge";
+    b.textContent="simulating "+PANEL_SIMS.toLocaleString()+" seasons…";
+    (document.querySelector(".modal")||document.body).appendChild(b); } }
+  else if(b) b.remove();
+}
+function deferCompute(fn){ calcBadge(true); setTimeout(()=>{ try{ fn(); } finally { calcBadge(false); } }, 16); }
+
 function openTeam(team){
   activeTeam=team; forced={};
-  baseOdds = simulate(PANEL_SIMS, {})[team];   // live no-toggle baseline
-  renderModal(baseOdds);
+  document.getElementById("modal-body").innerHTML =
+    `<div class="modal-h"><h2>${tname(team)}</h2><button class="x" onclick="closeModal()">&times;</button></div>`+
+    `<div class="modal-b"><div class="calc">simulating ${PANEL_SIMS.toLocaleString()} seasons…</div></div>`;
   document.getElementById("modal").style.display="flex";
+  deferCompute(()=>{ baseOdds = simulate(PANEL_SIMS, {})[team]; renderModal(baseOdds); });
 }
 function closeModal(){
   document.getElementById("modal").style.display="none";
-  activeTeam=null; forced={};
+  calcBadge(false); activeTeam=null; forced={};
 }
 function resetToggles(){ forced={}; renderModal(baseOdds); }
 
@@ -490,9 +490,8 @@ function setToggle(gid, choice){
   if(choice==="auto") delete forced[gid];
   else if(choice==="win") forced[gid] = isHome?"home":"away";
   else forced[gid] = isHome?"away":"home";
-  // recompute under current forcing and re-render
-  const cur = nForced() ? simulate(PANEL_SIMS, forced)[activeTeam] : baseOdds;
-  renderModal(cur);
+  renderModal(baseOdds);   // instant repaint so the toggle state shows immediately
+  if(nForced()) deferCompute(()=>{ renderModal(simulate(PANEL_SIMS, forced)[activeTeam]); });
 }
 
 function delta(cur, base){
@@ -605,8 +604,9 @@ function render(){
   document.getElementById("foot").innerHTML =
     `Seeds 1&ndash;${DATA.seeds_per_conf} per conference (top ${DATA.seeds_per_conf-3} are division winners). `+
     `Win probabilities come from historical Elo ratings (K-factor with margin-of-victory scaling, home-field edge, and preseason regression toward the mean). `+
-    `Each simulated season plays out every remaining game, applies the league seeding rules, then runs the playoff bracket. `+
-    `Click any team to open its schedule and toggle remaining games to Win/Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser and shows how the odds shift. `+
+    `Each simulated season plays out every remaining game and is seeded with the real NFL tiebreakers (head-to-head, division, common games, conference record, strength of victory/schedule), then runs the playoff bracket. `+
+    `<b>X</b>/<b>^</b> use a tiebreaker-aware feasibility search that accounts for how games interact &mdash; e.g. knocking out the current #7 seed lifts whoever beats them. `+
+    `Click any team to open its schedule and toggle remaining games to Win/Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser (with the same tiebreakers) and shows how the odds shift. `+
     `Generated by <code>sports_elo.py</code>.`;
 }
 render();
