@@ -62,8 +62,11 @@ def run():
     return records
 
 
-def evaluate(records):
-    # Per game derive model favorite, vegas favorite, and outcome.
+def opp(side):
+    return "away" if side == "home" else "home"
+
+
+def annotate(records):
     for g in records:
         g["tie"] = g["hs"] == g["as"]
         g["home_won"] = g["hs"] > g["as"]
@@ -77,59 +80,117 @@ def evaluate(records):
         g["disagree"] = (g["model_fav"] is not None and g["vegas_fav"] is not None
                          and g["model_fav"] != g["vegas_fav"])
 
-    def bet_side(g, side):
-        """Settle a $100 bet on `side` ('home'/'away'). Returns profit (push=0)."""
-        if g["tie"]:
-            return 0.0
-        ml = g["home_ml"] if side == "home" else g["away_ml"]
-        won = g["home_won"] if side == "home" else (not g["home_won"])
-        return moneyline_profit(ml) if won else -STAKE
 
-    def opp(side):
-        return "away" if side == "home" else "home"
+def bet_side(g, side):
+    """Settle a $100 bet on `side`. Returns profit (push -> 0)."""
+    if g["tie"]:
+        return 0.0
+    ml = g["home_ml"] if side == "home" else g["away_ml"]
+    won = g["home_won"] if side == "home" else (not g["home_won"])
+    return moneyline_profit(ml) if won else -STAKE
 
-    strategies = {
-        "a) $100 on model pick, only when model & Vegas disagree":
-            [(g, g["model_fav"]) for g in records if g["disagree"]],
-        "b) $100 on model's favorite, every game":
-            [(g, g["model_fav"]) for g in records if g["model_fav"]],
-        "c) $100 against model (= Vegas pick), only on disagreements":
-            [(g, opp(g["model_fav"])) for g in records if g["disagree"]],
-        "d) $100 against model's favorite, every game":
-            [(g, opp(g["model_fav"])) for g in records if g["model_fav"]],
-    }
 
+def strat_bets(records, key):
+    """(game, side) pairs for strategy a/b/c/d over `records`."""
+    if key == "a":  # model pick, disagreements only
+        return [(g, g["model_fav"]) for g in records if g["disagree"]]
+    if key == "b":  # model favorite, every game
+        return [(g, g["model_fav"]) for g in records if g["model_fav"]]
+    if key == "c":  # against model, disagreements only
+        return [(g, opp(g["model_fav"])) for g in records if g["disagree"]]
+    if key == "d":  # against model, every game
+        return [(g, opp(g["model_fav"])) for g in records if g["model_fav"]]
+    if key == "e":  # agreed favorite, only when model & Vegas agree
+        return [(g, g["model_fav"]) for g in records
+                if g["model_fav"] and g["vegas_fav"] and g["model_fav"] == g["vegas_fav"]]
+
+
+def tally(bets):
+    """-> (n, win%, net, roi%) for a list of (game, side) bets."""
+    settled = [(g, s) for (g, s) in bets if not g["tie"]]
+    net = sum(bet_side(g, s) for (g, s) in bets)
+    wins = sum(1 for (g, s) in settled
+               if (g["home_won"] if s == "home" else not g["home_won"]))
+    staked = STAKE * len(settled)
+    winpct = (wins / len(settled) * 100) if settled else 0.0
+    roi = (net / staked * 100) if staked else 0.0
+    return len(bets), winpct, net, roi
+
+
+def acc(records, fav_key):
+    sub = [g for g in records if g[fav_key] and not g["tie"]]
+    if not sub:
+        return float("nan")
+    return 100 * np.mean([(g[fav_key] == "home") == g["home_won"] for g in sub])
+
+
+def evaluate(records):
+    annotate(records)
     print(f"\nWalk-forward backtest 2023-2025  |  {len(records)} games "
           f"(incl. playoffs), Elo built from 2018\n" + "=" * 78)
-
-    # Reference accuracy.
-    mf = [g for g in records if g["model_fav"] and not g["tie"]]
-    macc = np.mean([(g["model_fav"] == "home") == g["home_won"] for g in mf])
-    vf = [g for g in records if g["vegas_fav"] and not g["tie"]]
-    vacc = np.mean([(g["vegas_fav"] == "home") == g["home_won"] for g in vf])
+    print(f"Model straight-up accuracy: {acc(records,'model_fav'):5.1f}%   "
+          f"Vegas favorite accuracy: {acc(records,'vegas_fav'):5.1f}%")
     ndis = sum(g["disagree"] for g in records)
-    print(f"Model straight-up accuracy: {macc*100:5.1f}%   "
-          f"Vegas favorite accuracy: {vacc*100:5.1f}%")
-    print(f"Games where model & Vegas disagree on the favorite: {ndis} "
-          f"of {len(records)} ({ndis/len(records)*100:.1f}%)\n")
-
+    print(f"Disagreements on the favorite: {ndis} of {len(records)} "
+          f"({ndis/len(records)*100:.1f}%)\n")
     print(f"{'strategy':56} {'bets':>4} {'win%':>6} {'P/L $':>10} {'ROI':>7}")
     print("-" * 88)
-    for name, bets in strategies.items():
-        settled = [(g, s) for (g, s) in bets if not g["tie"]]
-        profits = [bet_side(g, s) for (g, s) in bets]
-        wins = sum(1 for (g, s) in settled
-                   if (g["home_won"] if s == "home" else not g["home_won"]))
-        n = len(bets)
-        staked = STAKE * len(settled)  # pushes refunded, not staked
-        net = sum(profits)
-        winpct = (wins / len(settled) * 100) if settled else 0.0
-        roi = (net / staked * 100) if staked else 0.0
-        print(f"{name:56} {n:>4} {winpct:>5.1f}% {net:>+10.0f} {roi:>+6.1f}%")
-    print("-" * 88)
-    print("ROI = net profit / total staked. (a)&(c) are opposite sides of the same\n"
-          "disagreement games; (b)&(d) are opposite sides of every game.")
+    names = {
+        "a": "a) $100 on model pick, only when model & Vegas disagree",
+        "b": "b) $100 on model's favorite, every game",
+        "c": "c) $100 against model (= Vegas pick), only on disagreements",
+        "d": "d) $100 against model's favorite, every game",
+        "e": "e) $100 on the agreed favorite, only when model & Vegas agree",
+    }
+    for k in "abcde":
+        n, wp, net, roi = tally(strat_bets(records, k))
+        print(f"{names[k]:56} {n:>4} {wp:>5.1f}% {net:>+10.0f} {roi:>+6.1f}%")
+
+
+def by_season(records):
+    print("\n\nBY SEASON  (ROI per strategy; e = bet agreed favorite on agreements)\n"
+          + "=" * 84)
+    print(f"{'season':7} {'games':>5} {'mdlAcc':>7} {'vegAcc':>7} "
+          f"{'a ROI':>7} {'b ROI':>7} {'c ROI':>7} {'d ROI':>7} {'e ROI':>7} {'e P/L':>9}")
+    print("-" * 84)
+    for yr in (2023, 2024, 2025, None):
+        sub = records if yr is None else [g for g in records if g["year"] == yr]
+        r = {k: tally(strat_bets(sub, k)) for k in "abcde"}
+        label = "ALL" if yr is None else str(yr)
+        print(f"{label:7} {len(sub):>5} {acc(sub,'model_fav'):>6.1f}% "
+              f"{acc(sub,'vegas_fav'):>6.1f}% "
+              f"{r['a'][3]:>+6.1f}% {r['b'][3]:>+6.1f}% {r['c'][3]:>+6.1f}% "
+              f"{r['d'][3]:>+6.1f}% {r['e'][3]:>+6.1f}% {r['e'][2]:>+9.0f}")
+
+
+def by_team(records):
+    print("\n\nBY TEAM  (games involving the team; bet the model's favorite each one)\n"
+          + "=" * 78)
+    teams = sorted({t for g in records for t in (g["home"], g["away"])})
+    rows = []
+    for t in teams:
+        sub = [g for g in records if g["home"] == t or g["away"] == t]
+        n, wp, net, roi = tally(strat_bets(sub, "b"))
+        _, _, dnet, _ = tally(strat_bets(sub, "a"))      # disagreement subset
+        nag, _, enet, eroi = tally(strat_bets(sub, "e")) # agreement subset
+        ndis = sum(g["disagree"] for g in sub)
+        rows.append((t, n, wp, net, roi, ndis, dnet, nag, enet, eroi))
+    rows.sort(key=lambda r: -r[3])  # by net P/L of strategy b
+    print(f"{'team':4} {'G':>3} {'win%':>6} {'bet-model P/L':>13} {'ROI':>7}   "
+          f"{'agree':>5} {'agree P/L':>9}  {'disagr':>6} {'disagr P/L':>10}")
+    print("-" * 84)
+    for t, n, wp, net, roi, ndis, dnet, nag, enet, eroi in rows:
+        flag = "  <==" if net > 0 else ""
+        print(f"{t:4} {n:>3} {wp:>5.1f}% {net:>+13.0f} {roi:>+6.1f}%   "
+              f"{nag:>5} {enet:>+9.0f}  {ndis:>6} {dnet:>+10.0f}{flag}")
+    nprof = sum(1 for r in rows if r[3] > 0)
+    print("-" * 78)
+    print(f"{nprof} of {len(rows)} teams profitable for 'bet the model's favorite'. "
+          f"~{len(records)*2//len(rows)} bets/team -> small samples, expect noise.")
 
 
 if __name__ == "__main__":
-    evaluate(run())
+    recs = run()
+    evaluate(recs)
+    by_season(recs)
+    by_team(recs)
