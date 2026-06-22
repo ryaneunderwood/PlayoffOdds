@@ -142,14 +142,14 @@
       "proj_wins": 12.1,
       "seed_probs": [
         40.1,
-        14.8,
-        5.7,
-        1.3,
-        18.3,
-        8.1,
-        4.8
+        14.7,
+        5.6,
+        1.4,
+        18.7,
+        8.2,
+        4.6
       ],
-      "miss": 6.8,
+      "miss": 6.7,
       "ach": [
         1,
         2,
@@ -160,10 +160,10 @@
         7,
         8
       ],
-      "make_playoffs": 93.2,
-      "win_div": 62.0,
+      "make_playoffs": 93.3,
+      "win_div": 61.8,
       "win_conf": 36.4,
-      "win_title": 22.4
+      "win_title": 22.9
     },
     {
       "team": "HOU",
@@ -172,15 +172,15 @@
       "elo": 1600,
       "proj_wins": 11.0,
       "seed_probs": [
-        22.2,
-        17.3,
-        12.1,
-        8.6,
-        11.0,
-        8.0,
+        22.3,
+        17.0,
+        12.6,
+        9.2,
+        10.9,
+        7.5,
         5.7
       ],
-      "miss": 15.1,
+      "miss": 14.7,
       "ach": [
         1,
         2,
@@ -191,10 +191,10 @@
         7,
         8
       ],
-      "make_playoffs": 84.9,
-      "win_div": 60.2,
-      "win_conf": 19.5,
-      "win_title": 10.0
+      "make_playoffs": 85.3,
+      "win_div": 61.1,
+      "win_conf": 18.9,
+      "win_title": 9.3
     },
     {
       "team": "DEN",
@@ -203,15 +203,15 @@
       "elo": 1603,
       "proj_wins": 10.8,
       "seed_probs": [
-        18.6,
+        19.2,
         17.1,
-        16.1,
-        14.9,
+        15.8,
+        13.5,
+        6.3,
         5.8,
-        5.7,
-        5.0
+        5.4
       ],
-      "miss": 16.7,
+      "miss": 16.9,
       "ach": [
         1,
         2,
@@ -222,10 +222,41 @@
         7,
         8
       ],
-      "make_playoffs": 83.3,
-      "win_div": 66.7,
-      "win_conf": 19.4,
+      "make_playoffs": 83.1,
+      "win_div": 65.6,
+      "win_conf": 19.3,
       "win_title": 10.1
+    },
+    {
+      "team": "BUF",
+      "conf": "AFC",
+      "div": "AFC East",
+      "elo": 1608,
+      "proj_wins": 10.6,
+      "seed_probs": [
+        16.7,
+        14.4,
+        12.6,
+        9.8,
+        12.2,
+        8.9,
+        6.5
+      ],
+      "miss": 19.0,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 81.0,
+      "win_div": 53.5,
+      "win_conf": 18.2,
+      "win_title": 9.4
     },
     {
       "team": "PHI",
@@ -234,13 +265,13 @@
       "elo": 1572,
       "proj_wins": 10.5,
       "seed_probs": [
-        12.7,
-        18.0,
-        25.6,
-        16.2,
-        1.6,
-        2.8,
-        3.2
+        12.9,
+        18.3,
+        25.1,
+        15.8,
+        1.8,
+        2.6,
+        3.6
       ],
       "miss": 20.0,
       "ach": [
@@ -254,40 +285,9 @@
         8
       ],
       "make_playoffs": 80.0,
-      "win_div": 72.5,
-      "win_conf": 13.3,
+      "win_div": 72.1,
+      "win_conf": 13.2,
       "win_title": 6.6
-    },
-    {
-      "team": "BUF",
-      "conf": "AFC",
-      "div": "AFC East",
-      "elo": 1608,
-      "proj_wins": 10.6,
-      "seed_probs": [
-        16.2,
-        14.2,
-        12.5,
-        10.4,
-        11.4,
-        8.5,
-        6.6
-      ],
-      "miss": 20.2,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 79.8,
-      "win_div": 53.3,
-      "win_conf": 17.8,
-      "win_title": 9.0
     },
     {
       "team": "LA",
@@ -296,15 +296,15 @@
       "elo": 1607,
       "proj_wins": 10.6,
       "seed_probs": [
-        13.9,
-        7.4,
-        3.1,
-        0.8,
-        25.9,
-        15.2,
-        10.0
+        14.1,
+        7.2,
+        3.2,
+        1.0,
+        25.5,
+        15.0,
+        10.1
       ],
-      "miss": 23.7,
+      "miss": 23.8,
       "ach": [
         1,
         2,
@@ -315,9 +315,9 @@
         7,
         8
       ],
-      "make_playoffs": 76.3,
-      "win_div": 25.2,
-      "win_conf": 14.3,
+      "make_playoffs": 76.2,
+      "win_div": 25.5,
+      "win_conf": 14.2,
       "win_title": 7.8
     },
     {
@@ -327,46 +327,15 @@
       "elo": 1586,
       "proj_wins": 10.1,
       "seed_probs": [
-        11.1,
-        10.4,
-        10.4,
-        9.2,
-        12.7,
-        10.0,
-        8.5
-      ],
-      "miss": 27.7,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 72.3,
-      "win_div": 41.0,
-      "win_conf": 12.1,
-      "win_title": 5.9
-    },
-    {
-      "team": "BAL",
-      "conf": "AFC",
-      "div": "AFC North",
-      "elo": 1545,
-      "proj_wins": 9.9,
-      "seed_probs": [
-        9.6,
         11.4,
+        11.4,
+        10.1,
+        8.3,
         13.4,
-        13.8,
-        6.7,
-        7.4,
-        7.7
+        10.8,
+        8.4
       ],
-      "miss": 30.0,
+      "miss": 26.2,
       "ach": [
         1,
         2,
@@ -377,10 +346,10 @@
         7,
         8
       ],
-      "make_playoffs": 70.0,
-      "win_div": 48.2,
-      "win_conf": 8.7,
-      "win_title": 3.7
+      "make_playoffs": 73.8,
+      "win_div": 41.2,
+      "win_conf": 12.7,
+      "win_title": 6.0
     },
     {
       "team": "DET",
@@ -389,15 +358,15 @@
       "elo": 1557,
       "proj_wins": 10.2,
       "seed_probs": [
-        9.3,
-        15.8,
-        9.7,
+        8.8,
+        15.4,
+        9.5,
         3.9,
-        9.1,
-        11.1,
-        10.3
+        8.7,
+        11.9,
+        10.5
       ],
-      "miss": 30.8,
+      "miss": 31.2,
       "ach": [
         1,
         2,
@@ -408,10 +377,41 @@
         7,
         8
       ],
-      "make_playoffs": 69.2,
-      "win_div": 38.8,
-      "win_conf": 9.0,
+      "make_playoffs": 68.8,
+      "win_div": 37.7,
+      "win_conf": 8.9,
       "win_title": 4.2
+    },
+    {
+      "team": "BAL",
+      "conf": "AFC",
+      "div": "AFC North",
+      "elo": 1545,
+      "proj_wins": 9.9,
+      "seed_probs": [
+        8.7,
+        11.2,
+        13.1,
+        14.8,
+        6.2,
+        7.2,
+        7.4
+      ],
+      "miss": 31.5,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 68.5,
+      "win_div": 47.8,
+      "win_conf": 8.4,
+      "win_title": 3.6
     },
     {
       "team": "JAX",
@@ -420,15 +420,15 @@
       "elo": 1560,
       "proj_wins": 9.8,
       "seed_probs": [
-        9.1,
-        8.6,
+        8.3,
+        8.2,
         7.1,
-        6.1,
-        14.8,
-        11.7,
-        9.7
+        6.6,
+        15.6,
+        12.0,
+        9.5
       ],
-      "miss": 32.9,
+      "miss": 32.7,
       "ach": [
         1,
         2,
@@ -439,27 +439,27 @@
         7,
         8
       ],
-      "make_playoffs": 67.1,
-      "win_div": 30.9,
-      "win_conf": 8.8,
-      "win_title": 3.9
+      "make_playoffs": 67.3,
+      "win_div": 30.2,
+      "win_conf": 8.3,
+      "win_title": 3.7
     },
     {
       "team": "MIN",
       "conf": "NFC",
       "div": "NFC North",
       "elo": 1548,
-      "proj_wins": 9.7,
+      "proj_wins": 9.8,
       "seed_probs": [
-        6.9,
-        12.1,
-        7.8,
-        3.2,
-        8.5,
-        11.3,
-        10.8
+        6.8,
+        11.8,
+        8.1,
+        3.5,
+        8.8,
+        11.1,
+        11.2
       ],
-      "miss": 39.4,
+      "miss": 38.7,
       "ach": [
         1,
         2,
@@ -470,10 +470,10 @@
         7,
         8
       ],
-      "make_playoffs": 60.6,
-      "win_div": 30.0,
-      "win_conf": 7.1,
-      "win_title": 3.1
+      "make_playoffs": 61.3,
+      "win_div": 30.2,
+      "win_conf": 7.0,
+      "win_title": 3.2
     },
     {
       "team": "SF",
@@ -482,15 +482,15 @@
       "elo": 1554,
       "proj_wins": 9.5,
       "seed_probs": [
-        6.3,
-        3.6,
-        2.1,
+        6.1,
+        3.8,
+        2.0,
         0.5,
-        16.7,
-        15.5,
+        16.4,
+        15.0,
         12.4
       ],
-      "miss": 42.8,
+      "miss": 43.7,
       "ach": [
         1,
         2,
@@ -501,9 +501,9 @@
         7,
         8
       ],
-      "make_playoffs": 57.1,
-      "win_div": 12.5,
-      "win_conf": 5.9,
+      "make_playoffs": 56.3,
+      "win_div": 12.4,
+      "win_conf": 5.8,
       "win_title": 2.7
     },
     {
@@ -511,15 +511,15 @@
       "conf": "AFC",
       "div": "AFC North",
       "elo": 1511,
-      "proj_wins": 8.8,
+      "proj_wins": 8.9,
       "seed_probs": [
         3.7,
+        5.8,
+        7.2,
+        9.6,
         5.6,
-        7.0,
-        8.6,
-        6.6,
-        8.0,
-        8.4
+        7.5,
+        8.6
       ],
       "miss": 52.0,
       "ach": [
@@ -533,24 +533,24 @@
         8
       ],
       "make_playoffs": 48.0,
-      "win_div": 24.9,
-      "win_conf": 3.6,
-      "win_title": 1.3
+      "win_div": 26.3,
+      "win_conf": 3.8,
+      "win_title": 1.5
     },
     {
-      "team": "GB",
+      "team": "TB",
       "conf": "NFC",
-      "div": "NFC North",
-      "elo": 1530,
-      "proj_wins": 9.0,
+      "div": "NFC South",
+      "elo": 1484,
+      "proj_wins": 8.4,
       "seed_probs": [
-        3.2,
-        7.0,
-        5.0,
-        2.4,
-        6.6,
-        10.1,
-        11.0
+        2.1,
+        5.2,
+        10.0,
+        20.5,
+        1.2,
+        2.6,
+        3.8
       ],
       "miss": 54.7,
       "ach": [
@@ -564,26 +564,26 @@
         8
       ],
       "make_playoffs": 45.3,
-      "win_div": 17.6,
-      "win_conf": 3.9,
-      "win_title": 1.7
+      "win_div": 37.7,
+      "win_conf": 2.6,
+      "win_title": 0.9
     },
     {
-      "team": "TB",
+      "team": "GB",
       "conf": "NFC",
-      "div": "NFC South",
-      "elo": 1484,
-      "proj_wins": 8.4,
+      "div": "NFC North",
+      "elo": 1530,
+      "proj_wins": 8.9,
       "seed_probs": [
-        1.8,
-        4.9,
-        9.7,
-        20.9,
-        1.0,
-        2.4,
-        4.0
+        3.0,
+        7.2,
+        5.5,
+        2.2,
+        6.4,
+        10.0,
+        10.9
       ],
-      "miss": 55.3,
+      "miss": 54.8,
       "ach": [
         1,
         2,
@@ -594,10 +594,10 @@
         7,
         8
       ],
-      "make_playoffs": 44.7,
-      "win_div": 37.3,
-      "win_conf": 2.5,
-      "win_title": 0.9
+      "make_playoffs": 45.2,
+      "win_div": 17.9,
+      "win_conf": 4.1,
+      "win_title": 1.8
     },
     {
       "team": "LAC",
@@ -606,46 +606,15 @@
       "elo": 1525,
       "proj_wins": 8.6,
       "seed_probs": [
-        2.8,
-        3.8,
-        5.1,
-        6.1,
-        7.1,
-        8.3,
-        9.2
-      ],
-      "miss": 57.6,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 42.4,
-      "win_div": 17.8,
-      "win_conf": 3.4,
-      "win_title": 1.4
-    },
-    {
-      "team": "CIN",
-      "conf": "AFC",
-      "div": "AFC North",
-      "elo": 1476,
-      "proj_wins": 8.4,
-      "seed_probs": [
-        2.4,
+        3.1,
         4.0,
-        5.7,
-        7.2,
         5.2,
-        6.9,
-        8.2
+        6.4,
+        7.5,
+        8.4,
+        9.4
       ],
-      "miss": 60.3,
+      "miss": 56.0,
       "ach": [
         1,
         2,
@@ -656,10 +625,10 @@
         7,
         8
       ],
-      "make_playoffs": 39.7,
-      "win_div": 19.3,
-      "win_conf": 2.0,
-      "win_title": 0.7
+      "make_playoffs": 44.0,
+      "win_div": 18.7,
+      "win_conf": 3.7,
+      "win_title": 1.4
     },
     {
       "team": "CHI",
@@ -668,13 +637,75 @@
       "elo": 1523,
       "proj_wins": 8.6,
       "seed_probs": [
-        2.4,
+        2.5,
+        5.6,
+        4.1,
+        1.9,
+        5.3,
+        8.8,
+        10.1
+      ],
+      "miss": 61.7,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 38.3,
+      "win_div": 14.2,
+      "win_conf": 3.1,
+      "win_title": 1.3
+    },
+    {
+      "team": "KC",
+      "conf": "AFC",
+      "div": "AFC West",
+      "elo": 1502,
+      "proj_wins": 8.4,
+      "seed_probs": [
+        2.2,
+        3.3,
+        4.4,
+        5.2,
+        6.5,
+        7.9,
+        8.8
+      ],
+      "miss": 61.7,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 38.3,
+      "win_div": 15.1,
+      "win_conf": 2.5,
+      "win_title": 0.9
+    },
+    {
+      "team": "CIN",
+      "conf": "AFC",
+      "div": "AFC North",
+      "elo": 1476,
+      "proj_wins": 8.4,
+      "seed_probs": [
+        2.0,
+        3.5,
         5.5,
-        3.9,
-        1.8,
-        5.5,
-        8.9,
-        10.2
+        7.6,
+        4.8,
+        6.7,
+        8.2
       ],
       "miss": 61.8,
       "ach": [
@@ -688,40 +719,9 @@
         8
       ],
       "make_playoffs": 38.2,
-      "win_div": 13.6,
-      "win_conf": 3.2,
-      "win_title": 1.4
-    },
-    {
-      "team": "KC",
-      "conf": "AFC",
-      "div": "AFC West",
-      "elo": 1502,
-      "proj_wins": 8.4,
-      "seed_probs": [
-        1.9,
-        3.2,
-        4.2,
-        5.6,
-        6.5,
-        7.9,
-        8.6
-      ],
-      "miss": 62.0,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 38.0,
-      "win_div": 14.9,
-      "win_conf": 2.5,
-      "win_title": 0.9
+      "win_div": 18.6,
+      "win_conf": 1.9,
+      "win_title": 0.6
     },
     {
       "team": "ATL",
@@ -730,15 +730,15 @@
       "elo": 1467,
       "proj_wins": 8.0,
       "seed_probs": [
-        1.2,
-        3.4,
+        1.3,
+        3.5,
         7.7,
-        16.6,
-        1.0,
+        16.8,
+        1.1,
         2.6,
-        3.7
+        3.8
       ],
-      "miss": 64.0,
+      "miss": 63.1,
       "ach": [
         1,
         2,
@@ -749,10 +749,10 @@
         7,
         8
       ],
-      "make_playoffs": 36.0,
-      "win_div": 28.8,
-      "win_conf": 1.5,
-      "win_title": 0.5
+      "make_playoffs": 36.9,
+      "win_div": 29.4,
+      "win_conf": 1.7,
+      "win_title": 0.6
     },
     {
       "team": "IND",
@@ -762,14 +762,14 @@
       "proj_wins": 7.9,
       "seed_probs": [
         1.4,
-        2.1,
-        2.3,
-        2.6,
-        5.9,
-        7.3,
-        8.3
+        1.9,
+        2.5,
+        2.4,
+        5.4,
+        7.0,
+        8.1
       ],
-      "miss": 70.2,
+      "miss": 71.3,
       "ach": [
         1,
         2,
@@ -780,10 +780,10 @@
         7,
         8
       ],
-      "make_playoffs": 29.8,
-      "win_div": 8.3,
-      "win_conf": 1.2,
-      "win_title": 0.4
+      "make_playoffs": 28.7,
+      "win_div": 8.1,
+      "win_conf": 1.1,
+      "win_title": 0.3
     },
     {
       "team": "NO",
@@ -792,15 +792,15 @@
       "elo": 1433,
       "proj_wins": 7.6,
       "seed_probs": [
-        0.7,
-        2.4,
-        5.9,
-        14.3,
+        0.6,
+        2.3,
+        5.5,
+        13.0,
         0.8,
-        2.0,
-        3.7
+        1.9,
+        3.3
       ],
-      "miss": 70.3,
+      "miss": 72.6,
       "ach": [
         1,
         2,
@@ -811,25 +811,25 @@
         7,
         8
       ],
-      "make_playoffs": 29.7,
-      "win_div": 23.3,
-      "win_conf": 0.9,
-      "win_title": 0.3
+      "make_playoffs": 27.4,
+      "win_div": 21.4,
+      "win_conf": 0.8,
+      "win_title": 0.2
     },
     {
-      "team": "WAS",
+      "team": "DAL",
       "conf": "NFC",
       "div": "NFC East",
-      "elo": 1455,
+      "elo": 1456,
       "proj_wins": 7.4,
       "seed_probs": [
-        0.7,
-        1.6,
+        0.6,
+        1.7,
+        4.4,
         4.3,
-        4.0,
-        1.8,
-        3.2,
-        4.8
+        1.6,
+        3.1,
+        4.7
       ],
       "miss": 79.5,
       "ach": [
@@ -843,26 +843,26 @@
         8
       ],
       "make_playoffs": 20.5,
-      "win_div": 10.7,
-      "win_conf": 0.7,
+      "win_div": 11.0,
+      "win_conf": 0.8,
       "win_title": 0.2
     },
     {
-      "team": "DAL",
+      "team": "WAS",
       "conf": "NFC",
       "div": "NFC East",
-      "elo": 1456,
+      "elo": 1455,
       "proj_wins": 7.4,
       "seed_probs": [
-        0.5,
-        1.7,
-        4.6,
-        4.2,
+        0.6,
         1.6,
-        3.1,
-        4.4
+        4.5,
+        4.3,
+        1.8,
+        3.0,
+        4.3
       ],
-      "miss": 80.0,
+      "miss": 79.9,
       "ach": [
         1,
         2,
@@ -873,7 +873,7 @@
         7,
         8
       ],
-      "make_playoffs": 20.0,
+      "make_playoffs": 20.1,
       "win_div": 11.0,
       "win_conf": 0.7,
       "win_title": 0.2
@@ -887,13 +887,13 @@
       "seed_probs": [
         0.5,
         1.2,
-        2.3,
-        3.5,
-        2.5,
-        4.0,
-        5.5
+        2.0,
+        3.6,
+        2.1,
+        3.9,
+        4.6
       ],
-      "miss": 80.4,
+      "miss": 82.1,
       "ach": [
         1,
         2,
@@ -904,9 +904,9 @@
         7,
         8
       ],
-      "make_playoffs": 19.6,
-      "win_div": 7.6,
-      "win_conf": 0.5,
+      "make_playoffs": 17.9,
+      "win_div": 7.3,
+      "win_conf": 0.4,
       "win_title": 0.1
     },
     {
@@ -918,13 +918,13 @@
       "seed_probs": [
         0.5,
         0.9,
-        1.4,
-        2.1,
-        2.7,
-        4.2,
-        5.0
+        1.3,
+        2.0,
+        2.8,
+        4.4,
+        5.8
       ],
-      "miss": 83.2,
+      "miss": 82.2,
       "ach": [
         1,
         2,
@@ -935,8 +935,8 @@
         7,
         8
       ],
-      "make_playoffs": 16.8,
-      "win_div": 4.9,
+      "make_playoffs": 17.8,
+      "win_div": 4.8,
       "win_conf": 0.6,
       "win_title": 0.2
     },
@@ -950,12 +950,12 @@
         0.2,
         0.9,
         2.4,
-        7.2,
-        0.4,
-        1.0,
+        8.1,
+        0.3,
+        1.1,
         2.0
       ],
-      "miss": 86.1,
+      "miss": 85.0,
       "ach": [
         1,
         2,
@@ -966,10 +966,10 @@
         7,
         8
       ],
-      "make_playoffs": 13.9,
-      "win_div": 10.6,
-      "win_conf": 0.3,
-      "win_title": 0.1
+      "make_playoffs": 15.0,
+      "win_div": 11.6,
+      "win_conf": 0.4,
+      "win_title": 0.2
     },
     {
       "team": "NYG",
@@ -980,13 +980,13 @@
       "seed_probs": [
         0.2,
         0.7,
-        2.4,
-        2.6,
-        0.7,
-        1.7,
+        2.2,
+        2.7,
+        0.9,
+        1.9,
         3.0
       ],
-      "miss": 88.6,
+      "miss": 88.4,
       "ach": [
         1,
         2,
@@ -997,9 +997,9 @@
         7,
         8
       ],
-      "make_playoffs": 11.4,
+      "make_playoffs": 11.6,
       "win_div": 5.9,
-      "win_conf": 0.2,
+      "win_conf": 0.3,
       "win_title": 0.1
     },
     {
@@ -1012,10 +1012,10 @@
         0.1,
         0.1,
         0.1,
-        0.1,
+        0.0,
         0.6,
         1.0,
-        1.7
+        1.8
       ],
       "miss": 96.3,
       "ach": [
@@ -1030,7 +1030,7 @@
       ],
       "make_playoffs": 3.7,
       "win_div": 0.3,
-      "win_conf": 0.0,
+      "win_conf": 0.1,
       "win_title": 0.0
     },
     {
@@ -1042,42 +1042,11 @@
       "seed_probs": [
         0.0,
         0.1,
-        0.1,
-        0.3,
-        0.4,
-        0.8,
-        1.4
-      ],
-      "miss": 96.8,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 3.2,
-      "win_div": 0.5,
-      "win_conf": 0.0,
-      "win_title": 0.0
-    },
-    {
-      "team": "NYJ",
-      "conf": "AFC",
-      "div": "AFC East",
-      "elo": 1360,
-      "proj_wins": 5.3,
-      "seed_probs": [
-        0.0,
-        0.0,
         0.2,
-        0.5,
+        0.3,
         0.3,
         0.7,
-        1.2
+        1.4
       ],
       "miss": 97.0,
       "ach": [
@@ -1091,26 +1060,26 @@
         8
       ],
       "make_playoffs": 3.0,
-      "win_div": 0.8,
+      "win_div": 0.6,
       "win_conf": 0.0,
       "win_title": 0.0
     },
     {
-      "team": "LV",
+      "team": "NYJ",
       "conf": "AFC",
-      "div": "AFC West",
-      "elo": 1350,
-      "proj_wins": 4.9,
+      "div": "AFC East",
+      "elo": 1360,
+      "proj_wins": 5.3,
       "seed_probs": [
         0.0,
         0.1,
         0.1,
-        0.4,
         0.3,
-        0.5,
-        0.9
+        0.3,
+        0.7,
+        1.3
       ],
-      "miss": 97.7,
+      "miss": 97.1,
       "ach": [
         1,
         2,
@@ -1121,7 +1090,38 @@
         7,
         8
       ],
-      "make_playoffs": 2.3,
+      "make_playoffs": 2.9,
+      "win_div": 0.6,
+      "win_conf": 0.0,
+      "win_title": 0.0
+    },
+    {
+      "team": "LV",
+      "conf": "AFC",
+      "div": "AFC West",
+      "elo": 1350,
+      "proj_wins": 5.0,
+      "seed_probs": [
+        0.0,
+        0.0,
+        0.1,
+        0.4,
+        0.2,
+        0.6,
+        0.8
+      ],
+      "miss": 97.8,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 2.2,
       "win_div": 0.6,
       "win_conf": 0.0,
       "win_title": 0.0
