@@ -34,7 +34,7 @@ def load_all(year):
         hml = float(r.home_moneyline) if has_ml and r.home_moneyline == r.home_moneyline else None
         aml = float(r.away_moneyline) if has_ml and r.away_moneyline == r.away_moneyline else None
         rows.append({
-            "week": int(r.week),
+            "week": int(r.week), "gtype": r.game_type,
             "home": sport.canon(r.home_team), "away": sport.canon(r.away_team),
             "hs": float(r.home_score), "as": float(r.away_score),
             "home_ml": hml, "away_ml": aml,
@@ -173,6 +173,45 @@ def by_season(records):
               f"{r['d'][3]:>+6.1f}% {r['e'][3]:>+6.1f}% {r['f'][3]:>+6.1f}%")
 
 
+def week_bucket(g):
+    """(sort_key, label) grouping games by point in the season. Weeks 1-3 stay
+    absolute; later regular-season weeks group by games remaining (inclusive),
+    so the 16- and 17-game eras align by how much season is left; playoff rounds
+    are their own buckets."""
+    gt = g["gtype"]
+    if gt != "REG":
+        order = {"WC": 1, "DIV": 2, "CON": 3, "SB": 4}.get(gt, 5)
+        return (2, order, gt)
+    last_reg = 18 if g["year"] >= 2021 else 17   # 17-game seasons from 2021
+    w = g["week"]
+    if w <= 3:
+        return (0, w, f"Wk {w}")
+    rem = last_reg - w + 1                        # games left incl. this one
+    return (1, -rem, f"{rem} left")
+
+
+def by_week(records):
+    print("\n\nBY POINT IN SEASON  (ROI per strategy a-f; weeks 1-3 absolute, then "
+          "grouped by games remaining)\n" + "=" * 90)
+    groups = {}
+    for g in records:
+        key, sub, label = week_bucket(g)
+        groups.setdefault((key, sub, label), []).append(g)
+    print(f"{'bucket':9} {'games':>5} {'mdlAcc':>7} {'vegAcc':>7} "
+          f"{'a ROI':>7} {'b ROI':>7} {'c ROI':>7} {'d ROI':>7} {'e ROI':>7} {'f ROI':>7}")
+    print("-" * 90)
+    for (key, sub, label) in sorted(groups):
+        sub_recs = groups[(key, sub, label)]
+        r = {k: tally(strat_bets(sub_recs, k)) for k in "abcdef"}
+        print(f"{label:9} {len(sub_recs):>5} {acc(sub_recs,'model_fav'):>6.1f}% "
+              f"{acc(sub_recs,'vegas_fav'):>6.1f}% "
+              f"{r['a'][3]:>+6.1f}% {r['b'][3]:>+6.1f}% {r['c'][3]:>+6.1f}% "
+              f"{r['d'][3]:>+6.1f}% {r['e'][3]:>+6.1f}% {r['f'][3]:>+6.1f}%")
+    print("-" * 90)
+    print("'N left' = N regular-season games remaining for a team incl. that week "
+          "(so the final week is '1 left').")
+
+
 def by_team(records):
     print("\n\nBY TEAM  (games involving the team; bet the model's favorite each one)\n"
           + "=" * 78)
@@ -208,4 +247,5 @@ if __name__ == "__main__":
     recs = run(start, bet)
     evaluate(recs)
     by_season(recs)
+    by_week(recs)
     by_team(recs)
