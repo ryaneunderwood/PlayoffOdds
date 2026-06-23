@@ -96,10 +96,12 @@ TEMPLATE = r"""<!DOCTYPE html>
   .odds-card .val{font-size:22px;font-weight:800;margin-top:3px}
   .delta{font-size:12px;font-weight:700;margin-left:5px}
   .delta.up{color:#4ade80}.delta.down{color:#f87171}.delta.zero{color:var(--muted)}
-  .seedmini{display:flex;gap:3px;margin:10px 0 4px;height:22px}
-  .seedmini .sc{flex:1;border-radius:4px;display:flex;align-items:center;
-    justify-content:center;font-size:10px;font-weight:700;color:#cdd7ee;
-    background:#1a2440}
+  .seedgrid{display:flex;gap:4px;margin:8px 0 4px}
+  .seedgrid .sc{flex:1;border:1px solid var(--line);border-radius:6px;
+    padding:6px 2px 5px;text-align:center;min-width:0}
+  .seedgrid .sc .sd{font-size:10px;color:var(--muted);font-weight:700;
+    letter-spacing:.3px}
+  .seedgrid .sc .sv{font-size:13px;font-weight:800;color:#fff;margin-top:2px}
   .ctrlbar{display:flex;align-items:center;justify-content:space-between;
     margin:14px 0 8px;color:var(--muted);font-size:12px}
   .ctrlbar button{background:#23304d;border:1px solid var(--line);color:var(--txt);
@@ -526,17 +528,19 @@ function renderModal(cur){
     ${oddsCard("Win Title", cur.win_title, base.win_title, S.brkt, show)}
   </div>`;
 
-  // seed distribution mini-bar (X = impossible, ^ = clinched)
-  h += `<div class="dim" style="font-size:12px;margin-top:10px">Seed probability (#1&ndash;#${NSEED}, then Miss)</div>`;
-  h += `<div class="seedmini">`;
+  // per-seed probability (each cell shows the seed and its odds; X / ^ markers)
+  const seedfmt = tk => (tk==="X"||tk==="^") ? tk : tk+"%";
+  h += `<div class="dim" style="font-size:12px;margin-top:10px">Chance of each playoff seed</div>`;
+  h += `<div class="seedgrid">`;
   for(let s=0;s<NSEED;s++){
     const p=cur.seed_probs[s], tk=token(p, S.seed(s+1));
-    const lab = tk==="X" ? "X" : tk==="^" ? ("#"+(s+1)) : (p>=4?("#"+(s+1)):"");
-    const bg  = tk==="X" ? "#141c30" : heat(p);
-    h += `<div class="sc" title="Seed ${s+1}: ${tk==='X'||tk==='^'?tk:p.toFixed(1)+'%'}" style="background:${bg}">${lab}</div>`;
+    const bg = tk==="X" ? "#141c30" : tk==="^" ? heat(100) : heat(p);
+    h += `<div class="sc" style="background:${bg}"><div class="sd">#${s+1}</div>`+
+         `<div class="sv">${seedfmt(tk)}</div></div>`;
   }
   const mt=token(cur.miss, S.miss);
-  h += `<div class="sc" title="Miss: ${mt==='X'||mt==='^'?mt:cur.miss.toFixed(1)+'%'}" style="background:${mt==='X'?'#141c30':'#2a3450'}">${mt==='X'?'':'Miss'}</div></div>`;
+  h += `<div class="sc" style="background:${mt==='X'?'#141c30':'#2a3450'}">`+
+       `<div class="sd">Miss</div><div class="sv">${seedfmt(mt)}</div></div></div>`;
 
   // controls
   h += `<div class="ctrlbar">
