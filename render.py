@@ -57,6 +57,31 @@ TEMPLATE = r"""<!DOCTYPE html>
   th.teamh{z-index:6;background:#10182a;text-align:left}
   td.team .dtag{color:var(--muted);font-weight:600;font-size:11px;margin-left:6px}
   td.lbl{text-align:left;color:var(--muted)}
+  td.rec{font-weight:700;white-space:nowrap}
+  td.rec.zero{color:var(--muted);font-weight:400}
+  .elod{font-size:10px;font-weight:700;margin-left:3px}
+  .elod.up{color:#4ade80}.elod.down{color:#f87171}
+  .sub .live{color:#4ade80;font-weight:700}
+  .sub .stamp{color:var(--muted);opacity:.8}
+  /* results */
+  .res{display:grid;grid-template-columns:1fr 60px 40px 60px 1fr 74px;align-items:center;
+       gap:10px;padding:7px 12px;border-bottom:1px solid var(--line)}
+  .res:last-child{border-bottom:none}
+  .res .away{text-align:right}.res .home{text-align:left}
+  .res .w{font-weight:800;color:#fff}.res .l{color:var(--muted)}
+  .res .sc{font-weight:800;font-variant-numeric:tabular-nums;text-align:center}
+  .res .sc.l{font-weight:600}
+  .res .pre{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .res .tag{font-size:10px;font-weight:800;text-align:center;border-radius:5px;padding:2px 4px}
+  .res .tag.upset{color:#ffd16b;border:1px solid #5a4a1e;background:#2a2410}
+  .res .tag.chalk{color:var(--muted);border:1px solid var(--line)}
+  .reswk{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+         overflow:hidden;margin-bottom:14px}
+  .reswk h3{margin:0;padding:8px 12px;font-size:13px;color:var(--muted);
+            background:#10182a;border-bottom:1px solid var(--line);
+            display:flex;justify-content:space-between}
+  .reswk h3 .n{font-weight:400}
+  @media (max-width:640px){ .res{grid-template-columns:1fr 44px 28px 44px 1fr;gap:6px} .res .tag{display:none} }
   tr.divrow td{background:#0d1322;color:var(--muted);text-align:left;
                font-weight:700;font-size:12px;letter-spacing:.4px}
   .pct{font-weight:600}
@@ -231,6 +256,7 @@ DATA.rows.forEach(r=>rowsByTeam[r.team]=r);
 let sortState = null;
 function sortVal(r,key){
   if(key==="elo") return r.elo;
+  if(key==="rec") { const g=r.wins+r.losses+r.ties; return g ? (r.wins+0.5*r.ties)/g + r.wins*1e-4 : -1; }
   if(key==="pw")  return r.proj_wins;
   if(key==="miss")return r.miss;
   if(key==="mk")  return r.make_playoffs;
@@ -241,12 +267,20 @@ function sortVal(r,key){
   return 0;
 }
 
+function recStr(r){ return `${r.wins}-${r.losses}${r.ties?"-"+r.ties:""}`; }
+// Elo movement since the preseason (results to date), shown next to the rating.
+function eloDelta(r){
+  const d = r.elo - (r.elo_pre==null ? r.elo : r.elo_pre);
+  if(!d) return "";
+  return `<span class="elod ${d>0?"up":"down"}" title="vs preseason ${r.elo_pre}">${d>0?"▲":"▼"}${Math.abs(d)}</span>`;
+}
 function teamRow(r, withTag){
   const S = statusSet(r.ach);
   const tag = withTag ? `<span class="dtag">${r.div.split(" ")[1]||r.div}</span>` : "";
   let h = "<tr>";
   h += `<td class="team clickable" data-team="${r.team}">${tname(r.team)}${tag}</td>`;
-  h += `<td class="dim">${r.elo}</td>`;
+  h += `<td class="rec${(r.wins+r.losses+r.ties)?"":" zero"}">${recStr(r)}</td>`;
+  h += `<td class="dim">${r.elo}${eloDelta(r)}</td>`;
   h += `<td>${r.proj_wins.toFixed(1)}</td>`;
   r.seed_probs.forEach((p,i)=> h += pcell(p, S.seed(i+1), i===0?"sep":"") );
   h += pcell(r.miss, S.miss, "sep");
@@ -265,7 +299,7 @@ function seedTable(conf){
 
   let h = "<table><thead><tr>";
   h += `<th class="teamh sortable${sortState?"":" sorted"}" data-sk="grouped">Team</th>`;
-  h += th("elo","Elo") + th("pw","Proj W");
+  h += th("rec","W-L") + th("elo","Elo") + th("pw","Proj W");
   for(let s=1;s<=S;s++) h += th("s"+s, "#"+s, s===1?"sep":"");
   h += th("miss","Miss","sep") + th("mk","Playoffs","sep");
   h += th("wd","Win Div") + th("wc","Win Conf") + th("ti","Title");
@@ -280,7 +314,7 @@ function seedTable(conf){
   } else {
     // grouped by division; teams within a division by make-playoffs then wins
     Object.keys(DATA.divisions).filter(d=>d.split(" ")[0]===conf).forEach(d=>{
-      h += `<tr class="divrow"><td colspan="${S+8}">${d}</td></tr>`;
+      h += `<tr class="divrow"><td colspan="${S+9}">${d}</td></tr>`;
       DATA.divisions[d].map(t=>rowsByTeam[t])
         .sort((a,b)=>b.make_playoffs-a.make_playoffs||b.proj_wins-a.proj_wins)
         .forEach(r=> h += teamRow(r, false));
@@ -358,6 +392,40 @@ function gamesView(){
     } else {
       w.games.forEach(g=> h += gameRow(g));
     }
+    h += "</div>";
+  });
+  return h;
+}
+
+// Completed games by week (latest first), with the model's pre-kickoff
+// win probability and whether the favorite held. Derived from the schedule
+// payload so it always matches what the Elo engine actually consumed.
+function resultsView(){
+  const played = DATA.schedule.filter(g=>g.played);
+  if(!played.length) return "<p>No games have been played yet.</p>";
+  const byWk = {};
+  played.forEach(g=>(byWk[g.week]=byWk[g.week]||[]).push(g));
+  let h = "";
+  Object.keys(byWk).map(Number).sort((a,b)=>b-a).forEach(wk=>{
+    const gs = byWk[wk];
+    const total = DATA.schedule.filter(g=>g.week===wk).length;
+    let favHits=0, favTot=0;
+    gs.forEach(g=>{ if(g.winner!=="tie"){ favTot++; if((g.p_home>=0.5)===(g.winner==="home")) favHits++; } });
+    h += `<div class="reswk"><h3><span>Week ${wk}</span><span class="n">${gs.length}${gs.length<total?" of "+total:""} played &middot; model favorite won ${favHits}/${favTot}</span></h3>`;
+    gs.forEach(g=>{
+      const hw = g.winner==="home", aw = g.winner==="away", tie = g.winner==="tie";
+      const favHome = g.p_home>=0.5;
+      const upset = !tie && (favHome!==hw);
+      const hp = Math.round(g.p_home*100), ap = 100-hp;
+      h += `<div class="res">
+        <div class="away ${aw?"w":"l"}">${tname(g.away)}<div class="pre">${ap}%</div></div>
+        <div class="sc ${aw?"w":"l"}">${g.away_score}</div>
+        <div class="pre" style="text-align:center">${tie?"T":"@"}</div>
+        <div class="sc ${hw?"w":"l"}">${g.home_score}</div>
+        <div class="home ${hw?"w":"l"}">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''}<div class="pre">${hp}%</div></div>
+        <div class="tag ${upset?"upset":"chalk"}">${tie?"TIE":(upset?"UPSET":"FAVORITE")}</div>
+      </div>`;
+    });
     h += "</div>";
   });
   return h;
@@ -605,7 +673,7 @@ function renderModal(cur){
   const ach = achievableFor(team, forced, cur);
   const S = statusSet(ach);
   let h = `<div class="modal-h">
-      <h2>${tname(team)} <span class="dim" style="font-weight:400;font-size:13px">&middot; ${DATA.season} ${teamDivName(team)}</span></h2>
+      <h2>${tname(team)} <span class="dim" style="font-weight:400;font-size:13px">&middot; ${recStr(rowsByTeam[team])} &middot; ${DATA.season} ${teamDivName(team)}</span></h2>
       <button class="x" onclick="closeModal()">&times;</button>
     </div><div class="modal-b">`;
 
@@ -645,11 +713,13 @@ function renderModal(cur){
     const wp = isHome? g.p_home*100 : (1-g.p_home)*100;
     if(g.played){
       const won = g.winner===(isHome?"home":"away");
+      const my = isHome?g.home_score:g.away_score, their = isHome?g.away_score:g.home_score;
+      const score = (my==null||their==null) ? "" : ` ${my}&ndash;${their}`;
       h += `<div class="schrow played">
         <div class="wk">Wk ${g.week}</div>
         <div class="opp">${ha} ${tname(opp)}</div>
-        <div class="wp">${wp.toFixed(0)}%</div>
-        <div class="resultpill">${g.winner==="tie"?"TIE":(won?"WON":"LOST")}</div>
+        <div class="wp" title="pre-game win probability">${wp.toFixed(0)}%</div>
+        <div class="resultpill" style="color:${g.winner==="tie"?"var(--muted)":(won?"#4ade80":"#f87171")}">${g.winner==="tie"?"TIE":(won?"WON":"LOST")}${score}</div>
       </div>`;
     } else {
       const f = forced[g.id];
@@ -685,13 +755,22 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
 let tab = "seeds";
 function render(){
   document.getElementById("title").textContent = `${DATA.season} ${DATA.sport} Playoff Odds`;
+  const P = DATA.progress || {games_played:0};
+  let status;
+  if(!P.games_played){
+    status = `<span class="live">Preseason</span> &middot; no ${DATA.season} games played yet`;
+  } else {
+    const wkState = P.week_complete ? "complete" : `${P.week_games_played} of ${P.week_games_total} played`;
+    status = `<span class="live">Through Week ${P.through_week}</span> (${wkState}) &middot; ${P.games_played} of ${P.games_total} games in the books`;
+  }
   document.getElementById("subtitle").innerHTML =
-    `Elo Monte Carlo &middot; ${DATA.sims.toLocaleString()} simulated seasons &middot; ratings built from ${DATA.start_year}&ndash;${DATA.last_completed} game results`;
-  const tabs = [["seeds","Playoff Seeds"],["games","Upcoming Games"]];
+    `${status} &middot; Elo from ${DATA.start_year}&ndash;${DATA.last_completed} + ${DATA.season} results to date &middot; ${DATA.sims.toLocaleString()} simulated seasons`+
+    (DATA.generated_at ? ` <span class="stamp">&middot; updated ${DATA.generated_at}</span>` : "");
+  const tabs = [["seeds","Playoff Seeds"],["games","Upcoming Games"],["results","Results"]];
   document.getElementById("tabs").innerHTML = tabs.map(([k,l])=>
     `<div class="tab ${tab===k?'active':''}" data-k="${k}">${l}</div>`).join("");
   document.querySelectorAll(".tab").forEach(el=>el.onclick=()=>{tab=el.dataset.k;render();});
-  document.getElementById("view").innerHTML = tab==="seeds" ? seedsView() : gamesView();
+  document.getElementById("view").innerHTML = tab==="seeds" ? seedsView() : tab==="results" ? resultsView() : gamesView();
   document.querySelectorAll("td.team.clickable").forEach(el=>
     el.onclick=()=>openTeam(el.dataset.team));
   document.querySelectorAll("th[data-sk]").forEach(el=>el.onclick=()=>{

@@ -100,6 +100,40 @@
     "SEA"
   ],
   "ratings": {
+    "BUF": 1628.1,
+    "MIA": 1425.3,
+    "NE": 1578.0,
+    "NYJ": 1390.0,
+    "BAL": 1571.4,
+    "CIN": 1492.7,
+    "CLE": 1402.7,
+    "PIT": 1525.7,
+    "HOU": 1579.5,
+    "IND": 1440.1,
+    "JAX": 1574.5,
+    "TEN": 1320.1,
+    "DEN": 1603.4,
+    "KC": 1502.3,
+    "LAC": 1488.7,
+    "LV": 1379.2,
+    "DAL": 1435.6,
+    "NYG": 1437.3,
+    "PHI": 1578.0,
+    "WAS": 1449.7,
+    "CHI": 1549.3,
+    "DET": 1560.0,
+    "GB": 1507.5,
+    "MIN": 1571.0,
+    "ATL": 1451.9,
+    "CAR": 1397.6,
+    "NO": 1429.3,
+    "TB": 1467.0,
+    "ARI": 1428.7,
+    "LA": 1573.1,
+    "SF": 1588.3,
+    "SEA": 1673.9
+  },
+  "ratings_pre": {
     "BUF": 1607.9,
     "MIA": 1454.9,
     "NE": 1586.5,
@@ -133,23 +167,36 @@
     "SF": 1554.1,
     "SEA": 1665.4
   },
+  "progress": {
+    "games_played": 15,
+    "games_total": 272,
+    "through_week": 1,
+    "week_games_played": 15,
+    "week_games_total": 16,
+    "week_complete": false
+  },
+  "generated_at": "2026-09-14 17:53 UTC",
   "rows": [
     {
       "team": "SEA",
       "conf": "NFC",
       "div": "NFC West",
-      "elo": 1665,
-      "proj_wins": 12.1,
+      "elo": 1674,
+      "elo_pre": 1665,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 12.5,
       "seed_probs": [
-        40.1,
-        14.7,
-        5.6,
-        1.4,
-        18.7,
-        8.2,
-        4.6
+        42.5,
+        16.7,
+        6.6,
+        0.7,
+        17.2,
+        7.3,
+        3.9
       ],
-      "miss": 6.7,
+      "miss": 5.0,
       "ach": [
         1,
         2,
@@ -160,27 +207,31 @@
         7,
         8
       ],
-      "make_playoffs": 93.3,
-      "win_div": 61.8,
-      "win_conf": 36.4,
-      "win_title": 22.9
+      "make_playoffs": 95.0,
+      "win_div": 66.5,
+      "win_conf": 37.8,
+      "win_title": 23.6
     },
     {
-      "team": "HOU",
+      "team": "BUF",
       "conf": "AFC",
-      "div": "AFC South",
-      "elo": 1600,
-      "proj_wins": 11.0,
+      "div": "AFC East",
+      "elo": 1628,
+      "elo_pre": 1608,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 11.6,
       "seed_probs": [
-        22.3,
-        17.0,
-        12.6,
+        29.4,
+        19.8,
+        14.4,
         9.2,
-        10.9,
-        7.5,
-        5.7
+        9.2,
+        6.2,
+        4.6
       ],
-      "miss": 14.7,
+      "miss": 7.2,
       "ach": [
         1,
         2,
@@ -191,27 +242,101 @@
         7,
         8
       ],
-      "make_playoffs": 85.3,
-      "win_div": 61.1,
-      "win_conf": 18.9,
-      "win_title": 9.3
+      "make_playoffs": 92.8,
+      "win_div": 72.8,
+      "win_conf": 26.4,
+      "win_title": 14.0
+    },
+    {
+      "team": "BAL",
+      "conf": "AFC",
+      "div": "AFC North",
+      "elo": 1571,
+      "elo_pre": 1545,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 11.1,
+      "seed_probs": [
+        18.0,
+        15.9,
+        13.3,
+        8.5,
+        12.5,
+        10.0,
+        7.4
+      ],
+      "miss": 14.5,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 85.5,
+      "win_div": 55.6,
+      "win_conf": 13.3,
+      "win_title": 6.3
+    },
+    {
+      "team": "PHI",
+      "conf": "NFC",
+      "div": "NFC East",
+      "elo": 1578,
+      "elo_pre": 1572,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 10.8,
+      "seed_probs": [
+        13.6,
+        19.9,
+        34.3,
+        11.6,
+        1.1,
+        1.9,
+        2.7
+      ],
+      "miss": 14.8,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 85.2,
+      "win_div": 79.4,
+      "win_conf": 13.8,
+      "win_title": 6.8
     },
     {
       "team": "DEN",
       "conf": "AFC",
       "div": "AFC West",
       "elo": 1603,
-      "proj_wins": 10.8,
+      "elo_pre": 1603,
+      "wins": 0,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 10.7,
       "seed_probs": [
-        19.2,
-        17.1,
         15.8,
-        13.5,
-        6.3,
-        5.8,
-        5.4
+        16.9,
+        17.2,
+        21.9,
+        3.7,
+        4.3,
+        4.5
       ],
-      "miss": 16.9,
+      "miss": 15.8,
       "ach": [
         1,
         2,
@@ -222,275 +347,31 @@
         7,
         8
       ],
-      "make_playoffs": 83.1,
-      "win_div": 65.6,
-      "win_conf": 19.3,
-      "win_title": 10.1
-    },
-    {
-      "team": "BUF",
-      "conf": "AFC",
-      "div": "AFC East",
-      "elo": 1608,
-      "proj_wins": 10.6,
-      "seed_probs": [
-        16.7,
-        14.4,
-        12.6,
-        9.8,
-        12.2,
-        8.9,
-        6.5
-      ],
-      "miss": 19.0,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 81.0,
-      "win_div": 53.5,
-      "win_conf": 18.2,
-      "win_title": 9.4
-    },
-    {
-      "team": "PHI",
-      "conf": "NFC",
-      "div": "NFC East",
-      "elo": 1572,
-      "proj_wins": 10.5,
-      "seed_probs": [
-        12.9,
-        18.3,
-        25.1,
-        15.8,
-        1.8,
-        2.6,
-        3.6
-      ],
-      "miss": 20.0,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 80.0,
-      "win_div": 72.1,
-      "win_conf": 13.2,
-      "win_title": 6.6
-    },
-    {
-      "team": "LA",
-      "conf": "NFC",
-      "div": "NFC West",
-      "elo": 1607,
-      "proj_wins": 10.6,
-      "seed_probs": [
-        14.1,
-        7.2,
-        3.2,
-        1.0,
-        25.5,
-        15.0,
-        10.1
-      ],
-      "miss": 23.8,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 76.2,
-      "win_div": 25.5,
-      "win_conf": 14.2,
-      "win_title": 7.8
-    },
-    {
-      "team": "NE",
-      "conf": "AFC",
-      "div": "AFC East",
-      "elo": 1586,
-      "proj_wins": 10.1,
-      "seed_probs": [
-        11.4,
-        11.4,
-        10.1,
-        8.3,
-        13.4,
-        10.8,
-        8.4
-      ],
-      "miss": 26.2,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 73.8,
-      "win_div": 41.2,
-      "win_conf": 12.7,
-      "win_title": 6.0
-    },
-    {
-      "team": "DET",
-      "conf": "NFC",
-      "div": "NFC North",
-      "elo": 1557,
-      "proj_wins": 10.2,
-      "seed_probs": [
-        8.8,
-        15.4,
-        9.5,
-        3.9,
-        8.7,
-        11.9,
-        10.5
-      ],
-      "miss": 31.2,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 68.8,
-      "win_div": 37.7,
-      "win_conf": 8.9,
-      "win_title": 4.2
-    },
-    {
-      "team": "BAL",
-      "conf": "AFC",
-      "div": "AFC North",
-      "elo": 1545,
-      "proj_wins": 9.9,
-      "seed_probs": [
-        8.7,
-        11.2,
-        13.1,
-        14.8,
-        6.2,
-        7.2,
-        7.4
-      ],
-      "miss": 31.5,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 68.5,
-      "win_div": 47.8,
-      "win_conf": 8.4,
-      "win_title": 3.6
-    },
-    {
-      "team": "JAX",
-      "conf": "AFC",
-      "div": "AFC South",
-      "elo": 1560,
-      "proj_wins": 9.8,
-      "seed_probs": [
-        8.3,
-        8.2,
-        7.1,
-        6.6,
-        15.6,
-        12.0,
-        9.5
-      ],
-      "miss": 32.7,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 67.3,
-      "win_div": 30.2,
-      "win_conf": 8.3,
-      "win_title": 3.7
-    },
-    {
-      "team": "MIN",
-      "conf": "NFC",
-      "div": "NFC North",
-      "elo": 1548,
-      "proj_wins": 9.8,
-      "seed_probs": [
-        6.8,
-        11.8,
-        8.1,
-        3.5,
-        8.8,
-        11.1,
-        11.2
-      ],
-      "miss": 38.7,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 61.3,
-      "win_div": 30.2,
-      "win_conf": 7.0,
-      "win_title": 3.2
+      "make_playoffs": 84.2,
+      "win_div": 71.8,
+      "win_conf": 17.5,
+      "win_title": 8.9
     },
     {
       "team": "SF",
       "conf": "NFC",
       "div": "NFC West",
-      "elo": 1554,
-      "proj_wins": 9.5,
+      "elo": 1588,
+      "elo_pre": 1554,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 10.8,
       "seed_probs": [
-        6.1,
-        3.8,
-        2.0,
+        14.2,
+        7.8,
+        3.3,
         0.5,
-        16.4,
-        15.0,
-        12.4
+        27.1,
+        15.8,
+        10.7
       ],
-      "miss": 43.7,
+      "miss": 20.7,
       "ach": [
         1,
         2,
@@ -501,27 +382,206 @@
         7,
         8
       ],
-      "make_playoffs": 56.3,
-      "win_div": 12.4,
-      "win_conf": 5.8,
-      "win_title": 2.7
+      "make_playoffs": 79.3,
+      "win_div": 25.8,
+      "win_conf": 12.7,
+      "win_title": 6.4
+    },
+    {
+      "team": "JAX",
+      "conf": "AFC",
+      "div": "AFC South",
+      "elo": 1575,
+      "elo_pre": 1560,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 10.5,
+      "seed_probs": [
+        11.0,
+        13.2,
+        13.7,
+        12.6,
+        11.1,
+        9.1,
+        7.9
+      ],
+      "miss": 21.2,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 78.8,
+      "win_div": 50.6,
+      "win_conf": 11.8,
+      "win_title": 5.4
+    },
+    {
+      "team": "MIN",
+      "conf": "NFC",
+      "div": "NFC North",
+      "elo": 1571,
+      "elo_pre": 1548,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 10.6,
+      "seed_probs": [
+        10.8,
+        17.7,
+        9.1,
+        2.0,
+        11.8,
+        13.5,
+        11.3
+      ],
+      "miss": 23.9,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 76.1,
+      "win_div": 39.5,
+      "win_conf": 10.6,
+      "win_title": 5.2
+    },
+    {
+      "team": "HOU",
+      "conf": "AFC",
+      "div": "AFC South",
+      "elo": 1580,
+      "elo_pre": 1600,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 10.2,
+      "seed_probs": [
+        7.6,
+        10.7,
+        13.1,
+        13.8,
+        10.7,
+        9.8,
+        8.8
+      ],
+      "miss": 25.5,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 74.5,
+      "win_div": 45.2,
+      "win_conf": 10.5,
+      "win_title": 4.7
+    },
+    {
+      "team": "DET",
+      "conf": "NFC",
+      "div": "NFC North",
+      "elo": 1560,
+      "elo_pre": 1557,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 10.5,
+      "seed_probs": [
+        8.8,
+        15.3,
+        8.2,
+        1.4,
+        11.9,
+        14.0,
+        12.1
+      ],
+      "miss": 28.3,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 71.7,
+      "win_div": 33.7,
+      "win_conf": 8.7,
+      "win_title": 3.8
+    },
+    {
+      "team": "NE",
+      "conf": "AFC",
+      "div": "AFC East",
+      "elo": 1578,
+      "elo_pre": 1586,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 9.5,
+      "seed_probs": [
+        6.2,
+        6.7,
+        6.2,
+        5.8,
+        14.9,
+        13.2,
+        11.6
+      ],
+      "miss": 35.5,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 64.5,
+      "win_div": 24.9,
+      "win_conf": 8.4,
+      "win_title": 3.8
     },
     {
       "team": "PIT",
       "conf": "AFC",
       "div": "AFC North",
-      "elo": 1511,
-      "proj_wins": 8.9,
+      "elo": 1526,
+      "elo_pre": 1511,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 9.6,
       "seed_probs": [
-        3.7,
-        5.8,
-        7.2,
-        9.6,
-        5.6,
-        7.5,
-        8.6
+        5.4,
+        6.6,
+        6.8,
+        5.0,
+        13.0,
+        12.8,
+        11.4
       ],
-      "miss": 52.0,
+      "miss": 39.0,
       "ach": [
         1,
         2,
@@ -532,120 +592,31 @@
         7,
         8
       ],
-      "make_playoffs": 48.0,
-      "win_div": 26.3,
-      "win_conf": 3.8,
-      "win_title": 1.5
-    },
-    {
-      "team": "TB",
-      "conf": "NFC",
-      "div": "NFC South",
-      "elo": 1484,
-      "proj_wins": 8.4,
-      "seed_probs": [
-        2.1,
-        5.2,
-        10.0,
-        20.5,
-        1.2,
-        2.6,
-        3.8
-      ],
-      "miss": 54.7,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 45.3,
-      "win_div": 37.7,
-      "win_conf": 2.6,
-      "win_title": 0.9
-    },
-    {
-      "team": "GB",
-      "conf": "NFC",
-      "div": "NFC North",
-      "elo": 1530,
-      "proj_wins": 8.9,
-      "seed_probs": [
-        3.0,
-        7.2,
-        5.5,
-        2.2,
-        6.4,
-        10.0,
-        10.9
-      ],
-      "miss": 54.8,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 45.2,
-      "win_div": 17.9,
-      "win_conf": 4.1,
-      "win_title": 1.8
-    },
-    {
-      "team": "LAC",
-      "conf": "AFC",
-      "div": "AFC West",
-      "elo": 1525,
-      "proj_wins": 8.6,
-      "seed_probs": [
-        3.1,
-        4.0,
-        5.2,
-        6.4,
-        7.5,
-        8.4,
-        9.4
-      ],
-      "miss": 56.0,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 44.0,
-      "win_div": 18.7,
-      "win_conf": 3.7,
-      "win_title": 1.4
+      "make_playoffs": 61.0,
+      "win_div": 23.8,
+      "win_conf": 5.0,
+      "win_title": 1.9
     },
     {
       "team": "CHI",
       "conf": "NFC",
       "div": "NFC North",
-      "elo": 1523,
-      "proj_wins": 8.6,
+      "elo": 1549,
+      "elo_pre": 1523,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 9.6,
       "seed_probs": [
-        2.5,
-        5.6,
-        4.1,
-        1.9,
-        5.3,
-        8.8,
-        10.1
+        4.7,
+        9.7,
+        5.4,
+        1.2,
+        9.1,
+        12.9,
+        13.1
       ],
-      "miss": 61.7,
+      "miss": 43.9,
       "ach": [
         1,
         2,
@@ -656,58 +627,136 @@
         7,
         8
       ],
-      "make_playoffs": 38.3,
-      "win_div": 14.2,
-      "win_conf": 3.1,
-      "win_title": 1.3
+      "make_playoffs": 56.1,
+      "win_div": 21.0,
+      "win_conf": 5.3,
+      "win_title": 2.4
+    },
+    {
+      "team": "CIN",
+      "conf": "AFC",
+      "div": "AFC North",
+      "elo": 1493,
+      "elo_pre": 1476,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 9.4,
+      "seed_probs": [
+        4.0,
+        4.9,
+        5.4,
+        4.4,
+        11.4,
+        12.3,
+        11.6
+      ],
+      "miss": 46.0,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 54.0,
+      "win_div": 18.6,
+      "win_conf": 2.9,
+      "win_title": 1.1
+    },
+    {
+      "team": "LA",
+      "conf": "NFC",
+      "div": "NFC West",
+      "elo": 1573,
+      "elo_pre": 1607,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 9.2,
+      "seed_probs": [
+        2.6,
+        2.5,
+        1.4,
+        0.2,
+        11.6,
+        14.6,
+        13.7
+      ],
+      "miss": 53.3,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 46.7,
+      "win_div": 6.7,
+      "win_conf": 4.7,
+      "win_title": 2.2
+    },
+    {
+      "team": "TB",
+      "conf": "NFC",
+      "div": "NFC South",
+      "elo": 1467,
+      "elo_pre": 1484,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 7.8,
+      "seed_probs": [
+        0.6,
+        2.4,
+        7.9,
+        27.3,
+        0.2,
+        1.1,
+        1.9
+      ],
+      "miss": 58.6,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 41.4,
+      "win_div": 38.2,
+      "win_conf": 1.5,
+      "win_title": 0.6
     },
     {
       "team": "KC",
       "conf": "AFC",
       "div": "AFC West",
       "elo": 1502,
+      "elo_pre": 1502,
+      "wins": 0,
+      "losses": 0,
+      "ties": 0,
       "proj_wins": 8.4,
       "seed_probs": [
-        2.2,
-        3.3,
-        4.4,
-        5.2,
-        6.5,
-        7.9,
-        8.8
-      ],
-      "miss": 61.7,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 38.3,
-      "win_div": 15.1,
-      "win_conf": 2.5,
-      "win_title": 0.9
-    },
-    {
-      "team": "CIN",
-      "conf": "AFC",
-      "div": "AFC North",
-      "elo": 1476,
-      "proj_wins": 8.4,
-      "seed_probs": [
-        2.0,
-        3.5,
+        1.8,
+        3.1,
+        5.0,
+        8.4,
         5.5,
-        7.6,
-        4.8,
-        6.7,
-        8.2
+        7.2,
+        8.7
       ],
-      "miss": 61.8,
+      "miss": 60.3,
       "ach": [
         1,
         2,
@@ -718,58 +767,31 @@
         7,
         8
       ],
-      "make_playoffs": 38.2,
-      "win_div": 18.6,
-      "win_conf": 1.9,
-      "win_title": 0.6
+      "make_playoffs": 39.7,
+      "win_div": 18.4,
+      "win_conf": 2.4,
+      "win_title": 0.8
     },
     {
       "team": "ATL",
       "conf": "NFC",
       "div": "NFC South",
-      "elo": 1467,
-      "proj_wins": 8.0,
+      "elo": 1452,
+      "elo_pre": 1467,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 7.3,
       "seed_probs": [
+        0.4,
         1.3,
-        3.5,
-        7.7,
-        16.8,
-        1.1,
-        2.6,
-        3.8
-      ],
-      "miss": 63.1,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 36.9,
-      "win_div": 29.4,
-      "win_conf": 1.7,
-      "win_title": 0.6
-    },
-    {
-      "team": "IND",
-      "conf": "AFC",
-      "div": "AFC South",
-      "elo": 1467,
-      "proj_wins": 7.9,
-      "seed_probs": [
-        1.4,
-        1.9,
-        2.5,
-        2.4,
         5.4,
-        7.0,
-        8.1
+        20.7,
+        0.3,
+        0.8,
+        2.0
       ],
-      "miss": 71.3,
+      "miss": 69.2,
       "ach": [
         1,
         2,
@@ -780,120 +802,31 @@
         7,
         8
       ],
-      "make_playoffs": 28.7,
-      "win_div": 8.1,
+      "make_playoffs": 30.8,
+      "win_div": 27.8,
       "win_conf": 1.1,
-      "win_title": 0.3
+      "win_title": 0.4
     },
     {
       "team": "NO",
       "conf": "NFC",
       "div": "NFC South",
-      "elo": 1433,
-      "proj_wins": 7.6,
-      "seed_probs": [
-        0.6,
-        2.3,
-        5.5,
-        13.0,
-        0.8,
-        1.9,
-        3.3
-      ],
-      "miss": 72.6,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 27.4,
-      "win_div": 21.4,
-      "win_conf": 0.8,
-      "win_title": 0.2
-    },
-    {
-      "team": "DAL",
-      "conf": "NFC",
-      "div": "NFC East",
-      "elo": 1456,
-      "proj_wins": 7.4,
-      "seed_probs": [
-        0.6,
-        1.7,
-        4.4,
-        4.3,
-        1.6,
-        3.1,
-        4.7
-      ],
-      "miss": 79.5,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 20.5,
-      "win_div": 11.0,
-      "win_conf": 0.8,
-      "win_title": 0.2
-    },
-    {
-      "team": "WAS",
-      "conf": "NFC",
-      "div": "NFC East",
-      "elo": 1455,
-      "proj_wins": 7.4,
-      "seed_probs": [
-        0.6,
-        1.6,
-        4.5,
-        4.3,
-        1.8,
-        3.0,
-        4.3
-      ],
-      "miss": 79.9,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 20.1,
-      "win_div": 11.0,
-      "win_conf": 0.7,
-      "win_title": 0.2
-    },
-    {
-      "team": "CLE",
-      "conf": "AFC",
-      "div": "AFC North",
-      "elo": 1417,
+      "elo": 1429,
+      "elo_pre": 1433,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
       "proj_wins": 7.2,
       "seed_probs": [
-        0.5,
-        1.2,
-        2.0,
-        3.6,
-        2.1,
-        3.9,
-        4.6
+        0.2,
+        1.0,
+        4.6,
+        20.0,
+        0.2,
+        0.8,
+        1.9
       ],
-      "miss": 82.1,
+      "miss": 71.4,
       "ach": [
         1,
         2,
@@ -904,58 +837,31 @@
         7,
         8
       ],
-      "make_playoffs": 17.9,
-      "win_div": 7.3,
-      "win_conf": 0.4,
+      "make_playoffs": 28.6,
+      "win_div": 25.8,
+      "win_conf": 0.7,
       "win_title": 0.1
     },
     {
-      "team": "MIA",
-      "conf": "AFC",
-      "div": "AFC East",
-      "elo": 1455,
-      "proj_wins": 7.1,
-      "seed_probs": [
-        0.5,
-        0.9,
-        1.3,
-        2.0,
-        2.8,
-        4.4,
-        5.8
-      ],
-      "miss": 82.2,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 17.8,
-      "win_div": 4.8,
-      "win_conf": 0.6,
-      "win_title": 0.2
-    },
-    {
-      "team": "CAR",
+      "team": "GB",
       "conf": "NFC",
-      "div": "NFC South",
-      "elo": 1424,
-      "proj_wins": 6.5,
+      "div": "NFC North",
+      "elo": 1507,
+      "elo_pre": 1530,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 8.1,
       "seed_probs": [
-        0.2,
-        0.9,
-        2.4,
-        8.1,
-        0.3,
-        1.1,
-        2.0
+        0.6,
+        2.6,
+        2.1,
+        0.5,
+        3.6,
+        7.0,
+        9.6
       ],
-      "miss": 85.0,
+      "miss": 74.0,
       "ach": [
         1,
         2,
@@ -966,27 +872,31 @@
         7,
         8
       ],
-      "make_playoffs": 15.0,
-      "win_div": 11.6,
-      "win_conf": 0.4,
-      "win_title": 0.2
+      "make_playoffs": 26.0,
+      "win_div": 5.8,
+      "win_conf": 1.3,
+      "win_title": 0.6
     },
     {
       "team": "NYG",
       "conf": "NFC",
       "div": "NFC East",
-      "elo": 1417,
-      "proj_wins": 6.7,
+      "elo": 1437,
+      "elo_pre": 1417,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 7.6,
       "seed_probs": [
-        0.2,
-        0.7,
-        2.2,
-        2.7,
-        0.9,
-        1.9,
-        3.0
+        0.4,
+        1.4,
+        5.5,
+        3.6,
+        1.8,
+        3.3,
+        5.2
       ],
-      "miss": 88.4,
+      "miss": 78.8,
       "ach": [
         1,
         2,
@@ -997,27 +907,136 @@
         7,
         8
       ],
-      "make_playoffs": 11.6,
-      "win_div": 5.9,
+      "make_playoffs": 21.2,
+      "win_div": 10.9,
+      "win_conf": 0.7,
+      "win_title": 0.2
+    },
+    {
+      "team": "LAC",
+      "conf": "AFC",
+      "div": "AFC West",
+      "elo": 1489,
+      "elo_pre": 1525,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 7.0,
+      "seed_probs": [
+        0.3,
+        0.8,
+        1.9,
+        4.3,
+        2.3,
+        4.0,
+        5.7
+      ],
+      "miss": 80.6,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 19.4,
+      "win_div": 7.4,
+      "win_conf": 1.0,
+      "win_title": 0.4
+    },
+    {
+      "team": "IND",
+      "conf": "AFC",
+      "div": "AFC South",
+      "elo": 1440,
+      "elo_pre": 1467,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 7.0,
+      "seed_probs": [
+        0.2,
+        0.4,
+        1.2,
+        2.2,
+        1.8,
+        3.3,
+        4.9
+      ],
+      "miss": 86.1,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 13.9,
+      "win_div": 4.0,
       "win_conf": 0.3,
+      "win_title": 0.1
+    },
+    {
+      "team": "WAS",
+      "conf": "NFC",
+      "div": "NFC East",
+      "elo": 1450,
+      "elo_pre": 1455,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 7.0,
+      "seed_probs": [
+        0.2,
+        0.8,
+        3.0,
+        1.8,
+        1.2,
+        2.5,
+        3.9
+      ],
+      "miss": 86.7,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 13.3,
+      "win_div": 5.8,
+      "win_conf": 0.4,
       "win_title": 0.1
     },
     {
       "team": "ARI",
       "conf": "NFC",
       "div": "NFC West",
-      "elo": 1393,
-      "proj_wins": 5.7,
+      "elo": 1429,
+      "elo_pre": 1393,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 7.1,
       "seed_probs": [
+        0.2,
+        0.4,
+        0.3,
         0.1,
-        0.1,
-        0.1,
-        0.0,
-        0.6,
-        1.0,
-        1.8
+        2.1,
+        3.0,
+        4.9
       ],
-      "miss": 96.3,
+      "miss": 89.0,
       "ach": [
         1,
         2,
@@ -1028,8 +1047,218 @@
         7,
         8
       ],
-      "make_playoffs": 3.7,
-      "win_div": 0.3,
+      "make_playoffs": 11.0,
+      "win_div": 1.0,
+      "win_conf": 0.2,
+      "win_title": 0.1
+    },
+    {
+      "team": "CLE",
+      "conf": "AFC",
+      "div": "AFC North",
+      "elo": 1403,
+      "elo_pre": 1417,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 6.6,
+      "seed_probs": [
+        0.1,
+        0.3,
+        0.6,
+        0.9,
+        1.4,
+        2.4,
+        4.1
+      ],
+      "miss": 90.1,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 9.9,
+      "win_div": 2.0,
+      "win_conf": 0.1,
+      "win_title": 0.0
+    },
+    {
+      "team": "CAR",
+      "conf": "NFC",
+      "div": "NFC South",
+      "elo": 1398,
+      "elo_pre": 1424,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 5.6,
+      "seed_probs": [
+        0.0,
+        0.2,
+        0.9,
+        7.1,
+        0.0,
+        0.2,
+        0.6
+      ],
+      "miss": 90.9,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 9.1,
+      "win_div": 8.2,
+      "win_conf": 0.1,
+      "win_title": 0.0
+    },
+    {
+      "team": "NYJ",
+      "conf": "AFC",
+      "div": "AFC East",
+      "elo": 1390,
+      "elo_pre": 1360,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 6.4,
+      "seed_probs": [
+        0.1,
+        0.3,
+        0.5,
+        0.6,
+        1.3,
+        2.4,
+        3.7
+      ],
+      "miss": 91.2,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 8.8,
+      "win_div": 1.5,
+      "win_conf": 0.1,
+      "win_title": 0.0
+    },
+    {
+      "team": "DAL",
+      "conf": "NFC",
+      "div": "NFC East",
+      "elo": 1436,
+      "elo_pre": 1456,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 6.4,
+      "seed_probs": [
+        0.1,
+        0.4,
+        2.1,
+        1.4,
+        0.6,
+        1.3,
+        2.6
+      ],
+      "miss": 91.6,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 8.4,
+      "win_div": 3.9,
+      "win_conf": 0.2,
+      "win_title": 0.1
+    },
+    {
+      "team": "LV",
+      "conf": "AFC",
+      "div": "AFC West",
+      "elo": 1379,
+      "elo_pre": 1350,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "proj_wins": 6.1,
+      "seed_probs": [
+        0.1,
+        0.2,
+        0.5,
+        1.7,
+        0.7,
+        1.6,
+        2.4
+      ],
+      "miss": 92.8,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 7.2,
+      "win_div": 2.5,
+      "win_conf": 0.1,
+      "win_title": 0.0
+    },
+    {
+      "team": "MIA",
+      "conf": "AFC",
+      "div": "AFC East",
+      "elo": 1425,
+      "elo_pre": 1455,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 5.8,
+      "seed_probs": [
+        0.0,
+        0.2,
+        0.2,
+        0.5,
+        0.6,
+        1.4,
+        2.3
+      ],
+      "miss": 94.7,
+      "ach": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "make_playoffs": 5.3,
+      "win_div": 0.9,
       "win_conf": 0.1,
       "win_title": 0.0
     },
@@ -1037,18 +1266,22 @@
       "team": "TEN",
       "conf": "AFC",
       "div": "AFC South",
-      "elo": 1350,
-      "proj_wins": 5.3,
+      "elo": 1320,
+      "elo_pre": 1350,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "proj_wins": 4.2,
       "seed_probs": [
         0.0,
-        0.1,
+        0.0,
+        0.0,
         0.2,
-        0.3,
-        0.3,
-        0.7,
-        1.4
+        0.1,
+        0.1,
+        0.4
       ],
-      "miss": 97.0,
+      "miss": 99.3,
       "ach": [
         1,
         2,
@@ -1059,70 +1292,8 @@
         7,
         8
       ],
-      "make_playoffs": 3.0,
-      "win_div": 0.6,
-      "win_conf": 0.0,
-      "win_title": 0.0
-    },
-    {
-      "team": "NYJ",
-      "conf": "AFC",
-      "div": "AFC East",
-      "elo": 1360,
-      "proj_wins": 5.3,
-      "seed_probs": [
-        0.0,
-        0.1,
-        0.1,
-        0.3,
-        0.3,
-        0.7,
-        1.3
-      ],
-      "miss": 97.1,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 2.9,
-      "win_div": 0.6,
-      "win_conf": 0.0,
-      "win_title": 0.0
-    },
-    {
-      "team": "LV",
-      "conf": "AFC",
-      "div": "AFC West",
-      "elo": 1350,
-      "proj_wins": 5.0,
-      "seed_probs": [
-        0.0,
-        0.0,
-        0.1,
-        0.4,
-        0.2,
-        0.6,
-        0.8
-      ],
-      "miss": 97.8,
-      "ach": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "make_playoffs": 2.2,
-      "win_div": 0.6,
+      "make_playoffs": 0.7,
+      "win_div": 0.2,
       "win_conf": 0.0,
       "win_title": 0.0
     }
@@ -1132,116 +1303,17 @@
       "week": 1,
       "games": [
         {
-          "home": "SEA",
-          "away": "NE",
-          "neutral": false,
-          "home_wp": 68.4,
-          "away_wp": 31.6
-        },
-        {
-          "home": "LA",
-          "away": "SF",
-          "neutral": true,
-          "home_wp": 57.6,
-          "away_wp": 42.4
-        },
-        {
-          "home": "CAR",
-          "away": "CHI",
-          "neutral": false,
-          "home_wp": 43.6,
-          "away_wp": 56.4
-        },
-        {
-          "home": "CIN",
-          "away": "TB",
-          "neutral": false,
-          "home_wp": 56.8,
-          "away_wp": 43.2
-        },
-        {
-          "home": "DET",
-          "away": "NO",
-          "neutral": false,
-          "home_wp": 73.7,
-          "away_wp": 26.3
-        },
-        {
-          "home": "HOU",
-          "away": "BUF",
-          "neutral": false,
-          "home_wp": 56.7,
-          "away_wp": 43.3
-        },
-        {
-          "home": "IND",
-          "away": "BAL",
-          "neutral": false,
-          "home_wp": 46.7,
-          "away_wp": 53.3
-        },
-        {
-          "home": "JAX",
-          "away": "CLE",
-          "neutral": false,
-          "home_wp": 75.7,
-          "away_wp": 24.3
-        },
-        {
-          "home": "PIT",
-          "away": "ATL",
-          "neutral": false,
-          "home_wp": 63.9,
-          "away_wp": 36.1
-        },
-        {
-          "home": "TEN",
-          "away": "NYJ",
-          "neutral": false,
-          "home_wp": 56.3,
-          "away_wp": 43.7
-        },
-        {
-          "home": "LAC",
-          "away": "ARI",
-          "neutral": false,
-          "home_wp": 74.6,
-          "away_wp": 25.4
-        },
-        {
-          "home": "LV",
-          "away": "MIA",
-          "neutral": false,
-          "home_wp": 42.8,
-          "away_wp": 57.2
-        },
-        {
-          "home": "MIN",
-          "away": "GB",
-          "neutral": false,
-          "home_wp": 60.4,
-          "away_wp": 39.6
-        },
-        {
-          "home": "PHI",
-          "away": "WAS",
-          "neutral": false,
-          "home_wp": 72.9,
-          "away_wp": 27.1
-        },
-        {
-          "home": "NYG",
-          "away": "DAL",
-          "neutral": false,
-          "home_wp": 52.2,
-          "away_wp": 47.8
-        },
-        {
           "home": "KC",
           "away": "DEN",
           "neutral": false,
           "home_wp": 43.4,
-          "away_wp": 56.6
+          "away_wp": 56.6,
+          "weekday": "Monday",
+          "gameday": "2026-09-14",
+          "gametime": "20:15",
+          "home_ml": -130.0,
+          "away_ml": 110.0,
+          "spread_line": 2.5
         }
       ]
     },
@@ -1252,113 +1324,209 @@
           "home": "BUF",
           "away": "DET",
           "neutral": false,
-          "home_wp": 64.8,
-          "away_wp": 35.2
+          "home_wp": 67.0,
+          "away_wp": 33.0,
+          "weekday": "Thursday",
+          "gameday": "2026-09-17",
+          "gametime": "20:15",
+          "home_ml": -198.0,
+          "away_ml": 164.0,
+          "spread_line": 4.5
         },
         {
           "home": "ATL",
           "away": "CAR",
           "neutral": false,
-          "home_wp": 63.7,
-          "away_wp": 36.3
+          "home_wp": 65.2,
+          "away_wp": 34.8,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "13:00",
+          "home_ml": 105.0,
+          "away_ml": -125.0,
+          "spread_line": -1.5
         },
         {
           "home": "BAL",
           "away": "NO",
           "neutral": false,
-          "home_wp": 72.3,
-          "away_wp": 27.7
+          "home_wp": 75.7,
+          "away_wp": 24.3,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "13:00",
+          "home_ml": -360.0,
+          "away_ml": 285.0,
+          "spread_line": 8.5
         },
         {
           "home": "CHI",
           "away": "MIN",
           "neutral": false,
-          "home_wp": 54.3,
-          "away_wp": 45.7
+          "home_wp": 54.8,
+          "away_wp": 45.2,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "13:00",
+          "home_ml": -245.0,
+          "away_ml": 200.0,
+          "spread_line": 5.5
         },
         {
           "home": "HOU",
           "away": "CIN",
           "neutral": false,
-          "home_wp": 73.7,
-          "away_wp": 26.3
+          "home_wp": 69.3,
+          "away_wp": 30.7,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "13:00",
+          "home_ml": -148.0,
+          "away_ml": 124.0,
+          "spread_line": 3.0
         },
         {
           "home": "NE",
           "away": "PIT",
           "neutral": false,
-          "home_wp": 67.9,
-          "away_wp": 32.1
+          "home_wp": 65.0,
+          "away_wp": 35.0,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "13:00",
+          "home_ml": -238.0,
+          "away_ml": 195.0,
+          "spread_line": 5.5
         },
         {
           "home": "NYJ",
           "away": "GB",
           "neutral": false,
-          "home_wp": 34.1,
-          "away_wp": 65.9
+          "home_wp": 41.1,
+          "away_wp": 58.9,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "13:00",
+          "home_ml": 185.0,
+          "away_ml": -225.0,
+          "spread_line": -4.5
         },
         {
           "home": "TB",
           "away": "CLE",
           "neutral": false,
-          "home_wp": 66.8,
-          "away_wp": 33.2
+          "home_wp": 66.5,
+          "away_wp": 33.5,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "13:00",
+          "home_ml": -375.0,
+          "away_ml": 295.0,
+          "spread_line": 8.5
         },
         {
           "home": "TEN",
           "away": "PHI",
           "neutral": false,
-          "home_wp": 27.6,
-          "away_wp": 72.4
+          "home_wp": 23.7,
+          "away_wp": 76.3,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "13:00",
+          "home_ml": 250.0,
+          "away_ml": -310.0,
+          "spread_line": -7.0
         },
         {
           "home": "DEN",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 63.8,
-          "away_wp": 36.2
+          "home_wp": 61.8,
+          "away_wp": 38.2,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "16:05",
+          "home_ml": -148.0,
+          "away_ml": 124.0,
+          "spread_line": 2.5
         },
         {
           "home": "LAC",
           "away": "LV",
           "neutral": false,
-          "home_wp": 79.0,
-          "away_wp": 21.0
+          "home_wp": 72.1,
+          "away_wp": 27.9,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "16:05",
+          "home_ml": -310.0,
+          "away_ml": 250.0,
+          "spread_line": 7.0
         },
         {
           "home": "ARI",
           "away": "SEA",
           "neutral": false,
-          "home_wp": 22.2,
-          "away_wp": 77.8
+          "home_wp": 25.1,
+          "away_wp": 74.9,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "16:25",
+          "home_ml": 185.0,
+          "away_ml": -225.0,
+          "spread_line": -4.5
         },
         {
           "home": "DAL",
           "away": "WAS",
           "neutral": false,
-          "home_wp": 58.0,
-          "away_wp": 42.0
+          "home_wp": 55.9,
+          "away_wp": 44.1,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "16:25",
+          "home_ml": -185.0,
+          "away_ml": 154.0,
+          "spread_line": 3.5
         },
         {
           "home": "SF",
           "away": "MIA",
           "neutral": false,
-          "home_wp": 70.8,
-          "away_wp": 29.2
+          "home_wp": 77.8,
+          "away_wp": 22.2,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "16:25",
+          "home_ml": -950.0,
+          "away_ml": 625.0,
+          "spread_line": 13.5
         },
         {
           "home": "KC",
           "away": "IND",
           "neutral": false,
-          "home_wp": 62.8,
-          "away_wp": 37.2
+          "home_wp": 66.3,
+          "away_wp": 33.7,
+          "weekday": "Sunday",
+          "gameday": "2026-09-20",
+          "gametime": "20:20",
+          "home_ml": -290.0,
+          "away_ml": 235.0,
+          "spread_line": 6.5
         },
         {
           "home": "LA",
           "away": "NYG",
           "neutral": false,
-          "home_wp": 80.4,
-          "away_wp": 19.6
+          "home_wp": 75.0,
+          "away_wp": 25.0,
+          "weekday": "Monday",
+          "gameday": "2026-09-21",
+          "gametime": "20:15",
+          "home_ml": -345.0,
+          "away_ml": 275.0,
+          "spread_line": 7.0
         }
       ]
     },
@@ -1369,113 +1537,161 @@
           "home": "GB",
           "away": "ATL",
           "neutral": false,
-          "home_wp": 66.4,
-          "away_wp": 33.6
+          "home_wp": 65.4,
+          "away_wp": 34.6,
+          "weekday": "Thursday",
+          "gameday": "2026-09-24",
+          "gametime": "20:15"
         },
         {
           "home": "BUF",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 68.9,
-          "away_wp": 31.1
+          "home_wp": 75.4,
+          "away_wp": 24.6,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "CLE",
           "away": "CAR",
           "neutral": false,
-          "home_wp": 57.0,
-          "away_wp": 43.0
+          "home_wp": 58.6,
+          "away_wp": 41.4,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "DET",
           "away": "NYJ",
           "neutral": false,
-          "home_wp": 80.9,
-          "away_wp": 19.1
+          "home_wp": 78.5,
+          "away_wp": 21.5,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "IND",
           "away": "HOU",
           "neutral": false,
-          "home_wp": 38.9,
-          "away_wp": 61.1
+          "home_wp": 38.1,
+          "away_wp": 61.9,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "JAX",
           "away": "NE",
           "neutral": false,
-          "home_wp": 54.1,
-          "away_wp": 45.9
+          "home_wp": 57.4,
+          "away_wp": 42.6,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "MIA",
           "away": "KC",
           "neutral": false,
-          "home_wp": 51.1,
-          "away_wp": 48.9
+          "home_wp": 46.8,
+          "away_wp": 53.2,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "NYG",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 66.9,
-          "away_wp": 33.1
+          "home_wp": 72.9,
+          "away_wp": 27.1,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "PIT",
           "away": "CIN",
           "neutral": false,
-          "home_wp": 62.7,
-          "away_wp": 37.3
+          "home_wp": 62.4,
+          "away_wp": 37.6,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "WAS",
           "away": "SEA",
           "neutral": false,
-          "home_wp": 29.1,
-          "away_wp": 70.9
+          "home_wp": 27.4,
+          "away_wp": 72.6,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "13:00"
         },
         {
           "home": "SF",
           "away": "ARI",
           "neutral": false,
-          "home_wp": 77.7,
-          "away_wp": 22.3
+          "home_wp": 77.5,
+          "away_wp": 22.5,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "16:05"
         },
         {
           "home": "TB",
           "away": "MIN",
           "neutral": false,
-          "home_wp": 48.6,
-          "away_wp": 51.4
+          "home_wp": 43.0,
+          "away_wp": 57.0,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "16:05"
         },
         {
           "home": "DAL",
           "away": "BAL",
           "neutral": true,
-          "home_wp": 37.5,
-          "away_wp": 62.5
+          "home_wp": 31.4,
+          "away_wp": 68.6,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "16:25"
         },
         {
           "home": "NO",
           "away": "LV",
           "neutral": false,
-          "home_wp": 68.9,
-          "away_wp": 31.1
+          "home_wp": 64.7,
+          "away_wp": 35.3,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "16:25"
         },
         {
           "home": "DEN",
           "away": "LA",
           "neutral": false,
-          "home_wp": 57.3,
-          "away_wp": 42.7
+          "home_wp": 62.0,
+          "away_wp": 38.0,
+          "weekday": "Sunday",
+          "gameday": "2026-09-27",
+          "gametime": "20:20"
         },
         {
           "home": "CHI",
           "away": "PHI",
           "neutral": false,
-          "home_wp": 50.8,
-          "away_wp": 49.2
+          "home_wp": 53.8,
+          "away_wp": 46.2,
+          "weekday": "Monday",
+          "gameday": "2026-09-28",
+          "gametime": "20:15"
         }
       ]
     },
@@ -1486,113 +1702,161 @@
           "home": "CLE",
           "away": "PIT",
           "neutral": false,
-          "home_wp": 44.5,
-          "away_wp": 55.5
+          "home_wp": 40.3,
+          "away_wp": 59.7,
+          "weekday": "Thursday",
+          "gameday": "2026-10-01",
+          "gametime": "20:15"
         },
         {
           "home": "WAS",
           "away": "IND",
           "neutral": true,
-          "home_wp": 48.4,
-          "away_wp": 51.6
+          "home_wp": 51.4,
+          "away_wp": 48.6,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "09:30"
         },
         {
           "home": "BAL",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 80.8,
-          "away_wp": 19.2
+          "home_wp": 85.4,
+          "away_wp": 14.6,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "13:00"
         },
         {
           "home": "BUF",
           "away": "NE",
           "neutral": false,
-          "home_wp": 60.8,
-          "away_wp": 39.2
+          "home_wp": 64.7,
+          "away_wp": 35.3,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "13:00"
         },
         {
           "home": "CHI",
           "away": "NYJ",
           "neutral": false,
-          "home_wp": 77.8,
-          "away_wp": 22.2
+          "home_wp": 77.5,
+          "away_wp": 22.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "13:00"
         },
         {
           "home": "CIN",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 45.9,
-          "away_wp": 54.1
+          "home_wp": 46.1,
+          "away_wp": 53.9,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "13:00"
         },
         {
           "home": "HOU",
           "away": "DAL",
           "neutral": false,
-          "home_wp": 75.8,
-          "away_wp": 24.2
+          "home_wp": 75.9,
+          "away_wp": 24.1,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "13:00"
         },
         {
           "home": "NYG",
           "away": "ARI",
           "neutral": false,
-          "home_wp": 61.2,
-          "away_wp": 38.8
+          "home_wp": 59.0,
+          "away_wp": 41.0,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "13:00"
         },
         {
           "home": "PHI",
           "away": "LA",
           "neutral": false,
-          "home_wp": 52.9,
-          "away_wp": 47.1
+          "home_wp": 58.5,
+          "away_wp": 41.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "13:00"
         },
         {
           "home": "TB",
           "away": "GB",
           "neutral": false,
-          "home_wp": 51.2,
-          "away_wp": 48.8
+          "home_wp": 52.1,
+          "away_wp": 47.9,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "13:00"
         },
         {
           "home": "MIN",
           "away": "MIA",
           "neutral": false,
-          "home_wp": 70.1,
-          "away_wp": 29.9
+          "home_wp": 76.0,
+          "away_wp": 24.0,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "16:05"
         },
         {
           "home": "LV",
           "away": "KC",
           "neutral": false,
-          "home_wp": 36.3,
-          "away_wp": 63.7
+          "home_wp": 40.3,
+          "away_wp": 59.7,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "16:25"
         },
         {
           "home": "SEA",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 75.5,
-          "away_wp": 24.5
+          "home_wp": 79.9,
+          "away_wp": 20.1,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "16:25"
         },
         {
           "home": "SF",
           "away": "DEN",
           "neutral": false,
-          "home_wp": 50.8,
-          "away_wp": 49.2
+          "home_wp": 55.7,
+          "away_wp": 44.3,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "16:25"
         },
         {
           "home": "CAR",
           "away": "DET",
           "neutral": false,
-          "home_wp": 39.0,
-          "away_wp": 61.0
+          "home_wp": 35.0,
+          "away_wp": 65.0,
+          "weekday": "Sunday",
+          "gameday": "2026-10-04",
+          "gametime": "20:20"
         },
         {
           "home": "NO",
           "away": "ATL",
           "neutral": false,
-          "home_wp": 53.0,
-          "away_wp": 47.0
+          "home_wp": 54.6,
+          "away_wp": 45.4,
+          "weekday": "Monday",
+          "gameday": "2026-10-05",
+          "gametime": "20:15"
         }
       ]
     },
@@ -1603,106 +1867,151 @@
           "home": "DAL",
           "away": "TB",
           "neutral": false,
-          "home_wp": 53.9,
-          "away_wp": 46.1
+          "home_wp": 53.4,
+          "away_wp": 46.6,
+          "weekday": "Thursday",
+          "gameday": "2026-10-08",
+          "gametime": "20:15"
         },
         {
           "home": "JAX",
           "away": "PHI",
           "neutral": false,
-          "home_wp": 56.1,
-          "away_wp": 43.9
+          "home_wp": 57.4,
+          "away_wp": 42.6,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "09:30"
         },
         {
           "home": "MIA",
           "away": "CIN",
           "neutral": false,
-          "home_wp": 54.9,
-          "away_wp": 45.1
+          "home_wp": 48.2,
+          "away_wp": 51.8,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "13:00"
         },
         {
           "home": "NE",
           "away": "LV",
           "neutral": false,
-          "home_wp": 84.3,
-          "away_wp": 15.7
+          "home_wp": 81.2,
+          "away_wp": 18.8,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "13:00"
         },
         {
           "home": "NO",
           "away": "MIN",
           "neutral": false,
-          "home_wp": 41.4,
-          "away_wp": 58.6
+          "home_wp": 37.8,
+          "away_wp": 62.2,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "13:00"
         },
         {
           "home": "NYJ",
           "away": "CLE",
           "neutral": false,
-          "home_wp": 49.7,
-          "away_wp": 50.3
+          "home_wp": 56.0,
+          "away_wp": 44.0,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "13:00"
         },
         {
           "home": "PIT",
           "away": "IND",
           "neutral": false,
-          "home_wp": 63.9,
-          "away_wp": 36.1
+          "home_wp": 69.2,
+          "away_wp": 30.8,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "13:00"
         },
         {
           "home": "TEN",
           "away": "HOU",
           "neutral": false,
-          "home_wp": 24.6,
-          "away_wp": 75.4
+          "home_wp": 23.6,
+          "away_wp": 76.4,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "13:00"
         },
         {
           "home": "WAS",
           "away": "NYG",
           "neutral": false,
-          "home_wp": 63.2,
-          "away_wp": 36.8
+          "home_wp": 59.6,
+          "away_wp": 40.4,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "13:00"
         },
         {
           "home": "LAC",
           "away": "DEN",
           "neutral": false,
-          "home_wp": 46.6,
-          "away_wp": 53.4
+          "home_wp": 41.5,
+          "away_wp": 58.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "16:05"
         },
         {
           "home": "ARI",
           "away": "DET",
           "neutral": false,
-          "home_wp": 34.8,
-          "away_wp": 65.2
+          "home_wp": 39.2,
+          "away_wp": 60.8,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "16:25"
         },
         {
           "home": "GB",
           "away": "CHI",
           "neutral": false,
-          "home_wp": 58.8,
-          "away_wp": 41.2
+          "home_wp": 51.9,
+          "away_wp": 48.1,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "16:25"
         },
         {
           "home": "SEA",
           "away": "SF",
           "neutral": false,
-          "home_wp": 72.3,
-          "away_wp": 27.7
+          "home_wp": 69.2,
+          "away_wp": 30.8,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "16:25"
         },
         {
           "home": "ATL",
           "away": "BAL",
           "neutral": false,
-          "home_wp": 46.7,
-          "away_wp": 53.3
+          "home_wp": 40.8,
+          "away_wp": 59.2,
+          "weekday": "Sunday",
+          "gameday": "2026-10-11",
+          "gametime": "20:20"
         },
         {
           "home": "LA",
           "away": "BUF",
           "neutral": false,
-          "home_wp": 57.8,
-          "away_wp": 42.2
+          "home_wp": 50.0,
+          "away_wp": 50.0,
+          "weekday": "Monday",
+          "gameday": "2026-10-12",
+          "gametime": "20:15"
         }
       ]
     },
@@ -1713,99 +2022,141 @@
           "home": "DEN",
           "away": "SEA",
           "neutral": false,
-          "home_wp": 49.0,
-          "away_wp": 51.0
+          "home_wp": 47.8,
+          "away_wp": 52.2,
+          "weekday": "Thursday",
+          "gameday": "2026-10-15",
+          "gametime": "20:15"
         },
         {
           "home": "JAX",
           "away": "HOU",
           "neutral": true,
-          "home_wp": 44.3,
-          "away_wp": 55.7
+          "home_wp": 49.3,
+          "away_wp": 50.7,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "09:30"
         },
         {
           "home": "ATL",
           "away": "CHI",
           "neutral": false,
-          "home_wp": 49.8,
-          "away_wp": 50.2
+          "home_wp": 43.9,
+          "away_wp": 56.1,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "13:00"
         },
         {
           "home": "CLE",
           "away": "BAL",
           "neutral": false,
-          "home_wp": 39.7,
-          "away_wp": 60.3
+          "home_wp": 34.2,
+          "away_wp": 65.8,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "13:00"
         },
         {
           "home": "IND",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 72.9,
-          "away_wp": 27.1
+          "home_wp": 73.2,
+          "away_wp": 26.8,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "13:00"
         },
         {
           "home": "NE",
           "away": "NYJ",
           "neutral": false,
-          "home_wp": 83.5,
-          "away_wp": 16.5
+          "home_wp": 80.2,
+          "away_wp": 19.8,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "13:00"
         },
         {
           "home": "NYG",
           "away": "NO",
           "neutral": false,
-          "home_wp": 55.6,
-          "away_wp": 44.4
+          "home_wp": 59.0,
+          "away_wp": 41.0,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "13:00"
         },
         {
           "home": "PHI",
           "away": "CAR",
           "neutral": false,
-          "home_wp": 76.4,
-          "away_wp": 23.6
+          "home_wp": 79.5,
+          "away_wp": 20.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "13:00"
         },
         {
           "home": "TB",
           "away": "PIT",
           "neutral": false,
-          "home_wp": 54.0,
-          "away_wp": 46.0
+          "home_wp": 49.5,
+          "away_wp": 50.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "13:00"
         },
         {
           "home": "LA",
           "away": "ARI",
           "neutral": false,
-          "home_wp": 82.5,
-          "away_wp": 17.5
+          "home_wp": 75.9,
+          "away_wp": 24.1,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "16:05"
         },
         {
           "home": "KC",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 54.7,
-          "away_wp": 45.3
+          "home_wp": 59.7,
+          "away_wp": 40.3,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "16:25"
         },
         {
           "home": "LV",
           "away": "BUF",
           "neutral": false,
-          "home_wp": 23.7,
-          "away_wp": 76.3
+          "home_wp": 24.7,
+          "away_wp": 75.3,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "16:25"
         },
         {
           "home": "GB",
           "away": "DAL",
           "neutral": false,
-          "home_wp": 67.8,
-          "away_wp": 32.2
+          "home_wp": 67.5,
+          "away_wp": 32.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-18",
+          "gametime": "20:20"
         },
         {
           "home": "SF",
           "away": "WAS",
           "neutral": false,
-          "home_wp": 70.8,
-          "away_wp": 29.2
+          "home_wp": 75.3,
+          "away_wp": 24.7,
+          "weekday": "Monday",
+          "gameday": "2026-10-19",
+          "gametime": "20:15"
         }
       ]
     },
@@ -1816,99 +2167,141 @@
           "home": "CHI",
           "away": "NE",
           "neutral": false,
-          "home_wp": 48.8,
-          "away_wp": 51.2
+          "home_wp": 53.8,
+          "away_wp": 46.2,
+          "weekday": "Thursday",
+          "gameday": "2026-10-22",
+          "gametime": "20:15"
         },
         {
           "home": "NO",
           "away": "PIT",
           "neutral": true,
-          "home_wp": 38.9,
-          "away_wp": 61.1
+          "home_wp": 36.5,
+          "away_wp": 63.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "09:30"
         },
         {
           "home": "ATL",
           "away": "SF",
           "neutral": false,
-          "home_wp": 45.3,
-          "away_wp": 54.7
+          "home_wp": 38.5,
+          "away_wp": 61.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "13:00"
         },
         {
           "home": "BAL",
           "away": "CIN",
           "neutral": false,
-          "home_wp": 67.1,
-          "away_wp": 32.9
+          "home_wp": 68.3,
+          "away_wp": 31.7,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "13:00"
         },
         {
           "home": "CAR",
           "away": "TB",
           "neutral": false,
-          "home_wp": 49.3,
-          "away_wp": 50.7
+          "home_wp": 47.9,
+          "away_wp": 52.1,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "13:00"
         },
         {
           "home": "HOU",
           "away": "NYG",
           "neutral": false,
-          "home_wp": 79.8,
-          "away_wp": 20.2
+          "home_wp": 75.7,
+          "away_wp": 24.3,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "13:00"
         },
         {
           "home": "MIN",
           "away": "IND",
           "neutral": false,
-          "home_wp": 68.7,
-          "away_wp": 31.3
+          "home_wp": 74.5,
+          "away_wp": 25.5,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "13:00"
         },
         {
           "home": "NYJ",
           "away": "MIA",
           "neutral": false,
-          "home_wp": 44.3,
-          "away_wp": 55.7
+          "home_wp": 52.8,
+          "away_wp": 47.2,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "13:00"
         },
         {
           "home": "TEN",
           "away": "CLE",
           "neutral": false,
-          "home_wp": 48.2,
-          "away_wp": 51.8
+          "home_wp": 46.0,
+          "away_wp": 54.0,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "13:00"
         },
         {
           "home": "ARI",
           "away": "DEN",
           "neutral": false,
-          "home_wp": 29.0,
-          "away_wp": 71.0
+          "home_wp": 33.4,
+          "away_wp": 66.6,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "16:05"
         },
         {
           "home": "DET",
           "away": "GB",
           "neutral": false,
-          "home_wp": 61.5,
-          "away_wp": 38.5
+          "home_wp": 65.0,
+          "away_wp": 35.0,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "16:25"
         },
         {
           "home": "LV",
           "away": "LA",
           "neutral": false,
-          "home_wp": 23.7,
-          "away_wp": 76.3
+          "home_wp": 31.0,
+          "away_wp": 69.0,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "16:25"
         },
         {
           "home": "SEA",
           "away": "KC",
           "neutral": false,
-          "home_wp": 77.8,
-          "away_wp": 22.2
+          "home_wp": 78.7,
+          "away_wp": 21.3,
+          "weekday": "Sunday",
+          "gameday": "2026-10-25",
+          "gametime": "20:20"
         },
         {
           "home": "PHI",
           "away": "DAL",
           "neutral": false,
-          "home_wp": 72.8,
-          "away_wp": 27.2
+          "home_wp": 75.7,
+          "away_wp": 24.3,
+          "weekday": "Monday",
+          "gameday": "2026-10-26",
+          "gametime": "20:15"
         }
       ]
     },
@@ -1919,99 +2312,141 @@
           "home": "GB",
           "away": "CAR",
           "neutral": false,
-          "home_wp": 71.7,
-          "away_wp": 28.3
+          "home_wp": 72.1,
+          "away_wp": 27.9,
+          "weekday": "Thursday",
+          "gameday": "2026-10-29",
+          "gametime": "20:15"
         },
         {
           "home": "BUF",
           "away": "BAL",
           "neutral": false,
-          "home_wp": 66.4,
-          "away_wp": 33.6
+          "home_wp": 65.5,
+          "away_wp": 34.5,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "13:00"
         },
         {
           "home": "CIN",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 73.9,
-          "away_wp": 26.1
+          "home_wp": 78.8,
+          "away_wp": 21.2,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "13:00"
         },
         {
           "home": "DAL",
           "away": "ARI",
           "neutral": false,
-          "home_wp": 66.4,
-          "away_wp": 33.6
+          "home_wp": 58.8,
+          "away_wp": 41.2,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "13:00"
         },
         {
           "home": "DET",
           "away": "MIN",
           "neutral": false,
-          "home_wp": 59.0,
-          "away_wp": 41.0
+          "home_wp": 56.3,
+          "away_wp": 43.7,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "13:00"
         },
         {
           "home": "JAX",
           "away": "IND",
           "neutral": false,
-          "home_wp": 70.1,
-          "away_wp": 29.9
+          "home_wp": 74.8,
+          "away_wp": 25.2,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "13:00"
         },
         {
           "home": "NYJ",
           "away": "LV",
           "neutral": false,
           "home_wp": 59.4,
-          "away_wp": 40.6
+          "away_wp": 40.6,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "13:00"
         },
         {
           "home": "PIT",
           "away": "CLE",
           "neutral": false,
-          "home_wp": 70.2,
-          "away_wp": 29.8
+          "home_wp": 73.6,
+          "away_wp": 26.4,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "13:00"
         },
         {
           "home": "TB",
           "away": "ATL",
           "neutral": false,
-          "home_wp": 60.2,
-          "away_wp": 39.8
+          "home_wp": 59.9,
+          "away_wp": 40.1,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "13:00"
         },
         {
           "home": "LA",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 68.8,
-          "away_wp": 31.2
+          "home_wp": 69.0,
+          "away_wp": 31.0,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "16:05"
         },
         {
           "home": "DEN",
           "away": "KC",
           "neutral": false,
           "home_wp": 71.1,
-          "away_wp": 28.9
+          "away_wp": 28.9,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "16:25"
         },
         {
           "home": "MIA",
           "away": "NE",
           "neutral": false,
-          "home_wp": 39.2,
-          "away_wp": 60.8
+          "home_wp": 36.3,
+          "away_wp": 63.7,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "16:25"
         },
         {
           "home": "WAS",
           "away": "PHI",
           "neutral": false,
-          "home_wp": 41.2,
-          "away_wp": 58.8
+          "home_wp": 39.6,
+          "away_wp": 60.4,
+          "weekday": "Sunday",
+          "gameday": "2026-11-01",
+          "gametime": "20:20"
         },
         {
           "home": "SEA",
           "away": "CHI",
           "neutral": false,
-          "home_wp": 75.7,
-          "away_wp": 24.3
+          "home_wp": 73.8,
+          "away_wp": 26.2,
+          "weekday": "Monday",
+          "gameday": "2026-11-02",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2022,106 +2457,151 @@
           "home": "BAL",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 55.7,
-          "away_wp": 44.3
+          "home_wp": 57.4,
+          "away_wp": 42.6,
+          "weekday": "Thursday",
+          "gameday": "2026-11-05",
+          "gametime": "20:15"
         },
         {
           "home": "ATL",
           "away": "CIN",
           "neutral": true,
-          "home_wp": 48.7,
-          "away_wp": 51.3
+          "home_wp": 44.2,
+          "away_wp": 55.8,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "09:30"
         },
         {
           "home": "CAR",
           "away": "DEN",
           "neutral": false,
-          "home_wp": 32.8,
-          "away_wp": 67.2
+          "home_wp": 29.6,
+          "away_wp": 70.4,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "13:00"
         },
         {
           "home": "IND",
           "away": "DAL",
           "neutral": false,
-          "home_wp": 59.3,
-          "away_wp": 40.7
+          "home_wp": 58.5,
+          "away_wp": 41.5,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "13:00"
         },
         {
           "home": "KC",
           "away": "NYJ",
           "neutral": false,
-          "home_wp": 75.6,
-          "away_wp": 24.4
+          "home_wp": 72.4,
+          "away_wp": 27.6,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "13:00"
         },
         {
           "home": "MIA",
           "away": "DET",
           "neutral": false,
-          "home_wp": 43.3,
-          "away_wp": 56.7
+          "home_wp": 38.7,
+          "away_wp": 61.3,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "13:00"
         },
         {
           "home": "NO",
           "away": "CLE",
           "neutral": false,
-          "home_wp": 60.0,
-          "away_wp": 40.0
+          "home_wp": 61.5,
+          "away_wp": 38.5,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "13:00"
         },
         {
           "home": "PHI",
           "away": "NYG",
           "neutral": false,
-          "home_wp": 77.1,
-          "away_wp": 22.9
+          "home_wp": 75.5,
+          "away_wp": 24.5,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "13:00"
         },
         {
           "home": "WAS",
           "away": "LA",
           "neutral": false,
-          "home_wp": 36.4,
-          "away_wp": 63.6
+          "home_wp": 40.3,
+          "away_wp": 59.7,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "13:00"
         },
         {
           "home": "LAC",
           "away": "HOU",
           "neutral": false,
-          "home_wp": 47.1,
-          "away_wp": 52.9
+          "home_wp": 44.9,
+          "away_wp": 55.1,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "16:05"
         },
         {
           "home": "SF",
           "away": "LV",
           "neutral": false,
-          "home_wp": 81.7,
-          "away_wp": 18.3
+          "home_wp": 82.1,
+          "away_wp": 17.9,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "16:05"
         },
         {
           "home": "NE",
           "away": "GB",
           "neutral": false,
-          "home_wp": 65.5,
-          "away_wp": 34.5
+          "home_wp": 67.3,
+          "away_wp": 32.7,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "16:25"
         },
         {
           "home": "SEA",
           "away": "ARI",
           "neutral": false,
-          "home_wp": 86.8,
-          "away_wp": 13.2
+          "home_wp": 84.9,
+          "away_wp": 15.1,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "16:25"
         },
         {
           "home": "CHI",
           "away": "TB",
           "neutral": false,
-          "home_wp": 63.3,
-          "away_wp": 36.7
+          "home_wp": 68.8,
+          "away_wp": 31.2,
+          "weekday": "Sunday",
+          "gameday": "2026-11-08",
+          "gametime": "20:20"
         },
         {
           "home": "MIN",
           "away": "BUF",
           "neutral": false,
-          "home_wp": 49.3,
-          "away_wp": 50.7
+          "home_wp": 49.7,
+          "away_wp": 50.3,
+          "weekday": "Monday",
+          "gameday": "2026-11-09",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2132,99 +2612,141 @@
           "home": "NYG",
           "away": "WAS",
           "neutral": false,
-          "home_wp": 52.3,
-          "away_wp": 47.7
+          "home_wp": 56.1,
+          "away_wp": 43.9,
+          "weekday": "Thursday",
+          "gameday": "2026-11-12",
+          "gametime": "20:15"
         },
         {
           "home": "DET",
           "away": "NE",
           "neutral": true,
-          "home_wp": 45.7,
-          "away_wp": 54.3
+          "home_wp": 47.4,
+          "away_wp": 52.6,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "09:30"
         },
         {
           "home": "ATL",
           "away": "KC",
           "neutral": false,
-          "home_wp": 52.8,
-          "away_wp": 47.2
+          "home_wp": 50.7,
+          "away_wp": 49.3,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "13:00"
         },
         {
           "home": "CLE",
           "away": "HOU",
           "neutral": false,
-          "home_wp": 32.5,
-          "away_wp": 67.5
+          "home_wp": 33.2,
+          "away_wp": 66.8,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "13:00"
         },
         {
           "home": "GB",
           "away": "MIN",
           "neutral": false,
-          "home_wp": 55.3,
-          "away_wp": 44.7
+          "home_wp": 48.8,
+          "away_wp": 51.2,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "13:00"
         },
         {
           "home": "IND",
           "away": "MIA",
           "neutral": false,
-          "home_wp": 59.5,
-          "away_wp": 40.5
+          "home_wp": 59.9,
+          "away_wp": 40.1,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "13:00"
         },
         {
           "home": "NO",
           "away": "CAR",
           "neutral": false,
-          "home_wp": 59.1,
-          "away_wp": 40.9
+          "home_wp": 62.2,
+          "away_wp": 37.8,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "13:00"
         },
         {
           "home": "NYJ",
           "away": "BUF",
           "neutral": false,
-          "home_wp": 24.8,
-          "away_wp": 75.2
+          "home_wp": 25.8,
+          "away_wp": 74.2,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "13:00"
         },
         {
           "home": "TEN",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 29.0,
-          "away_wp": 71.0
+          "home_wp": 24.1,
+          "away_wp": 75.9,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "13:00"
         },
         {
           "home": "ARI",
           "away": "LA",
           "neutral": false,
-          "home_wp": 28.5,
-          "away_wp": 71.5
+          "home_wp": 37.4,
+          "away_wp": 62.6,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "16:05"
         },
         {
           "home": "LV",
           "away": "SEA",
           "neutral": false,
-          "home_wp": 18.2,
-          "away_wp": 81.8
+          "home_wp": 20.1,
+          "away_wp": 79.9,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "16:05"
         },
         {
           "home": "DAL",
           "away": "SF",
           "neutral": false,
-          "home_wp": 43.9,
-          "away_wp": 56.1
+          "home_wp": 36.3,
+          "away_wp": 63.7,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "16:25"
         },
         {
           "home": "CIN",
           "away": "PIT",
           "neutral": false,
-          "home_wp": 52.9,
-          "away_wp": 47.1
+          "home_wp": 53.2,
+          "away_wp": 46.8,
+          "weekday": "Sunday",
+          "gameday": "2026-11-15",
+          "gametime": "20:20"
         },
         {
           "home": "BAL",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 60.6,
-          "away_wp": 39.4
+          "home_wp": 68.8,
+          "away_wp": 31.2,
+          "weekday": "Monday",
+          "gameday": "2026-11-16",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2235,92 +2757,131 @@
           "home": "HOU",
           "away": "IND",
           "neutral": false,
-          "home_wp": 74.7,
-          "away_wp": 25.3
+          "home_wp": 75.4,
+          "away_wp": 24.6,
+          "weekday": "Thursday",
+          "gameday": "2026-11-19",
+          "gametime": "20:15"
         },
         {
           "home": "BUF",
           "away": "MIA",
           "neutral": false,
-          "home_wp": 76.8,
-          "away_wp": 23.2
+          "home_wp": 81.5,
+          "away_wp": 18.5,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "13:00"
         },
         {
           "home": "CAR",
           "away": "BAL",
           "neutral": false,
-          "home_wp": 40.6,
-          "away_wp": 59.4
+          "home_wp": 33.5,
+          "away_wp": 66.5,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "13:00"
         },
         {
           "home": "CHI",
           "away": "NO",
           "neutral": false,
-          "home_wp": 69.8,
-          "away_wp": 30.2
+          "home_wp": 73.2,
+          "away_wp": 26.8,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "13:00"
         },
         {
           "home": "DAL",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 71.7,
-          "away_wp": 28.3
+          "home_wp": 72.7,
+          "away_wp": 27.3,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "13:00"
         },
         {
           "home": "DET",
           "away": "TB",
           "neutral": false,
-          "home_wp": 67.6,
-          "away_wp": 32.4
+          "home_wp": 70.1,
+          "away_wp": 29.9,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "13:00"
         },
         {
           "home": "KC",
           "away": "ARI",
           "neutral": false,
-          "home_wp": 72.1,
-          "away_wp": 27.9
+          "home_wp": 67.7,
+          "away_wp": 32.3,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "13:00"
         },
         {
           "home": "NYG",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 37.6,
-          "away_wp": 62.4
+          "home_wp": 38.4,
+          "away_wp": 61.6,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "13:00"
         },
         {
           "home": "LAC",
           "away": "NYJ",
           "neutral": false,
-          "home_wp": 78.0,
-          "away_wp": 22.0
+          "home_wp": 70.8,
+          "away_wp": 29.2,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "16:05"
         },
         {
           "home": "DEN",
           "away": "LV",
           "neutral": false,
-          "home_wp": 85.5,
-          "away_wp": 14.5
+          "home_wp": 83.3,
+          "away_wp": 16.7,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "16:25"
         },
         {
           "home": "PHI",
           "away": "PIT",
           "neutral": false,
-          "home_wp": 66.2,
-          "away_wp": 33.8
+          "home_wp": 65.0,
+          "away_wp": 35.0,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "16:25"
         },
         {
           "home": "SF",
           "away": "MIN",
           "neutral": true,
-          "home_wp": 50.8,
-          "away_wp": 49.2
+          "home_wp": 52.5,
+          "away_wp": 47.5,
+          "weekday": "Sunday",
+          "gameday": "2026-11-22",
+          "gametime": "20:20"
         },
         {
           "home": "WAS",
           "away": "CIN",
           "neutral": false,
-          "home_wp": 54.9,
-          "away_wp": 45.1
+          "home_wp": 51.7,
+          "away_wp": 48.3,
+          "weekday": "Monday",
+          "gameday": "2026-11-23",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2331,113 +2892,161 @@
           "home": "LA",
           "away": "GB",
           "neutral": false,
-          "home_wp": 68.1,
-          "away_wp": 31.9
+          "home_wp": 66.7,
+          "away_wp": 33.3,
+          "weekday": "Wednesday",
+          "gameday": "2026-11-25",
+          "gametime": "20:00"
         },
         {
           "home": "DET",
           "away": "CHI",
           "neutral": false,
-          "home_wp": 62.5,
-          "away_wp": 37.5
+          "home_wp": 59.3,
+          "away_wp": 40.7,
+          "weekday": "Thursday",
+          "gameday": "2026-11-26",
+          "gametime": "13:00"
         },
         {
           "home": "DAL",
           "away": "PHI",
           "neutral": false,
-          "home_wp": 41.3,
-          "away_wp": 58.7
+          "home_wp": 37.7,
+          "away_wp": 62.3,
+          "weekday": "Thursday",
+          "gameday": "2026-11-26",
+          "gametime": "16:30"
         },
         {
           "home": "BUF",
           "away": "KC",
           "neutral": false,
-          "home_wp": 71.6,
-          "away_wp": 28.4
+          "home_wp": 73.9,
+          "away_wp": 26.1,
+          "weekday": "Thursday",
+          "gameday": "2026-11-26",
+          "gametime": "20:20"
         },
         {
           "home": "PIT",
           "away": "DEN",
           "neutral": false,
-          "home_wp": 44.6,
-          "away_wp": 55.4
+          "home_wp": 46.7,
+          "away_wp": 53.3,
+          "weekday": "Friday",
+          "gameday": "2026-11-27",
+          "gametime": "15:00"
         },
         {
           "home": "CIN",
           "away": "NO",
           "neutral": false,
-          "home_wp": 63.8,
-          "away_wp": 36.2
+          "home_wp": 66.4,
+          "away_wp": 33.6,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "13:00"
         },
         {
           "home": "CLE",
           "away": "LV",
           "neutral": false,
-          "home_wp": 67.0,
-          "away_wp": 33.0
+          "home_wp": 61.1,
+          "away_wp": 38.9,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "13:00"
         },
         {
           "home": "HOU",
           "away": "BAL",
           "neutral": false,
-          "home_wp": 65.3,
-          "away_wp": 34.7
+          "home_wp": 59.0,
+          "away_wp": 41.0,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "13:00"
         },
         {
           "home": "IND",
           "away": "NYG",
           "neutral": false,
-          "home_wp": 64.7,
-          "away_wp": 35.3
+          "home_wp": 58.2,
+          "away_wp": 41.8,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "13:00"
         },
         {
           "home": "MIA",
           "away": "NYJ",
           "neutral": false,
-          "home_wp": 70.3,
-          "away_wp": 29.7
+          "home_wp": 62.7,
+          "away_wp": 37.3,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "13:00"
         },
         {
           "home": "MIN",
           "away": "ATL",
           "neutral": false,
-          "home_wp": 68.7,
-          "away_wp": 31.3
+          "home_wp": 73.1,
+          "away_wp": 26.9,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "13:00"
         },
         {
           "home": "JAX",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 82.1,
-          "away_wp": 17.9
+          "home_wp": 85.6,
+          "away_wp": 14.4,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "16:05"
         },
         {
           "home": "ARI",
           "away": "WAS",
           "neutral": false,
-          "home_wp": 48.9,
-          "away_wp": 51.1
+          "home_wp": 54.9,
+          "away_wp": 45.1,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "16:25"
         },
         {
           "home": "SF",
           "away": "SEA",
           "neutral": false,
-          "home_wp": 42.0,
-          "away_wp": 58.0
+          "home_wp": 45.6,
+          "away_wp": 54.4,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "16:25"
         },
         {
           "home": "LAC",
           "away": "NE",
           "neutral": false,
-          "home_wp": 49.0,
-          "away_wp": 51.0
+          "home_wp": 45.1,
+          "away_wp": 54.9,
+          "weekday": "Sunday",
+          "gameday": "2026-11-29",
+          "gametime": "20:20"
         },
         {
           "home": "TB",
           "away": "CAR",
           "neutral": false,
-          "home_wp": 66.0,
-          "away_wp": 34.0
+          "home_wp": 67.2,
+          "away_wp": 32.8,
+          "weekday": "Monday",
+          "gameday": "2026-11-30",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2448,99 +3057,141 @@
           "home": "LA",
           "away": "KC",
           "neutral": false,
-          "home_wp": 71.5,
-          "away_wp": 28.5
+          "home_wp": 67.4,
+          "away_wp": 32.6,
+          "weekday": "Thursday",
+          "gameday": "2026-12-03",
+          "gametime": "20:15"
         },
         {
           "home": "ATL",
           "away": "DET",
           "neutral": false,
-          "home_wp": 45.0,
-          "away_wp": 55.0
+          "home_wp": 42.4,
+          "away_wp": 57.6,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "13:00"
         },
         {
           "home": "CHI",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 52.6,
-          "away_wp": 47.4
+          "home_wp": 54.3,
+          "away_wp": 45.7,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "13:00"
         },
         {
           "home": "CLE",
           "away": "CIN",
           "neutral": false,
-          "home_wp": 49.5,
-          "away_wp": 50.5
+          "home_wp": 45.0,
+          "away_wp": 55.0,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "13:00"
         },
         {
           "home": "NO",
           "away": "GB",
           "neutral": false,
-          "home_wp": 43.9,
-          "away_wp": 56.1
+          "home_wp": 46.7,
+          "away_wp": 53.3,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "13:00"
         },
         {
           "home": "NYG",
           "away": "SF",
           "neutral": false,
-          "home_wp": 38.4,
-          "away_wp": 61.6
+          "home_wp": 36.5,
+          "away_wp": 63.5,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "13:00"
         },
         {
           "home": "TB",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 52.0,
-          "away_wp": 48.0
+          "home_wp": 54.8,
+          "away_wp": 45.2,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "13:00"
         },
         {
           "home": "TEN",
           "away": "WAS",
           "neutral": false,
-          "home_wp": 42.8,
-          "away_wp": 57.2
+          "home_wp": 39.4,
+          "away_wp": 60.6,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "13:00"
         },
         {
           "home": "ARI",
           "away": "PHI",
           "neutral": false,
-          "home_wp": 32.8,
-          "away_wp": 67.2
+          "home_wp": 36.7,
+          "away_wp": 63.3,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "16:05"
         },
         {
           "home": "DEN",
           "away": "MIA",
           "neutral": false,
-          "home_wp": 76.3,
-          "away_wp": 23.7
+          "home_wp": 79.3,
+          "away_wp": 20.7,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "16:05"
         },
         {
           "home": "MIN",
           "away": "CAR",
           "neutral": false,
-          "home_wp": 73.8,
-          "away_wp": 26.2
+          "home_wp": 78.8,
+          "away_wp": 21.2,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "16:25"
         },
         {
           "home": "NE",
           "away": "BUF",
           "neutral": false,
-          "home_wp": 54.8,
-          "away_wp": 45.2
+          "home_wp": 50.7,
+          "away_wp": 49.3,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "16:25"
         },
         {
           "home": "PIT",
           "away": "HOU",
           "neutral": false,
-          "home_wp": 45.2,
-          "away_wp": 54.8
+          "home_wp": 50.2,
+          "away_wp": 49.8,
+          "weekday": "Sunday",
+          "gameday": "2026-12-06",
+          "gametime": "20:20"
         },
         {
           "home": "SEA",
           "away": "DAL",
           "neutral": false,
-          "home_wp": 82.1,
-          "away_wp": 17.9
+          "home_wp": 84.4,
+          "away_wp": 15.6,
+          "weekday": "Monday",
+          "gameday": "2026-12-07",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2551,106 +3202,151 @@
           "home": "NE",
           "away": "MIN",
           "neutral": false,
-          "home_wp": 63.1,
-          "away_wp": 36.9
+          "home_wp": 58.8,
+          "away_wp": 41.2,
+          "weekday": "Thursday",
+          "gameday": "2026-12-10",
+          "gametime": "20:15"
         },
         {
           "home": "BAL",
           "away": "TB",
           "neutral": false,
-          "home_wp": 66.1,
-          "away_wp": 33.9
+          "home_wp": 71.5,
+          "away_wp": 28.5,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "13:00"
         },
         {
           "home": "CAR",
           "away": "NO",
           "neutral": false,
-          "home_wp": 56.6,
-          "away_wp": 43.4
+          "home_wp": 53.3,
+          "away_wp": 46.7,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "13:00"
         },
         {
           "home": "CLE",
           "away": "ATL",
           "neutral": false,
           "home_wp": 50.8,
-          "away_wp": 49.2
+          "away_wp": 49.2,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "13:00"
         },
         {
           "home": "DET",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 81.9,
-          "away_wp": 18.1
+          "home_wp": 84.5,
+          "away_wp": 15.5,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "13:00"
         },
         {
           "home": "MIA",
           "away": "CHI",
           "neutral": false,
-          "home_wp": 48.1,
-          "away_wp": 51.9
+          "home_wp": 40.2,
+          "away_wp": 59.8,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "13:00"
         },
         {
           "home": "NYJ",
           "away": "DEN",
           "neutral": false,
-          "home_wp": 25.3,
-          "away_wp": 74.7
+          "home_wp": 28.7,
+          "away_wp": 71.3,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "13:00"
         },
         {
           "home": "PHI",
           "away": "IND",
           "neutral": false,
-          "home_wp": 71.6,
-          "away_wp": 28.4
+          "home_wp": 75.2,
+          "away_wp": 24.8,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "13:00"
         },
         {
           "home": "WAS",
           "away": "HOU",
           "neutral": false,
-          "home_wp": 37.4,
-          "away_wp": 62.6
+          "home_wp": 39.4,
+          "away_wp": 60.6,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "13:00"
         },
         {
           "home": "LV",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 33.4,
-          "away_wp": 66.6
+          "home_wp": 42.2,
+          "away_wp": 57.8,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "16:05"
         },
         {
           "home": "CIN",
           "away": "KC",
           "neutral": false,
-          "home_wp": 54.1,
-          "away_wp": 45.9
+          "home_wp": 56.5,
+          "away_wp": 43.5,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "16:25"
         },
         {
           "home": "SEA",
           "away": "NYG",
           "neutral": false,
-          "home_wp": 85.2,
-          "away_wp": 14.8
+          "home_wp": 84.3,
+          "away_wp": 15.7,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "16:25"
         },
         {
           "home": "SF",
           "away": "LA",
           "neutral": false,
-          "home_wp": 50.2,
-          "away_wp": 49.8
+          "home_wp": 60.0,
+          "away_wp": 40.0,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "16:25"
         },
         {
           "home": "GB",
           "away": "BUF",
           "neutral": false,
-          "home_wp": 46.7,
-          "away_wp": 53.3
+          "home_wp": 40.7,
+          "away_wp": 59.3,
+          "weekday": "Sunday",
+          "gameday": "2026-12-13",
+          "gametime": "20:20"
         },
         {
           "home": "JAX",
           "away": "PIT",
           "neutral": false,
           "home_wp": 64.5,
-          "away_wp": 35.5
+          "away_wp": 35.5,
+          "weekday": "Monday",
+          "gameday": "2026-12-14",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2661,113 +3357,161 @@
           "home": "LAC",
           "away": "SF",
           "neutral": false,
-          "home_wp": 53.7,
-          "away_wp": 46.3
+          "home_wp": 43.6,
+          "away_wp": 56.4,
+          "weekday": "Thursday",
+          "gameday": "2026-12-17",
+          "gametime": "20:15"
         },
         {
           "home": "PHI",
           "away": "SEA",
           "neutral": false,
-          "home_wp": 44.5,
-          "away_wp": 55.5
+          "home_wp": 44.1,
+          "away_wp": 55.9,
+          "weekday": "Saturday",
+          "gameday": "2026-12-19",
+          "gametime": "17:00"
         },
         {
           "home": "BUF",
           "away": "CHI",
           "neutral": false,
-          "home_wp": 69.1,
-          "away_wp": 30.9
+          "home_wp": 68.4,
+          "away_wp": 31.6,
+          "weekday": "Saturday",
+          "gameday": "2026-12-19",
+          "gametime": "20:20"
         },
         {
           "home": "CAR",
           "away": "CIN",
           "neutral": false,
-          "home_wp": 50.4,
-          "away_wp": 49.6
+          "home_wp": 44.2,
+          "away_wp": 55.8,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "13:00"
         },
         {
           "home": "GB",
           "away": "MIA",
           "neutral": false,
-          "home_wp": 67.9,
-          "away_wp": 32.1
+          "home_wp": 68.8,
+          "away_wp": 31.2,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "13:00"
         },
         {
           "home": "HOU",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 63.3,
-          "away_wp": 36.7
+          "home_wp": 58.5,
+          "away_wp": 41.5,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "13:00"
         },
         {
           "home": "NYG",
           "away": "CLE",
           "neutral": false,
-          "home_wp": 57.7,
-          "away_wp": 42.3
+          "home_wp": 62.6,
+          "away_wp": 37.4,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "13:00"
         },
         {
           "home": "PIT",
           "away": "BAL",
           "neutral": false,
-          "home_wp": 53.0,
-          "away_wp": 47.0
+          "home_wp": 51.3,
+          "away_wp": 48.7,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "13:00"
         },
         {
           "home": "TB",
           "away": "NO",
           "neutral": false,
-          "home_wp": 64.8,
-          "away_wp": 35.2
+          "home_wp": 63.0,
+          "away_wp": 37.0,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "13:00"
         },
         {
           "home": "TEN",
           "away": "IND",
           "neutral": false,
-          "home_wp": 41.2,
-          "away_wp": 58.8
+          "home_wp": 40.8,
+          "away_wp": 59.2,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "13:00"
         },
         {
           "home": "WAS",
           "away": "ATL",
           "neutral": false,
-          "home_wp": 56.3,
-          "away_wp": 43.7
+          "home_wp": 57.5,
+          "away_wp": 42.5,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "13:00"
         },
         {
           "home": "ARI",
           "away": "NYJ",
           "neutral": false,
-          "home_wp": 62.3,
-          "away_wp": 37.7
+          "home_wp": 63.2,
+          "away_wp": 36.8,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "16:05"
         },
         {
           "home": "LA",
           "away": "DAL",
           "neutral": false,
-          "home_wp": 76.6,
-          "away_wp": 23.4
+          "home_wp": 75.2,
+          "away_wp": 24.8,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "16:25"
         },
         {
           "home": "LV",
           "away": "DEN",
           "neutral": false,
-          "home_wp": 24.2,
-          "away_wp": 75.8
+          "home_wp": 27.4,
+          "away_wp": 72.6,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "16:25"
         },
         {
           "home": "MIN",
           "away": "DET",
           "neutral": false,
-          "home_wp": 56.7,
-          "away_wp": 43.3
+          "home_wp": 59.4,
+          "away_wp": 40.6,
+          "weekday": "Sunday",
+          "gameday": "2026-12-20",
+          "gametime": "20:20"
         },
         {
           "home": "KC",
           "away": "NE",
           "neutral": false,
-          "home_wp": 45.8,
-          "away_wp": 54.2
+          "home_wp": 47.0,
+          "away_wp": 53.0,
+          "weekday": "Monday",
+          "gameday": "2026-12-21",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2778,113 +3522,161 @@
           "home": "PHI",
           "away": "HOU",
           "neutral": false,
-          "home_wp": 54.0,
-          "away_wp": 46.0
+          "home_wp": 57.6,
+          "away_wp": 42.4,
+          "weekday": "Thursday",
+          "gameday": "2026-12-24",
+          "gametime": "20:15"
         },
         {
           "home": "CHI",
           "away": "GB",
           "neutral": false,
-          "home_wp": 56.9,
-          "away_wp": 43.1
+          "home_wp": 63.6,
+          "away_wp": 36.4,
+          "weekday": "Friday",
+          "gameday": "2026-12-25",
+          "gametime": "13:00"
         },
         {
           "home": "DEN",
           "away": "BUF",
           "neutral": false,
-          "home_wp": 57.2,
-          "away_wp": 42.8
+          "home_wp": 54.4,
+          "away_wp": 45.6,
+          "weekday": "Friday",
+          "gameday": "2026-12-25",
+          "gametime": "16:30"
         },
         {
           "home": "SEA",
           "away": "LA",
           "neutral": false,
-          "home_wp": 65.7,
-          "away_wp": 34.3
+          "home_wp": 71.0,
+          "away_wp": 29.0,
+          "weekday": "Friday",
+          "gameday": "2026-12-25",
+          "gametime": "20:15"
         },
         {
           "home": "ATL",
           "away": "TB",
           "neutral": false,
-          "home_wp": 55.4,
-          "away_wp": 44.6
+          "home_wp": 55.7,
+          "away_wp": 44.3,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "13:00"
         },
         {
           "home": "BAL",
           "away": "CLE",
           "neutral": false,
-          "home_wp": 74.1,
-          "away_wp": 25.9
+          "home_wp": 78.4,
+          "away_wp": 21.6,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "13:00"
         },
         {
           "home": "IND",
           "away": "CIN",
           "neutral": false,
-          "home_wp": 56.5,
-          "away_wp": 43.5
+          "home_wp": 50.3,
+          "away_wp": 49.7,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "13:00"
         },
         {
           "home": "MIA",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 47.9,
-          "away_wp": 52.1
+          "home_wp": 48.8,
+          "away_wp": 51.2,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "13:00"
         },
         {
           "home": "MIN",
           "away": "WAS",
           "neutral": false,
-          "home_wp": 70.1,
-          "away_wp": 29.9
+          "home_wp": 73.4,
+          "away_wp": 26.6,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "13:00"
         },
         {
           "home": "NO",
           "away": "ARI",
           "neutral": false,
-          "home_wp": 63.4,
-          "away_wp": 36.6
+          "home_wp": 57.9,
+          "away_wp": 42.1,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "13:00"
         },
         {
           "home": "NYJ",
           "away": "NE",
           "neutral": false,
-          "home_wp": 27.2,
-          "away_wp": 72.8
+          "home_wp": 31.7,
+          "away_wp": 68.3,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "13:00"
         },
         {
           "home": "PIT",
           "away": "CAR",
           "neutral": false,
-          "home_wp": 69.4,
-          "away_wp": 30.6
+          "home_wp": 74.2,
+          "away_wp": 25.8,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "13:00"
         },
         {
           "home": "LV",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 57.8,
-          "away_wp": 42.2
+          "home_wp": 65.8,
+          "away_wp": 34.2,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "16:05"
         },
         {
           "home": "KC",
           "away": "SF",
           "neutral": false,
-          "home_wp": 50.5,
-          "away_wp": 49.5
+          "home_wp": 45.5,
+          "away_wp": 54.5,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "16:25"
         },
         {
           "home": "DAL",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 43.0,
-          "away_wp": 57.0
+          "home_wp": 38.1,
+          "away_wp": 61.9,
+          "weekday": "Sunday",
+          "gameday": "2026-12-27",
+          "gametime": "20:20"
         },
         {
           "home": "DET",
           "away": "NYG",
           "neutral": false,
-          "home_wp": 75.4,
-          "away_wp": 24.6
+          "home_wp": 73.6,
+          "away_wp": 26.4,
+          "weekday": "Monday",
+          "gameday": "2026-12-28",
+          "gametime": "20:15"
         }
       ]
     },
@@ -2895,113 +3687,161 @@
           "home": "CIN",
           "away": "BAL",
           "neutral": false,
-          "home_wp": 48.0,
-          "away_wp": 52.0
+          "home_wp": 46.6,
+          "away_wp": 53.4,
+          "weekday": "Thursday",
+          "gameday": "2026-12-31",
+          "gametime": "20:15"
         },
         {
           "home": "ATL",
           "away": "NO",
           "neutral": false,
-          "home_wp": 62.5,
-          "away_wp": 37.5
+          "home_wp": 61.0,
+          "away_wp": 39.0,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "CAR",
           "away": "SEA",
           "neutral": false,
-          "home_wp": 25.5,
-          "away_wp": 74.5
+          "home_wp": 21.9,
+          "away_wp": 78.1,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "CLE",
           "away": "IND",
           "neutral": false,
-          "home_wp": 50.8,
-          "away_wp": 49.2
+          "home_wp": 52.5,
+          "away_wp": 47.5,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "DAL",
           "away": "NYG",
           "neutral": false,
-          "home_wp": 63.3,
-          "away_wp": 36.7
+          "home_wp": 57.6,
+          "away_wp": 42.4,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "JAX",
           "away": "WAS",
           "neutral": false,
-          "home_wp": 71.5,
-          "away_wp": 28.5
+          "home_wp": 73.8,
+          "away_wp": 26.2,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "LAC",
           "away": "KC",
           "neutral": false,
-          "home_wp": 61.0,
-          "away_wp": 39.0
+          "home_wp": 55.9,
+          "away_wp": 44.1,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "MIA",
           "away": "BUF",
           "neutral": false,
-          "home_wp": 36.3,
-          "away_wp": 63.7
+          "home_wp": 29.9,
+          "away_wp": 70.1,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "NE",
           "away": "DEN",
           "neutral": false,
-          "home_wp": 55.5,
-          "away_wp": 44.5
+          "home_wp": 54.3,
+          "away_wp": 45.7,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "NYJ",
           "away": "MIN",
           "neutral": false,
-          "home_wp": 31.7,
-          "away_wp": 68.3
+          "home_wp": 32.6,
+          "away_wp": 67.4,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "TB",
           "away": "LA",
           "neutral": false,
-          "home_wp": 40.3,
-          "away_wp": 59.7
+          "home_wp": 42.7,
+          "away_wp": 57.3,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "TEN",
           "away": "PIT",
           "neutral": false,
-          "home_wp": 35.2,
-          "away_wp": 64.8
+          "home_wp": 29.6,
+          "away_wp": 70.4,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "13:00"
         },
         {
           "home": "ARI",
           "away": "LV",
           "neutral": false,
-          "home_wp": 63.7,
-          "away_wp": 36.3
+          "home_wp": 64.6,
+          "away_wp": 35.4,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "16:05"
         },
         {
           "home": "CHI",
           "away": "DET",
           "neutral": false,
-          "home_wp": 53.1,
-          "away_wp": 46.9
+          "home_wp": 56.3,
+          "away_wp": 43.7,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "16:25"
         },
         {
           "home": "SF",
           "away": "PHI",
           "neutral": false,
-          "home_wp": 55.3,
-          "away_wp": 44.7
+          "home_wp": 59.3,
+          "away_wp": 40.7,
+          "weekday": "Sunday",
+          "gameday": "2027-01-03",
+          "gametime": "20:20"
         },
         {
           "home": "GB",
           "away": "HOU",
           "neutral": false,
-          "home_wp": 47.9,
-          "away_wp": 52.1
+          "home_wp": 47.6,
+          "away_wp": 52.4,
+          "weekday": "Monday",
+          "gameday": "2027-01-04",
+          "gametime": "20:15"
         }
       ]
     },
@@ -3012,113 +3852,161 @@
           "home": "ARI",
           "away": "SF",
           "neutral": false,
-          "home_wp": 35.1,
-          "away_wp": 64.9
+          "home_wp": 35.4,
+          "away_wp": 64.6,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "BAL",
           "away": "PIT",
           "neutral": false,
-          "home_wp": 62.5,
-          "away_wp": 37.5
+          "home_wp": 64.1,
+          "away_wp": 35.9,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "BUF",
           "away": "NYJ",
           "neutral": false,
-          "home_wp": 85.1,
-          "away_wp": 14.9
+          "home_wp": 84.4,
+          "away_wp": 15.6,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "CAR",
           "away": "ATL",
           "neutral": false,
-          "home_wp": 51.7,
-          "away_wp": 48.3
+          "home_wp": 50.1,
+          "away_wp": 49.9,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "CIN",
           "away": "CLE",
           "neutral": false,
-          "home_wp": 65.8,
-          "away_wp": 34.2
+          "home_wp": 69.7,
+          "away_wp": 30.3,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "DEN",
           "away": "LAC",
           "neutral": false,
-          "home_wp": 68.3,
-          "away_wp": 31.7
+          "home_wp": 72.6,
+          "away_wp": 27.4,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "GB",
           "away": "DET",
           "neutral": false,
-          "home_wp": 54.1,
-          "away_wp": 45.9
+          "home_wp": 50.4,
+          "away_wp": 49.6,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "HOU",
           "away": "TEN",
           "neutral": false,
-          "home_wp": 85.3,
-          "away_wp": 14.7
+          "home_wp": 85.9,
+          "away_wp": 14.1,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "IND",
           "away": "JAX",
           "neutral": false,
-          "home_wp": 44.5,
-          "away_wp": 55.5
+          "home_wp": 38.8,
+          "away_wp": 61.2,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "KC",
           "away": "LV",
           "neutral": false,
-          "home_wp": 76.8,
-          "away_wp": 23.2
+          "home_wp": 73.6,
+          "away_wp": 26.4,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "LA",
           "away": "SEA",
           "neutral": false,
-          "home_wp": 49.6,
-          "away_wp": 50.4
+          "home_wp": 43.4,
+          "away_wp": 56.6,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "MIN",
           "away": "CHI",
           "neutral": false,
-          "home_wp": 61.3,
-          "away_wp": 38.7
+          "home_wp": 60.9,
+          "away_wp": 39.1,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "NE",
           "away": "MIA",
           "neutral": false,
-          "home_wp": 74.5,
-          "away_wp": 25.5
+          "home_wp": 76.8,
+          "away_wp": 23.2,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "NO",
           "away": "TB",
           "neutral": false,
-          "home_wp": 50.6,
-          "away_wp": 49.4
+          "home_wp": 52.5,
+          "away_wp": 47.5,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "NYG",
           "away": "PHI",
           "neutral": false,
-          "home_wp": 35.9,
-          "away_wp": 64.1
+          "home_wp": 37.9,
+          "away_wp": 62.1,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         },
         {
           "home": "WAS",
           "away": "DAL",
           "neutral": false,
-          "home_wp": 57.7,
-          "away_wp": 42.3
+          "home_wp": 59.8,
+          "away_wp": 40.2,
+          "weekday": "Sunday",
+          "gameday": "2027-01-10",
+          "gametime": "13:00"
         }
       ]
     }
@@ -3130,9 +4018,11 @@
       "home": "SEA",
       "away": "NE",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.6837
+      "played": true,
+      "winner": "home",
+      "p_home": 0.6837,
+      "home_score": 13,
+      "away_score": 10
     },
     {
       "id": 1,
@@ -3140,9 +4030,11 @@
       "home": "LA",
       "away": "SF",
       "neutral": true,
-      "played": false,
-      "winner": null,
-      "p_home": 0.5761
+      "played": true,
+      "winner": "away",
+      "p_home": 0.5761,
+      "home_score": 7,
+      "away_score": 27
     },
     {
       "id": 2,
@@ -3150,9 +4042,11 @@
       "home": "CAR",
       "away": "CHI",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.4365
+      "played": true,
+      "winner": "away",
+      "p_home": 0.4365,
+      "home_score": 37,
+      "away_score": 59
     },
     {
       "id": 3,
@@ -3160,9 +4054,11 @@
       "home": "CIN",
       "away": "TB",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.5675
+      "played": true,
+      "winner": "home",
+      "p_home": 0.5675,
+      "home_score": 33,
+      "away_score": 27
     },
     {
       "id": 4,
@@ -3170,9 +4066,11 @@
       "home": "DET",
       "away": "NO",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.7368
+      "played": true,
+      "winner": "home",
+      "p_home": 0.7368,
+      "home_score": 31,
+      "away_score": 30
     },
     {
       "id": 5,
@@ -3180,9 +4078,11 @@
       "home": "HOU",
       "away": "BUF",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.5671
+      "played": true,
+      "winner": "away",
+      "p_home": 0.5671,
+      "home_score": 31,
+      "away_score": 36
     },
     {
       "id": 6,
@@ -3190,9 +4090,11 @@
       "home": "IND",
       "away": "BAL",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.4666
+      "played": true,
+      "winner": "away",
+      "p_home": 0.4666,
+      "home_score": 23,
+      "away_score": 41
     },
     {
       "id": 7,
@@ -3200,9 +4102,11 @@
       "home": "JAX",
       "away": "CLE",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.757
+      "played": true,
+      "winner": "home",
+      "p_home": 0.757,
+      "home_score": 34,
+      "away_score": 10
     },
     {
       "id": 8,
@@ -3210,9 +4114,11 @@
       "home": "PIT",
       "away": "ATL",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.6392
+      "played": true,
+      "winner": "home",
+      "p_home": 0.6392,
+      "home_score": 20,
+      "away_score": 13
     },
     {
       "id": 9,
@@ -3220,9 +4126,11 @@
       "home": "TEN",
       "away": "NYJ",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.5635
+      "played": true,
+      "winner": "away",
+      "p_home": 0.5635,
+      "home_score": 10,
+      "away_score": 23
     },
     {
       "id": 10,
@@ -3230,9 +4138,11 @@
       "home": "LAC",
       "away": "ARI",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.7461
+      "played": true,
+      "winner": "away",
+      "p_home": 0.7461,
+      "home_score": 14,
+      "away_score": 26
     },
     {
       "id": 11,
@@ -3240,9 +4150,11 @@
       "home": "LV",
       "away": "MIA",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.4281
+      "played": true,
+      "winner": "home",
+      "p_home": 0.4281,
+      "home_score": 27,
+      "away_score": 13
     },
     {
       "id": 12,
@@ -3250,9 +4162,11 @@
       "home": "MIN",
       "away": "GB",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.6037
+      "played": true,
+      "winner": "home",
+      "p_home": 0.6037,
+      "home_score": 39,
+      "away_score": 22
     },
     {
       "id": 13,
@@ -3260,9 +4174,11 @@
       "home": "PHI",
       "away": "WAS",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.7292
+      "played": true,
+      "winner": "home",
+      "p_home": 0.7292,
+      "home_score": 24,
+      "away_score": 22
     },
     {
       "id": 14,
@@ -3270,9 +4186,11 @@
       "home": "NYG",
       "away": "DAL",
       "neutral": false,
-      "played": false,
-      "winner": null,
-      "p_home": 0.5222
+      "played": true,
+      "winner": "home",
+      "p_home": 0.5222,
+      "home_score": 28,
+      "away_score": 20
     },
     {
       "id": 15,
@@ -3292,7 +4210,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6483
+      "p_home": 0.67
     },
     {
       "id": 17,
@@ -3302,7 +4220,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6373
+      "p_home": 0.6524
     },
     {
       "id": 18,
@@ -3312,7 +4230,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7234
+      "p_home": 0.7566
     },
     {
       "id": 19,
@@ -3322,7 +4240,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5428
+      "p_home": 0.5478
     },
     {
       "id": 20,
@@ -3332,7 +4250,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7368
+      "p_home": 0.6934
     },
     {
       "id": 21,
@@ -3342,7 +4260,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6795
+      "p_home": 0.6497
     },
     {
       "id": 22,
@@ -3352,7 +4270,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3405
+      "p_home": 0.411
     },
     {
       "id": 23,
@@ -3362,7 +4280,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6678
+      "p_home": 0.6651
     },
     {
       "id": 24,
@@ -3372,7 +4290,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2758
+      "p_home": 0.2372
     },
     {
       "id": 25,
@@ -3382,7 +4300,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6382
+      "p_home": 0.6184
     },
     {
       "id": 26,
@@ -3392,7 +4310,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7901
+      "p_home": 0.7206
     },
     {
       "id": 27,
@@ -3402,7 +4320,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.222
+      "p_home": 0.2507
     },
     {
       "id": 28,
@@ -3412,7 +4330,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5797
+      "p_home": 0.5586
     },
     {
       "id": 29,
@@ -3422,7 +4340,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7084
+      "p_home": 0.7781
     },
     {
       "id": 30,
@@ -3432,7 +4350,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6276
+      "p_home": 0.6625
     },
     {
       "id": 31,
@@ -3442,7 +4360,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8045
+      "p_home": 0.75
     },
     {
       "id": 32,
@@ -3452,7 +4370,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6643
+      "p_home": 0.6539
     },
     {
       "id": 33,
@@ -3462,7 +4380,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6888
+      "p_home": 0.7538
     },
     {
       "id": 34,
@@ -3472,7 +4390,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5696
+      "p_home": 0.5857
     },
     {
       "id": 35,
@@ -3482,7 +4400,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8094
+      "p_home": 0.7851
     },
     {
       "id": 36,
@@ -3492,7 +4410,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3894
+      "p_home": 0.3808
     },
     {
       "id": 37,
@@ -3502,7 +4420,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5407
+      "p_home": 0.5736
     },
     {
       "id": 38,
@@ -3512,7 +4430,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.511
+      "p_home": 0.4685
     },
     {
       "id": 39,
@@ -3522,7 +4440,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6686
+      "p_home": 0.7293
     },
     {
       "id": 40,
@@ -3532,7 +4450,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6268
+      "p_home": 0.624
     },
     {
       "id": 41,
@@ -3542,7 +4460,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2905
+      "p_home": 0.274
     },
     {
       "id": 42,
@@ -3552,7 +4470,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7766
+      "p_home": 0.7748
     },
     {
       "id": 43,
@@ -3562,7 +4480,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4862
+      "p_home": 0.4298
     },
     {
       "id": 44,
@@ -3572,7 +4490,7 @@
       "neutral": true,
       "played": false,
       "winner": null,
-      "p_home": 0.3751
+      "p_home": 0.3139
     },
     {
       "id": 45,
@@ -3582,7 +4500,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.689
+      "p_home": 0.6469
     },
     {
       "id": 46,
@@ -3592,7 +4510,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.573
+      "p_home": 0.6204
     },
     {
       "id": 47,
@@ -3602,7 +4520,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5083
+      "p_home": 0.5378
     },
     {
       "id": 48,
@@ -3612,7 +4530,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4447
+      "p_home": 0.4034
     },
     {
       "id": 49,
@@ -3622,7 +4540,7 @@
       "neutral": true,
       "played": false,
       "winner": null,
-      "p_home": 0.4837
+      "p_home": 0.5138
     },
     {
       "id": 50,
@@ -3632,7 +4550,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8084
+      "p_home": 0.8536
     },
     {
       "id": 51,
@@ -3642,7 +4560,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6081
+      "p_home": 0.6468
     },
     {
       "id": 52,
@@ -3652,7 +4570,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7779
+      "p_home": 0.7745
     },
     {
       "id": 53,
@@ -3662,7 +4580,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4585
+      "p_home": 0.4615
     },
     {
       "id": 54,
@@ -3672,7 +4590,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7583
+      "p_home": 0.7586
     },
     {
       "id": 55,
@@ -3682,7 +4600,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6118
+      "p_home": 0.5905
     },
     {
       "id": 56,
@@ -3692,7 +4610,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5288
+      "p_home": 0.5854
     },
     {
       "id": 57,
@@ -3702,7 +4620,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5123
+      "p_home": 0.5208
     },
     {
       "id": 58,
@@ -3712,7 +4630,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7015
+      "p_home": 0.7605
     },
     {
       "id": 59,
@@ -3722,7 +4640,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.363
+      "p_home": 0.4032
     },
     {
       "id": 60,
@@ -3732,7 +4650,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7551
+      "p_home": 0.7994
     },
     {
       "id": 61,
@@ -3742,7 +4660,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5081
+      "p_home": 0.5572
     },
     {
       "id": 62,
@@ -3752,7 +4670,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3898
+      "p_home": 0.3501
     },
     {
       "id": 63,
@@ -3762,7 +4680,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5304
+      "p_home": 0.5465
     },
     {
       "id": 64,
@@ -3772,7 +4690,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5394
+      "p_home": 0.5339
     },
     {
       "id": 65,
@@ -3782,7 +4700,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5608
+      "p_home": 0.5736
     },
     {
       "id": 66,
@@ -3792,7 +4710,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5487
+      "p_home": 0.4822
     },
     {
       "id": 67,
@@ -3802,7 +4720,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8429
+      "p_home": 0.8117
     },
     {
       "id": 68,
@@ -3812,7 +4730,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4138
+      "p_home": 0.3778
     },
     {
       "id": 69,
@@ -3822,7 +4740,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.497
+      "p_home": 0.5605
     },
     {
       "id": 70,
@@ -3832,7 +4750,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6392
+      "p_home": 0.692
     },
     {
       "id": 71,
@@ -3842,7 +4760,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2455
+      "p_home": 0.2357
     },
     {
       "id": 72,
@@ -3852,7 +4770,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6316
+      "p_home": 0.5958
     },
     {
       "id": 73,
@@ -3862,7 +4780,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4661
+      "p_home": 0.4149
     },
     {
       "id": 74,
@@ -3872,7 +4790,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3481
+      "p_home": 0.3918
     },
     {
       "id": 75,
@@ -3882,7 +4800,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5884
+      "p_home": 0.5189
     },
     {
       "id": 76,
@@ -3892,7 +4810,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7226
+      "p_home": 0.6919
     },
     {
       "id": 77,
@@ -3902,7 +4820,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4667
+      "p_home": 0.4083
     },
     {
       "id": 78,
@@ -3912,7 +4830,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5778
+      "p_home": 0.5
     },
     {
       "id": 79,
@@ -3922,7 +4840,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4899
+      "p_home": 0.4777
     },
     {
       "id": 80,
@@ -3932,7 +4850,7 @@
       "neutral": true,
       "played": false,
       "winner": null,
-      "p_home": 0.4428
+      "p_home": 0.4928
     },
     {
       "id": 81,
@@ -3942,7 +4860,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4979
+      "p_home": 0.4393
     },
     {
       "id": 82,
@@ -3952,7 +4870,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3973
+      "p_home": 0.3421
     },
     {
       "id": 83,
@@ -3962,7 +4880,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.729
+      "p_home": 0.7325
     },
     {
       "id": 84,
@@ -3972,7 +4890,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8346
+      "p_home": 0.8021
     },
     {
       "id": 85,
@@ -3982,7 +4900,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5556
+      "p_home": 0.5896
     },
     {
       "id": 86,
@@ -3992,7 +4910,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7635
+      "p_home": 0.795
     },
     {
       "id": 87,
@@ -4002,7 +4920,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5398
+      "p_home": 0.4946
     },
     {
       "id": 88,
@@ -4012,7 +4930,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8253
+      "p_home": 0.7591
     },
     {
       "id": 89,
@@ -4022,7 +4940,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5466
+      "p_home": 0.5974
     },
     {
       "id": 90,
@@ -4032,7 +4950,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2369
+      "p_home": 0.2467
     },
     {
       "id": 91,
@@ -4042,7 +4960,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6776
+      "p_home": 0.6749
     },
     {
       "id": 92,
@@ -4052,7 +4970,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7079
+      "p_home": 0.753
     },
     {
       "id": 93,
@@ -4062,7 +4980,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.488
+      "p_home": 0.5378
     },
     {
       "id": 94,
@@ -4072,7 +4990,7 @@
       "neutral": true,
       "played": false,
       "winner": null,
-      "p_home": 0.3893
+      "p_home": 0.3648
     },
     {
       "id": 95,
@@ -4082,7 +5000,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4535
+      "p_home": 0.385
     },
     {
       "id": 96,
@@ -4092,7 +5010,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6711
+      "p_home": 0.6834
     },
     {
       "id": 97,
@@ -4102,7 +5020,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4928
+      "p_home": 0.4793
     },
     {
       "id": 98,
@@ -4112,7 +5030,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7975
+      "p_home": 0.7569
     },
     {
       "id": 99,
@@ -4122,7 +5040,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6872
+      "p_home": 0.7447
     },
     {
       "id": 100,
@@ -4132,7 +5050,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4433
+      "p_home": 0.5282
     },
     {
       "id": 101,
@@ -4142,7 +5060,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4817
+      "p_home": 0.4603
     },
     {
       "id": 102,
@@ -4152,7 +5070,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2897
+      "p_home": 0.3342
     },
     {
       "id": 103,
@@ -4162,7 +5080,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.615
+      "p_home": 0.65
     },
     {
       "id": 104,
@@ -4172,7 +5090,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2374
+      "p_home": 0.3101
     },
     {
       "id": 105,
@@ -4182,7 +5100,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7783
+      "p_home": 0.7866
     },
     {
       "id": 106,
@@ -4192,7 +5110,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7282
+      "p_home": 0.7571
     },
     {
       "id": 107,
@@ -4202,7 +5120,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7169
+      "p_home": 0.721
     },
     {
       "id": 108,
@@ -4212,7 +5130,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6636
+      "p_home": 0.6555
     },
     {
       "id": 109,
@@ -4222,7 +5140,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7395
+      "p_home": 0.7875
     },
     {
       "id": 110,
@@ -4232,7 +5150,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6644
+      "p_home": 0.5881
     },
     {
       "id": 111,
@@ -4242,7 +5160,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5901
+      "p_home": 0.563
     },
     {
       "id": 112,
@@ -4252,7 +5170,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7012
+      "p_home": 0.7485
     },
     {
       "id": 113,
@@ -4262,7 +5180,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5935
+      "p_home": 0.5936
     },
     {
       "id": 114,
@@ -4272,7 +5190,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7016
+      "p_home": 0.7358
     },
     {
       "id": 115,
@@ -4282,7 +5200,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6023
+      "p_home": 0.5994
     },
     {
       "id": 116,
@@ -4292,7 +5210,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6882
+      "p_home": 0.6905
     },
     {
       "id": 117,
@@ -4312,7 +5230,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3915
+      "p_home": 0.363
     },
     {
       "id": 119,
@@ -4322,7 +5240,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4116
+      "p_home": 0.3959
     },
     {
       "id": 120,
@@ -4332,7 +5250,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7569
+      "p_home": 0.7376
     },
     {
       "id": 121,
@@ -4342,7 +5260,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5573
+      "p_home": 0.5741
     },
     {
       "id": 122,
@@ -4352,7 +5270,7 @@
       "neutral": true,
       "played": false,
       "winner": null,
-      "p_home": 0.4866
+      "p_home": 0.4416
     },
     {
       "id": 123,
@@ -4362,7 +5280,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3279
+      "p_home": 0.2956
     },
     {
       "id": 124,
@@ -4372,7 +5290,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5931
+      "p_home": 0.5849
     },
     {
       "id": 125,
@@ -4382,7 +5300,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7565
+      "p_home": 0.7237
     },
     {
       "id": 126,
@@ -4392,7 +5310,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4332
+      "p_home": 0.3873
     },
     {
       "id": 127,
@@ -4402,7 +5320,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5999
+      "p_home": 0.6153
     },
     {
       "id": 128,
@@ -4412,7 +5330,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7709
+      "p_home": 0.7553
     },
     {
       "id": 129,
@@ -4422,7 +5340,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3639
+      "p_home": 0.4028
     },
     {
       "id": 130,
@@ -4432,7 +5350,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4713
+      "p_home": 0.4487
     },
     {
       "id": 131,
@@ -4442,7 +5360,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8166
+      "p_home": 0.8206
     },
     {
       "id": 132,
@@ -4452,7 +5370,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6549
+      "p_home": 0.6732
     },
     {
       "id": 133,
@@ -4462,7 +5380,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8684
+      "p_home": 0.8492
     },
     {
       "id": 134,
@@ -4472,7 +5390,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6326
+      "p_home": 0.688
     },
     {
       "id": 135,
@@ -4482,7 +5400,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4935
+      "p_home": 0.497
     },
     {
       "id": 136,
@@ -4492,7 +5410,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5235
+      "p_home": 0.561
     },
     {
       "id": 137,
@@ -4502,7 +5420,7 @@
       "neutral": true,
       "played": false,
       "winner": null,
-      "p_home": 0.4571
+      "p_home": 0.4741
     },
     {
       "id": 138,
@@ -4512,7 +5430,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5279
+      "p_home": 0.5067
     },
     {
       "id": 139,
@@ -4522,7 +5440,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3246
+      "p_home": 0.3316
     },
     {
       "id": 140,
@@ -4532,7 +5450,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5529
+      "p_home": 0.4877
     },
     {
       "id": 141,
@@ -4542,7 +5460,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5949
+      "p_home": 0.599
     },
     {
       "id": 142,
@@ -4552,7 +5470,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5911
+      "p_home": 0.6223
     },
     {
       "id": 143,
@@ -4562,7 +5480,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2482
+      "p_home": 0.2584
     },
     {
       "id": 144,
@@ -4572,7 +5490,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2905
+      "p_home": 0.2409
     },
     {
       "id": 145,
@@ -4582,7 +5500,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.285
+      "p_home": 0.3741
     },
     {
       "id": 146,
@@ -4592,7 +5510,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.1822
+      "p_home": 0.201
     },
     {
       "id": 147,
@@ -4602,7 +5520,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4386
+      "p_home": 0.3629
     },
     {
       "id": 148,
@@ -4612,7 +5530,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5287
+      "p_home": 0.5316
     },
     {
       "id": 149,
@@ -4622,7 +5540,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6063
+      "p_home": 0.6884
     },
     {
       "id": 150,
@@ -4632,7 +5550,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7471
+      "p_home": 0.7538
     },
     {
       "id": 151,
@@ -4642,7 +5560,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.768
+      "p_home": 0.8151
     },
     {
       "id": 152,
@@ -4652,7 +5570,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.406
+      "p_home": 0.3354
     },
     {
       "id": 153,
@@ -4662,7 +5580,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6978
+      "p_home": 0.7325
     },
     {
       "id": 154,
@@ -4672,7 +5590,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.717
+      "p_home": 0.7273
     },
     {
       "id": 155,
@@ -4682,7 +5600,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6761
+      "p_home": 0.7011
     },
     {
       "id": 156,
@@ -4692,7 +5610,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7207
+      "p_home": 0.6771
     },
     {
       "id": 157,
@@ -4702,7 +5620,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3757
+      "p_home": 0.3837
     },
     {
       "id": 158,
@@ -4712,7 +5630,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7796
+      "p_home": 0.7079
     },
     {
       "id": 159,
@@ -4722,7 +5640,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8554
+      "p_home": 0.8331
     },
     {
       "id": 160,
@@ -4732,7 +5650,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6615
+      "p_home": 0.6497
     },
     {
       "id": 161,
@@ -4742,7 +5660,7 @@
       "neutral": true,
       "played": false,
       "winner": null,
-      "p_home": 0.5083
+      "p_home": 0.5248
     },
     {
       "id": 162,
@@ -4752,7 +5670,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5493
+      "p_home": 0.5172
     },
     {
       "id": 163,
@@ -4762,7 +5680,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6815
+      "p_home": 0.6669
     },
     {
       "id": 164,
@@ -4772,7 +5690,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6246
+      "p_home": 0.5935
     },
     {
       "id": 165,
@@ -4782,7 +5700,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4128
+      "p_home": 0.3767
     },
     {
       "id": 166,
@@ -4792,7 +5710,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7159
+      "p_home": 0.739
     },
     {
       "id": 167,
@@ -4802,7 +5720,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4464
+      "p_home": 0.4674
     },
     {
       "id": 168,
@@ -4812,7 +5730,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6376
+      "p_home": 0.6641
     },
     {
       "id": 169,
@@ -4822,7 +5740,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6698
+      "p_home": 0.6112
     },
     {
       "id": 170,
@@ -4832,7 +5750,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6531
+      "p_home": 0.5899
     },
     {
       "id": 171,
@@ -4842,7 +5760,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6467
+      "p_home": 0.5825
     },
     {
       "id": 172,
@@ -4852,7 +5770,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7028
+      "p_home": 0.6272
     },
     {
       "id": 173,
@@ -4862,7 +5780,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6871
+      "p_home": 0.7315
     },
     {
       "id": 174,
@@ -4872,7 +5790,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8214
+      "p_home": 0.8558
     },
     {
       "id": 175,
@@ -4882,7 +5800,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4889
+      "p_home": 0.5488
     },
     {
       "id": 176,
@@ -4892,7 +5810,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4196
+      "p_home": 0.4561
     },
     {
       "id": 177,
@@ -4902,7 +5820,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4904
+      "p_home": 0.4508
     },
     {
       "id": 178,
@@ -4912,7 +5830,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6597
+      "p_home": 0.6717
     },
     {
       "id": 179,
@@ -4922,7 +5840,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7153
+      "p_home": 0.6735
     },
     {
       "id": 180,
@@ -4932,7 +5850,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4499
+      "p_home": 0.4242
     },
     {
       "id": 181,
@@ -4942,7 +5860,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5263
+      "p_home": 0.5428
     },
     {
       "id": 182,
@@ -4952,7 +5870,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.495
+      "p_home": 0.4498
     },
     {
       "id": 183,
@@ -4962,7 +5880,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4393
+      "p_home": 0.4668
     },
     {
       "id": 184,
@@ -4972,7 +5890,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3835
+      "p_home": 0.3652
     },
     {
       "id": 185,
@@ -4982,7 +5900,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.52
+      "p_home": 0.5477
     },
     {
       "id": 186,
@@ -4992,7 +5910,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4277
+      "p_home": 0.3943
     },
     {
       "id": 187,
@@ -5002,7 +5920,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3277
+      "p_home": 0.3674
     },
     {
       "id": 188,
@@ -5012,7 +5930,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7634
+      "p_home": 0.7927
     },
     {
       "id": 189,
@@ -5022,7 +5940,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7376
+      "p_home": 0.7884
     },
     {
       "id": 190,
@@ -5032,7 +5950,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5483
+      "p_home": 0.5071
     },
     {
       "id": 191,
@@ -5042,7 +5960,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4516
+      "p_home": 0.5017
     },
     {
       "id": 192,
@@ -5052,7 +5970,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8207
+      "p_home": 0.844
     },
     {
       "id": 193,
@@ -5062,7 +5980,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.631
+      "p_home": 0.5883
     },
     {
       "id": 194,
@@ -5072,7 +5990,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6611
+      "p_home": 0.7146
     },
     {
       "id": 195,
@@ -5082,7 +6000,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5658
+      "p_home": 0.5334
     },
     {
       "id": 196,
@@ -5092,7 +6010,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5083
+      "p_home": 0.5084
     },
     {
       "id": 197,
@@ -5102,7 +6020,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8187
+      "p_home": 0.8452
     },
     {
       "id": 198,
@@ -5112,7 +6030,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.481
+      "p_home": 0.402
     },
     {
       "id": 199,
@@ -5122,7 +6040,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.253
+      "p_home": 0.2866
     },
     {
       "id": 200,
@@ -5132,7 +6050,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7161
+      "p_home": 0.7523
     },
     {
       "id": 201,
@@ -5142,7 +6060,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.374
+      "p_home": 0.3939
     },
     {
       "id": 202,
@@ -5152,7 +6070,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3336
+      "p_home": 0.4221
     },
     {
       "id": 203,
@@ -5162,7 +6080,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5412
+      "p_home": 0.565
     },
     {
       "id": 204,
@@ -5172,7 +6090,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8518
+      "p_home": 0.8427
     },
     {
       "id": 205,
@@ -5182,7 +6100,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5025
+      "p_home": 0.5997
     },
     {
       "id": 206,
@@ -5192,7 +6110,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4674
+      "p_home": 0.4067
     },
     {
       "id": 207,
@@ -5202,7 +6120,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6452
+      "p_home": 0.6451
     },
     {
       "id": 208,
@@ -5212,7 +6130,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.537
+      "p_home": 0.4362
     },
     {
       "id": 209,
@@ -5222,7 +6140,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4455
+      "p_home": 0.4415
     },
     {
       "id": 210,
@@ -5232,7 +6150,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6909
+      "p_home": 0.6835
     },
     {
       "id": 211,
@@ -5242,7 +6160,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.504
+      "p_home": 0.4425
     },
     {
       "id": 212,
@@ -5252,7 +6170,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6792
+      "p_home": 0.6877
     },
     {
       "id": 213,
@@ -5262,7 +6180,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6333
+      "p_home": 0.5855
     },
     {
       "id": 214,
@@ -5272,7 +6190,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5774
+      "p_home": 0.626
     },
     {
       "id": 215,
@@ -5282,7 +6200,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5304
+      "p_home": 0.5134
     },
     {
       "id": 216,
@@ -5292,7 +6210,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6479
+      "p_home": 0.6302
     },
     {
       "id": 217,
@@ -5302,7 +6220,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4118
+      "p_home": 0.4076
     },
     {
       "id": 218,
@@ -5312,7 +6230,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5625
+      "p_home": 0.5753
     },
     {
       "id": 219,
@@ -5322,7 +6240,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6229
+      "p_home": 0.6317
     },
     {
       "id": 220,
@@ -5332,7 +6250,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7662
+      "p_home": 0.7518
     },
     {
       "id": 221,
@@ -5342,7 +6260,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2415
+      "p_home": 0.274
     },
     {
       "id": 222,
@@ -5352,7 +6270,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5669
+      "p_home": 0.5939
     },
     {
       "id": 223,
@@ -5362,7 +6280,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.458
+      "p_home": 0.4702
     },
     {
       "id": 224,
@@ -5372,7 +6290,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5397
+      "p_home": 0.5764
     },
     {
       "id": 225,
@@ -5382,7 +6300,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5686
+      "p_home": 0.6359
     },
     {
       "id": 226,
@@ -5392,7 +6310,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5722
+      "p_home": 0.5435
     },
     {
       "id": 227,
@@ -5402,7 +6320,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6572
+      "p_home": 0.7103
     },
     {
       "id": 228,
@@ -5412,7 +6330,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5543
+      "p_home": 0.5573
     },
     {
       "id": 229,
@@ -5422,7 +6340,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7408
+      "p_home": 0.7837
     },
     {
       "id": 230,
@@ -5432,7 +6350,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5654
+      "p_home": 0.5034
     },
     {
       "id": 231,
@@ -5442,7 +6360,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4786
+      "p_home": 0.488
     },
     {
       "id": 232,
@@ -5452,7 +6370,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.701
+      "p_home": 0.7341
     },
     {
       "id": 233,
@@ -5462,7 +6380,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6337
+      "p_home": 0.5794
     },
     {
       "id": 234,
@@ -5472,7 +6390,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2719
+      "p_home": 0.3173
     },
     {
       "id": 235,
@@ -5482,7 +6400,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.694
+      "p_home": 0.7416
     },
     {
       "id": 236,
@@ -5492,7 +6410,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5783
+      "p_home": 0.6585
     },
     {
       "id": 237,
@@ -5502,7 +6420,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5046
+      "p_home": 0.4554
     },
     {
       "id": 238,
@@ -5512,7 +6430,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4304
+      "p_home": 0.3814
     },
     {
       "id": 239,
@@ -5522,7 +6440,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7544
+      "p_home": 0.7356
     },
     {
       "id": 240,
@@ -5532,7 +6450,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.48
+      "p_home": 0.466
     },
     {
       "id": 241,
@@ -5542,7 +6460,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6251
+      "p_home": 0.6098
     },
     {
       "id": 242,
@@ -5552,7 +6470,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.2545
+      "p_home": 0.2186
     },
     {
       "id": 243,
@@ -5562,7 +6480,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5084
+      "p_home": 0.5254
     },
     {
       "id": 244,
@@ -5572,7 +6490,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6328
+      "p_home": 0.5761
     },
     {
       "id": 245,
@@ -5582,7 +6500,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7147
+      "p_home": 0.738
     },
     {
       "id": 246,
@@ -5592,7 +6510,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6098
+      "p_home": 0.5594
     },
     {
       "id": 247,
@@ -5602,7 +6520,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3627
+      "p_home": 0.2993
     },
     {
       "id": 248,
@@ -5612,7 +6530,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5546
+      "p_home": 0.5425
     },
     {
       "id": 249,
@@ -5622,7 +6540,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3175
+      "p_home": 0.3261
     },
     {
       "id": 250,
@@ -5632,7 +6550,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4025
+      "p_home": 0.4269
     },
     {
       "id": 251,
@@ -5642,7 +6560,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3517
+      "p_home": 0.2959
     },
     {
       "id": 252,
@@ -5652,7 +6570,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6374
+      "p_home": 0.646
     },
     {
       "id": 253,
@@ -5662,7 +6580,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.531
+      "p_home": 0.5634
     },
     {
       "id": 254,
@@ -5672,7 +6590,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5526
+      "p_home": 0.5928
     },
     {
       "id": 255,
@@ -5682,7 +6600,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4791
+      "p_home": 0.4755
     },
     {
       "id": 256,
@@ -5692,7 +6610,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3514
+      "p_home": 0.3538
     },
     {
       "id": 257,
@@ -5702,7 +6620,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6252
+      "p_home": 0.641
     },
     {
       "id": 258,
@@ -5712,7 +6630,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8508
+      "p_home": 0.8439
     },
     {
       "id": 259,
@@ -5722,7 +6640,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5174
+      "p_home": 0.5009
     },
     {
       "id": 260,
@@ -5732,7 +6650,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6578
+      "p_home": 0.6973
     },
     {
       "id": 261,
@@ -5742,7 +6660,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6833
+      "p_home": 0.7265
     },
     {
       "id": 262,
@@ -5752,7 +6670,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5411
+      "p_home": 0.5035
     },
     {
       "id": 263,
@@ -5762,7 +6680,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.8527
+      "p_home": 0.8593
     },
     {
       "id": 264,
@@ -5772,7 +6690,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4452
+      "p_home": 0.3876
     },
     {
       "id": 265,
@@ -5782,7 +6700,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7677
+      "p_home": 0.736
     },
     {
       "id": 266,
@@ -5792,7 +6710,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.4956
+      "p_home": 0.4345
     },
     {
       "id": 267,
@@ -5802,7 +6720,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.6134
+      "p_home": 0.6086
     },
     {
       "id": 268,
@@ -5812,7 +6730,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.7454
+      "p_home": 0.7677
     },
     {
       "id": 269,
@@ -5822,7 +6740,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5058
+      "p_home": 0.525
     },
     {
       "id": 270,
@@ -5832,7 +6750,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.3589
+      "p_home": 0.379
     },
     {
       "id": 271,
@@ -5842,7 +6760,7 @@
       "neutral": false,
       "played": false,
       "winner": null,
-      "p_home": 0.5773
+      "p_home": 0.5982
     }
   ]
 }

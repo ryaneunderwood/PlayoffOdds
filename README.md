@@ -4,10 +4,11 @@ A [playoffstatus.com](https://playoffstatus.com)-style playoff-odds site, with
 win probabilities driven by a **historical-Elo Monte Carlo** model (adapted from
 the `Sports Monte Carlo` notebook in this repo).
 
-It builds Elo ratings from real game results, simulates the upcoming season tens
-of thousands of times, and reports — for every team — the probability of landing
-in each playoff seed, winning its division, making the playoffs, and winning the
-conference / title. It also lists every upcoming game with a win probability.
+It builds Elo ratings from real game results, simulates the rest of the season
+tens of thousands of times, and reports — for every team — the probability of
+landing in each playoff seed, winning its division, making the playoffs, and
+winning the conference / title. It also lists every upcoming game with a win
+probability and every completed game with its score and the pre-kickoff odds.
 
 Currently only **football (NFL)** is supported. The engine is written behind a
 per-sport config (`SportConfig`) so other leagues can be added later.
@@ -16,18 +17,43 @@ per-sport config (`SportConfig`) so other leagues can be added later.
 
 ```bash
 pip install -r requirements.txt
-python sports_elo.py --sport nfl --season 2026 --start 2018 --sims 20000
+python sports_elo.py
 ```
 
 Then open **`index.html`** in any browser — it is fully self-contained (the odds
 are embedded inline, so it loads straight from disk with no web server).
+
+## Keeping it current
+
+**Re-run `python sports_elo.py` after each week's games** (or any time — it is
+safe to run mid-week). Nothing else is needed:
+
+- Schedules, scores and closing lines come straight from the
+  [nflverse games table](https://github.com/nflverse/nfldata/blob/master/data/games.csv),
+  which is updated within hours of every kickoff. There is no local cache, so
+  each run picks up whatever has been played.
+- Elo ratings are **walked forward through every completed game** of the
+  current season before the remainder is simulated, so ratings, win
+  probabilities and the odds all reflect results to date. Played games keep
+  the probability the model quoted *before* kickoff.
+- The header shows exactly what the page knows: *Through Week N (x of y
+  played)*, games in the books, and the generation timestamp. Records and each
+  team's Elo movement since preseason appear in the seed table; the
+  **Results** tab lists completed games by week with scores and upsets.
+- `--season` defaults to the season in progress (the calendar year from March
+  on, else the previous year), so the same command works all year.
+
+To work offline or pin a snapshot, point `NFLVERSE_GAMES_CSV` at a local copy
+(or any URL) of `games.csv`. A weekly cron entry such as
+`0 6 * * 2 cd /path/to/PlayoffOdds && python sports_elo.py` keeps the page
+fresh every Tuesday morning after Monday Night Football.
 
 ### Options
 
 | flag | default | meaning |
 |------|---------|---------|
 | `--sport` | `nfl` | which league (only `nfl` for now) |
-| `--season` | `2026` | the upcoming season to project |
+| `--season` | current season | the season to project |
 | `--start` | `2018` | first year of game results used to seed Elo |
 | `--sims` | `20000` | number of simulated seasons |
 | `--out` | `index.html` | output web page |
@@ -49,16 +75,19 @@ HTML file.
    season **and** playoffs), regressing every team toward the league mean
    between seasons (`preseason_regress`). Win probabilities use a logistic Elo
    curve with a home-field edge and margin-of-victory scaling of the K-factor.
-2. **Project the upcoming season.** Every remaining game is simulated from the
-   starting ratings; already-played games count as fixed results.
-3. **Seed the field** with the **real NFL tiebreakers** (`seeding.py`): division
+2. **Fold in the current season.** Completed games update the ratings week by
+   week (each played game is stored with its pre-kickoff win probability), and
+   their results are fixed in every simulation.
+3. **Project the rest of the season.** Every remaining game is simulated from
+   the current ratings.
+4. **Seed the field** with the **real NFL tiebreakers** (`seeding.py`): division
    winners then wild cards, breaking ties by head-to-head, division record,
    common games (min 4 for wild cards), conference record, strength of victory
    and strength of schedule. (The points-based steps and the final coin toss a
    win/loss model can't compute are replaced by a random draw; they're reached
    essentially never.)
-4. **Run the bracket** each simulation for conference- and title-win odds.
-5. **Render** a self-contained `index.html`.
+5. **Run the bracket** each simulation for conference- and title-win odds.
+6. **Render** a self-contained `index.html`.
 
 ### Clinch / elimination (the `X` and `^` markers)
 
@@ -89,7 +118,8 @@ sim, and renderer are all sport-agnostic.
 
 ## Files
 
-- `sports_elo.py` — Elo engine, sport config, Monte Carlo, feasibility, CLI.
+- `sports_elo.py` — nflverse data loader, Elo engine, sport config, Monte
+  Carlo, feasibility, CLI.
 - `seeding.py` — NFL tiebreaker + conference-seeding engine and the
   clinch/elimination feasibility search.
 - `render.py` — self-contained HTML renderer; the in-browser engine is a faithful

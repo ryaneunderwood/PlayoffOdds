@@ -9,7 +9,6 @@ the game. Then evaluate four flat-$100 betting strategies.
 from collections import namedtuple
 
 import numpy as np
-import nfl_data_py as nfl
 
 import sports_elo as S
 
@@ -26,9 +25,9 @@ def load_all(year):
     """Every played game with scores + neutral flag; moneylines if present
     (None when the book line is missing -- those games update Elo but can't
     be bet)."""
-    s = nfl.import_schedules([year])
+    s = S.nfl_games_df(year)
     s = s[s["game_type"].isin(["REG", "WC", "DIV", "CON", "SB"])]
-    s = s.dropna(subset=["home_score", "away_score", "week"])
+    s = s.dropna(subset=["home_score", "away_score"])
     has_loc = "location" in s.columns
     has_ml = "home_moneyline" in s.columns
     rows = []

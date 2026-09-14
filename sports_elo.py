@@ -20,7 +20,13 @@ Pipeline (per sport):
   5. Emit a self-contained index.html that loads directly from disk.
 
 Usage:
-    python sports_elo.py --sport nfl --season 2026 --start 2018 --sims 20000
+    python sports_elo.py                    # current season, 20k sims
+    python sports_elo.py --season 2026 --start 2018 --sims 20000
+
+Re-run it whenever games have been played: the schedule/results come straight
+from the nflverse games table, which is updated within hours of each kickoff,
+and the Elo ratings are walked forward through every completed game before
+the remaining season is simulated.
 
 Franchise continuity (relocations / renames that keep the same players) is
 handled by canonicalizing every team code to a single franchise key, so Elo
@@ -146,61 +152,82 @@ NFL_ALIASES = {
 }
 
 
+# The nflverse games table (Lee Sharpe's games.csv) is the source of truth
+# for schedules, scores and closing lines. It is updated within hours of every
+# kickoff, so re-running the pipeline is all it takes to fold in new results.
+# `nfl_data_py` is just a thin wrapper around this same file (and pins
+# numpy<2), so we read it directly with pandas.
+NFLVERSE_GAMES_URL = "https://github.com/nflverse/nfldata/raw/master/data/games.csv"
+_GAMES_DF = None
+
+
+def nfl_games_df(season: int | None = None):
+    """The full nflverse games table (all seasons), fetched once per process.
+
+    Override the source with the ``NFLVERSE_GAMES_CSV`` environment variable
+    (a local path or URL) to work offline or pin a snapshot. Pass ``season``
+    to get just that season's rows."""
+    global _GAMES_DF
+    if _GAMES_DF is None:
+        import os
+        import pandas as pd
+        src = os.environ.get("NFLVERSE_GAMES_CSV", NFLVERSE_GAMES_URL)
+        df = pd.read_csv(src, low_memory=False)
+        df = df.dropna(subset=["season", "week"]).copy()
+        df["season"] = df["season"].astype(int)
+        df["week"] = df["week"].astype(int)
+        _GAMES_DF = df
+    if season is None:
+        return _GAMES_DF
+    return _GAMES_DF[_GAMES_DF["season"] == int(season)]
+
+
+def _num(x):
+    return None if x is None or x != x else float(x)
+
+
+def _txt(x):
+    return None if x is None or x != x else str(x)
+
+
 def load_nfl_schedule(season: int, include_playoffs: bool = True):
     """Return {week: [(home, away, home_score|None, away_score|None, neutral)]}.
 
     Scores are None for games that have not been played yet.
     """
-    import nfl_data_py as nfl
-    sched = nfl.import_schedules([season])
-
+    sched = nfl_games_df(season)
     if include_playoffs:
         sched = sched[sched["game_type"].isin(["REG", "WC", "DIV", "CON", "SB"])]
     else:
         sched = sched[sched["game_type"] == "REG"]
 
-    sched = sched.dropna(subset=["week"]).copy()
-    sched["week"] = sched["week"].astype(int)
-
-    cols = ["home_team", "away_team", "home_score", "away_score", "week"]
     has_loc = "location" in sched.columns
     weekly: Dict[int, list] = {}
-    for row in sched[cols + (["location"] if has_loc else [])].to_numpy():
-        h, a, hs, as_, wk = row[0], row[1], row[2], row[3], int(row[4])
-        neutral = bool(has_loc and str(row[5]).lower() == "neutral")
-        hs = None if hs is None or (isinstance(hs, float) and np.isnan(hs)) else float(hs)
-        as_ = None if as_ is None or (isinstance(as_, float) and np.isnan(as_)) else float(as_)
-        weekly.setdefault(wk, []).append((h, a, hs, as_, neutral))
+    for r in sched.itertuples(index=False):
+        neutral = bool(has_loc and str(r.location).lower() == "neutral")
+        weekly.setdefault(int(r.week), []).append(
+            (r.home_team, r.away_team, _num(r.home_score), _num(r.away_score), neutral))
     return weekly
 
 
 def load_nfl_meta(season: int):
-    """Per-game kickoff day + closing moneylines keyed by (week, home, away)
-    canonical codes. Used only to enrich the upcoming-games view; missing
-    columns (e.g. moneylines for a season the books haven't priced) come back
-    as None and the renderer simply omits them."""
-    import nfl_data_py as nfl
-    sched = nfl.import_schedules([season])
+    """Per-game kickoff day/time + closing moneylines keyed by (week, home,
+    away) canonical codes. Used only to enrich the games views; any missing
+    field comes back as None and the renderer simply omits it."""
+    sched = nfl_games_df(season)
     cols = set(sched.columns)
-
-    def num(x):
-        return float(x) if x is not None and x == x else None
-
-    def txt(x):
-        return str(x) if x is not None and x == x else None
+    get = lambda r, c, f: f(getattr(r, c, None)) if c in cols else None
 
     meta = {}
     for r in sched.itertuples(index=False):
-        try:
-            wk = int(r.week)
-        except (TypeError, ValueError):
-            continue
         h, a = NFL.canon(r.home_team), NFL.canon(r.away_team)
-        meta[(wk, h, a)] = {
-            "weekday": txt(getattr(r, "weekday", None)) if "weekday" in cols else None,
-            "gameday": txt(getattr(r, "gameday", None)) if "gameday" in cols else None,
-            "home_ml": num(getattr(r, "home_moneyline", None)) if "home_moneyline" in cols else None,
-            "away_ml": num(getattr(r, "away_moneyline", None)) if "away_moneyline" in cols else None,
+        meta[(int(r.week), h, a)] = {
+            "weekday": get(r, "weekday", _txt),
+            "gameday": get(r, "gameday", _txt),
+            "gametime": get(r, "gametime", _txt),
+            "home_ml": get(r, "home_moneyline", _num),
+            "away_ml": get(r, "away_moneyline", _num),
+            "spread_line": get(r, "spread_line", _num),
         }
     return meta
 
@@ -460,32 +487,83 @@ def upcoming_games(sport: SportConfig, ratings: Dict[str, float], weekly_schedul
 
 
 def build_schedule(sport: SportConfig, ratings: Dict[str, float], weekly_schedule):
-    """Flat per-game list for the in-browser simulator.
+    """Flat per-game list for the in-browser simulator, plus the ratings after
+    folding in every game of this season that has already been played.
 
-    Each game carries its home-win probability so the client can re-simulate
-    the season under user-forced outcomes without re-deriving Elo.
+    Ratings are walked forward week by week, so a played game carries the
+    win probability the model would have quoted *before* kickoff, while every
+    remaining game is priced off the current (post-results) ratings -- that is
+    what the Monte Carlo and the client-side what-if simulator use.
     """
+    weeks = sorted(weekly_schedule)
+    # First pass: ratings entering each week, and the current ratings.
+    entering = {}
+    cur = dict(ratings)
+    for wk in weeks:
+        entering[wk] = cur
+        cur = apply_week(sport, cur, weekly_schedule[wk])
+    ratings_now = cur
+
     out = []
     gid = 0
-    for wk in sorted(weekly_schedule):
+    for wk in weeks:
         for home, away, hs, as_, neutral in weekly_schedule[wk]:
             h, a = sport.canon(home), sport.canon(away)
             if h not in sport.team_conf or a not in sport.team_conf:
                 continue
-            H = 0.0 if neutral else sport.home_field
-            p = elo_expected(ratings.get(h, sport.mean),
-                             ratings.get(a, sport.mean), H)
             played = hs is not None and as_ is not None
+            r = entering[wk] if played else ratings_now
+            H = 0.0 if neutral else sport.home_field
+            p = elo_expected(r.get(h, sport.mean), r.get(a, sport.mean), H)
             winner = None
             if played:
                 winner = "home" if hs > as_ else ("away" if hs < as_ else "tie")
-            out.append({
+            g = {
                 "id": gid, "week": wk, "home": h, "away": a,
                 "neutral": neutral, "played": played, "winner": winner,
                 "p_home": round(p, 4),
-            })
+            }
+            if played:
+                g["home_score"] = int(hs)
+                g["away_score"] = int(as_)
+            out.append(g)
             gid += 1
-    return out
+    return out, ratings_now
+
+
+def season_progress(weekly_schedule):
+    """How far the season has progressed: games played/total, the latest week
+    with a result, and whether that week is finished."""
+    total = sum(len(v) for v in weekly_schedule.values())
+    played = sum(1 for v in weekly_schedule.values()
+                 for g in v if g[2] is not None and g[3] is not None)
+    through = 0
+    for wk in sorted(weekly_schedule):
+        if any(g[2] is not None and g[3] is not None for g in weekly_schedule[wk]):
+            through = wk
+    wk_games = weekly_schedule.get(through, [])
+    wk_played = sum(1 for g in wk_games if g[2] is not None and g[3] is not None)
+    return {
+        "games_played": played, "games_total": total,
+        "through_week": through,
+        "week_games_played": wk_played, "week_games_total": len(wk_games),
+        "week_complete": bool(wk_games) and wk_played == len(wk_games),
+    }
+
+
+def team_records(sport: SportConfig, schedule):
+    """Current W-L-T per team from the played games."""
+    rec = {t: [0, 0, 0] for t in sport.teams}
+    for g in schedule:
+        if not g["played"]:
+            continue
+        if g["winner"] == "home":
+            rec[g["home"]][0] += 1; rec[g["away"]][1] += 1
+        elif g["winner"] == "away":
+            rec[g["away"]][0] += 1; rec[g["home"]][1] += 1
+        else:
+            rec[g["home"]][2] += 1; rec[g["away"]][2] += 1
+    return rec
 
 
 # ----------------------------------------------------------------------------
@@ -504,7 +582,17 @@ def run(sport_key: str, season: int, start_year: int, sims: int):
     n_games = sum(len(v) for v in weekly.values())
     print(f"  {n_games} games across {len(weekly)} weeks")
 
-    schedule = build_schedule(sport, ratings, weekly)
+    progress = season_progress(weekly)
+    preseason = ratings
+    schedule, ratings = build_schedule(sport, preseason, weekly)
+    if progress["games_played"]:
+        wk = progress["through_week"]
+        state = ("complete" if progress["week_complete"] else
+                 f'{progress["week_games_played"]}/{progress["week_games_total"]} played')
+        print(f'  {progress["games_played"]} of {progress["games_total"]} games played; '
+              f"through week {wk} ({state}); Elo updated with results to date")
+    else:
+        print("  no games played yet; using preseason ratings")
     games = upcoming_games(sport, ratings, weekly)
 
     # Enrich the upcoming-games view with kickoff day + moneylines when the
@@ -527,13 +615,17 @@ def run(sport_key: str, season: int, start_year: int, sims: int):
     print(f"[{sport.name}] simulating playoff brackets ...")
     bracket = simulate_bracket(sport, ratings, season_res)
 
-    data = assemble_payload(sport, season, start_year, ratings, last_completed,
-                            season_res, bracket, games, schedule)
+    data = assemble_payload(sport, season, start_year, ratings, preseason,
+                            last_completed, season_res, bracket, games,
+                            schedule, progress)
     return sport, data
 
 
-def assemble_payload(sport, season, start_year, ratings, last_completed,
-                     season_res, bracket, games, schedule):
+def assemble_payload(sport, season, start_year, ratings, preseason,
+                     last_completed, season_res, bracket, games, schedule,
+                     progress):
+    from datetime import datetime, timezone
+    records = team_records(sport, schedule)
     sims = season_res["sims"]
     teams = sport.teams
     miss_seed = sport.seeds_per_conf + 1
@@ -566,6 +658,8 @@ def assemble_payload(sport, season, start_year, ratings, last_completed,
             "conf": sport.team_conf[t],
             "div": sport.team_division[t],
             "elo": round(ratings.get(t, sport.mean)),
+            "elo_pre": round(preseason.get(t, sport.mean)),
+            "wins": records[t][0], "losses": records[t][1], "ties": records[t][2],
             "proj_wins": round(float(np.mean(season_res["win_dist"][t])), 1),
             "seed_probs": seed_probs,
             "miss": miss,
@@ -594,16 +688,28 @@ def assemble_payload(sport, season, start_year, ratings, last_completed,
         "divisions": {d: tlist for d, tlist in sport.divisions.items()},
         "teams": sport.teams,
         "ratings": {t: round(ratings.get(t, sport.mean), 1) for t in sport.teams},
+        "ratings_pre": {t: round(preseason.get(t, sport.mean), 1) for t in sport.teams},
+        "progress": progress,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "rows": rows,
         "upcoming": games,
         "schedule": schedule,
     }
 
 
+def current_season() -> int:
+    """The NFL season in progress or next up: a season is labelled by the year
+    it kicks off, and the previous one is over by mid-February."""
+    from datetime import date
+    today = date.today()
+    return today.year if today.month >= 3 else today.year - 1
+
+
 def main():
     ap = argparse.ArgumentParser(description="playoffstatus-style odds via Elo Monte Carlo")
     ap.add_argument("--sport", default="nfl", choices=list(SPORTS))
-    ap.add_argument("--season", type=int, default=2026, help="upcoming season year")
+    ap.add_argument("--season", type=int, default=current_season(),
+                    help="season to project (default: the current/upcoming one)")
     ap.add_argument("--start", type=int, default=2018, help="Elo history start year")
     ap.add_argument("--sims", type=int, default=20000)
     ap.add_argument("--out", default="index.html")
