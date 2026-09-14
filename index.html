@@ -24,13 +24,22 @@
   h2{font-size:16px;margin:26px 0 8px;color:var(--txt)}
   .conf-h{display:flex;align-items:baseline;gap:10px}
   .conf-h .note{color:var(--muted);font-size:12px;font-weight:400}
-  table{border-collapse:collapse;width:100%;background:var(--panel);
-        border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .tablewrap{overflow-x:auto;border-radius:10px;border:1px solid var(--line)}
+  table{border-collapse:collapse;width:100%;background:var(--panel)}
   th,td{padding:7px 8px;text-align:center;font-variant-numeric:tabular-nums;
         border-bottom:1px solid var(--line)}
   th{background:#10182a;color:var(--muted);font-weight:600;font-size:12px;
-     position:sticky;top:0}
+     position:sticky;top:0;z-index:1}
+  th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+  th.sortable:hover{color:var(--txt)}
+  th .caret{font-size:9px;opacity:.35;margin-left:1px}
+  th.sorted{color:#fff}
+  th.sorted .caret{opacity:1;color:var(--accent)}
   td.team{text-align:left;font-weight:700;white-space:nowrap}
+  /* keep the team column visible while the wide seed grid scrolls */
+  th.teamh,td.team{position:sticky;left:0;z-index:2;background:var(--panel)}
+  th.teamh{z-index:6;background:#10182a;text-align:left}
+  td.team .dtag{color:var(--muted);font-weight:600;font-size:11px;margin-left:6px}
   td.lbl{text-align:left;color:var(--muted)}
   tr.divrow td{background:#0d1322;color:var(--muted);text-align:left;
                font-weight:700;font-size:12px;letter-spacing:.4px}
@@ -51,6 +60,14 @@
   .game .away{text-align:right;font-weight:700}
   .game .home{text-align:left;font-weight:700}
   .game .p{font-weight:700}
+  .game .mid{display:flex;flex-direction:column;gap:3px}
+  .spread{font-size:10px;color:var(--muted);text-align:center;
+          font-variant-numeric:tabular-nums;letter-spacing:.2px}
+  .vflag{display:inline-block;font-size:10px;font-weight:800;color:#ffd16b;
+         border:1px solid #5a4a1e;background:#2a2410;border-radius:5px;
+         padding:0 4px;margin-left:6px;vertical-align:middle}
+  .daygrp{color:var(--muted);font-size:12px;font-weight:700;margin:12px 0 5px;
+          text-transform:uppercase;letter-spacing:.5px}
   .bar{height:8px;border-radius:5px;background:#2a3450;overflow:hidden;display:flex}
   .bar>i{display:block;height:100%}
   .bar>i.away{background:#7c89a8}
@@ -143,11 +160,18 @@ const NAMES = {
 };
 function tname(t){return NAMES[t] ? t+" "+NAMES[t] : t;}
 
-// blue heatmap: 0% -> transparent, 100% -> strong accent
+// Perceptual heat scale. The old linear-alpha blue made 5% and 30% look
+// nearly identical (both faint); this expands the low/mid range and shifts hue
+// from a muted blue (long shot) toward bright teal/green (locked in) with a
+// visible floor, so a cell's odds read at a glance without reading the number.
 function heat(p){
   if(p<=0) return "transparent";
-  const a = Math.min(1, 0.08 + p/100*0.92);
-  return `rgba(91,140,255,${a.toFixed(3)})`;
+  const t = Math.min(1, Math.max(0, p/100));
+  const e = Math.pow(t, 0.6);          // expand the low end
+  const hue = 222 - 70*e;              // 222 (blue) -> 152 (green)
+  const light = 27 + 26*e;             // 27% -> 53%
+  const alpha = 0.34 + 0.62*e;         // visible floor so 1% still tints
+  return `hsla(${hue.toFixed(0)},72%,${light.toFixed(0)}%,${alpha.toFixed(3)})`;
 }
 // Display token honoring mathematical feasibility:
 //   X      -> impossible (no scenario, simulated or contrived, achieves it)
@@ -187,45 +211,73 @@ function pcell(prob, st, extra){
 const rowsByTeam = {};
 DATA.rows.forEach(r=>rowsByTeam[r.team]=r);
 
+// null => grouped by division (default); else flat-sorted by {key,dir}.
+let sortState = null;
+function sortVal(r,key){
+  if(key==="elo") return r.elo;
+  if(key==="pw")  return r.proj_wins;
+  if(key==="miss")return r.miss;
+  if(key==="mk")  return r.make_playoffs;
+  if(key==="wd")  return r.win_div;
+  if(key==="wc")  return r.win_conf;
+  if(key==="ti")  return r.win_title;
+  if(key[0]==="s")return r.seed_probs[(+key.slice(1))-1];
+  return 0;
+}
+
+function teamRow(r, withTag){
+  const S = statusSet(r.ach);
+  const tag = withTag ? `<span class="dtag">${r.div.split(" ")[1]||r.div}</span>` : "";
+  let h = "<tr>";
+  h += `<td class="team clickable" data-team="${r.team}">${tname(r.team)}${tag}</td>`;
+  h += `<td class="dim">${r.elo}</td>`;
+  h += `<td>${r.proj_wins.toFixed(1)}</td>`;
+  r.seed_probs.forEach((p,i)=> h += pcell(p, S.seed(i+1), i===0?"sep":"") );
+  h += pcell(r.miss, S.miss, "sep");
+  h += pcell(r.make_playoffs, S.make, "sep");
+  h += pcell(r.win_div, S.div);
+  h += pcell(r.win_conf, S.brkt);
+  h += pcell(r.win_title, S.brkt);
+  return h + "</tr>";
+}
+
 function seedTable(conf){
   const S = DATA.seeds_per_conf;
+  const car = k => `<span class="caret">${sortState&&sortState.key===k?(sortState.dir<0?"▼":"▲"):"▾"}</span>`;
+  const scl = k => "sortable"+(sortState&&sortState.key===k?" sorted":"");
+  const th  = (k,l,extra)=>`<th class="${scl(k)}${extra?" "+extra:""}" data-sk="${k}">${l}${car(k)}</th>`;
+
   let h = "<table><thead><tr>";
-  h += "<th class='team' style='text-align:left'>Team</th><th>Elo</th><th>Proj W</th>";
-  for(let s=1;s<=S;s++) h += `<th${s===1?" class='sep'":""}>#${s}</th>`;
-  h += "<th class='sep'>Miss</th>";
-  h += "<th class='sep'>Playoffs</th><th>Win Div</th><th>Win Conf</th><th>Title</th>";
+  h += `<th class="teamh sortable${sortState?"":" sorted"}" data-sk="grouped">Team</th>`;
+  h += th("elo","Elo") + th("pw","Proj W");
+  for(let s=1;s<=S;s++) h += th("s"+s, "#"+s, s===1?"sep":"");
+  h += th("miss","Miss","sep") + th("mk","Playoffs","sep");
+  h += th("wd","Win Div") + th("wc","Win Conf") + th("ti","Title");
   h += "</tr></thead><tbody>";
 
-  // divisions in this conference, ordered
-  const divs = Object.keys(DATA.divisions).filter(d=>d.split(" ")[0]===conf);
-  divs.forEach(d=>{
-    h += `<tr class="divrow"><td colspan="${S+7}">${d}</td></tr>`;
-    // teams in this division, sorted by make-playoffs desc
-    const ts = DATA.divisions[d].map(t=>rowsByTeam[t])
-                 .sort((a,b)=>b.make_playoffs-a.make_playoffs||b.proj_wins-a.proj_wins);
-    ts.forEach(r=>{
-      const S = statusSet(r.ach);
-      h += "<tr>";
-      h += `<td class="team clickable" data-team="${r.team}">${tname(r.team)}</td>`;
-      h += `<td class="dim">${r.elo}</td>`;
-      h += `<td>${r.proj_wins.toFixed(1)}</td>`;
-      r.seed_probs.forEach((p,i)=> h += pcell(p, S.seed(i+1), i===0?"sep":"") );
-      h += pcell(r.miss, S.miss, "sep");
-      h += pcell(r.make_playoffs, S.make, "sep");
-      h += pcell(r.win_div, S.div);
-      h += pcell(r.win_conf, S.brkt);
-      h += pcell(r.win_title, S.brkt);
-      h += "</tr>";
+  if(sortState){
+    // flat: every team in the conference, sorted by the chosen column
+    const ts = DATA.rows.filter(r=>r.conf===conf)
+                 .sort((a,b)=>(sortVal(b,sortState.key)-sortVal(a,sortState.key))*-sortState.dir
+                              || b.proj_wins-a.proj_wins);
+    ts.forEach(r=> h += teamRow(r, true));
+  } else {
+    // grouped by division; teams within a division by make-playoffs then wins
+    Object.keys(DATA.divisions).filter(d=>d.split(" ")[0]===conf).forEach(d=>{
+      h += `<tr class="divrow"><td colspan="${S+8}">${d}</td></tr>`;
+      DATA.divisions[d].map(t=>rowsByTeam[t])
+        .sort((a,b)=>b.make_playoffs-a.make_playoffs||b.proj_wins-a.proj_wins)
+        .forEach(r=> h += teamRow(r, false));
     });
-  });
+  }
   h += "</tbody></table>";
-  return h;
+  return `<div class="tablewrap">${h}</div>`;
 }
 
 function seedsView(){
   let h = "";
   DATA.conferences.forEach(c=>{
-    h += `<div class="conf-h"><h2>${c}</h2><span class="note">probability (%) of finishing in each playoff seed &middot; <b>click a team</b> to explore its schedule</span></div>`;
+    h += `<div class="conf-h"><h2>${c}</h2><span class="note">probability (%) of each playoff seed &middot; <b>click a team</b> to explore its schedule &middot; <b>click a column header</b> to sort (click <b>Team</b> to regroup by division)</span></div>`;
     h += seedTable(c);
   });
   h += `<div style="margin-top:10px;color:var(--muted);font-size:12px">
@@ -237,22 +289,59 @@ function seedsView(){
   return h;
 }
 
+// Implied point spread from the Elo edge (~25 Elo per point, the standard
+// conversion). Returns the favorite's line, e.g. "KC −6.5" (or "PK" pick'em).
+function impliedSpread(g){
+  const eh = DATA.ratings[g.home], ea = DATA.ratings[g.away];
+  if(eh==null || ea==null) return "";
+  const H = g.neutral ? 0 : DATA.home_field;
+  const homeMargin = (eh - ea + H) / 25;
+  const num = Math.abs(homeMargin);
+  if(num < 0.25) return "PK";
+  const fav = homeMargin >= 0 ? g.home : g.away;
+  return `${fav} −${(Math.round(num*2)/2).toFixed(1)}`;
+}
+// Vegas disagreement: present only if the payload carried moneylines (future
+// seasons have none until books post lines, so this stays dormant until then).
+function vegasFlag(g){
+  if(g.home_ml==null || g.away_ml==null) return "";
+  const vegasFav = g.home_ml < g.away_ml ? "home" : (g.away_ml < g.home_ml ? "away" : null);
+  const modelFav = g.home_wp >= g.away_wp ? "home" : "away";
+  return (vegasFav && vegasFav!==modelFav) ? ` <span class="vflag" title="model disagrees with the Vegas favorite">⚡ UPSET</span>` : "";
+}
+function gameRow(g){
+  const hp = g.home_wp, ap = g.away_wp, favHome = hp>=ap;
+  const sp = impliedSpread(g);
+  return `<div class="game">
+    <div class="away">${tname(g.away)}</div>
+    <div class="p" style="text-align:right;color:${!favHome?'#fff':'var(--muted)'}">${ap.toFixed(0)}%</div>
+    <div class="mid"><div class="bar"><i class="away" style="width:${ap}%"></i><i class="home" style="width:${hp}%"></i></div>
+      ${sp?`<div class="spread">${sp}</div>`:""}</div>
+    <div class="p" style="color:${favHome?'#fff':'var(--muted)'}">${hp.toFixed(0)}%</div>
+    <div class="home">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''} <span class="dim">(H)</span>${vegasFlag(g)}</div>
+  </div>`;
+}
 function gamesView(){
   if(!DATA.upcoming.length) return "<p>No upcoming games.</p>";
   let h = "";
   DATA.upcoming.forEach(w=>{
     h += `<div class="wk"><h3>Week ${w.week}</h3>`;
-    w.games.forEach(g=>{
-      const hp = g.home_wp, ap = g.away_wp;
-      const favHome = hp>=ap;
-      h += `<div class="game">
-        <div class="away">${tname(g.away)}</div>
-        <div class="p" style="text-align:right;color:${!favHome?'#fff':'var(--muted)'}">${ap.toFixed(0)}%</div>
-        <div class="bar"><i class="away" style="width:${ap}%"></i><i class="home" style="width:${hp}%"></i></div>
-        <div class="p" style="color:${favHome?'#fff':'var(--muted)'}">${hp.toFixed(0)}%</div>
-        <div class="home">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''} <span class="dim">(H)</span></div>
-      </div>`;
-    });
+    // group by kickoff day when the payload carries it; otherwise one flat list
+    const hasDay = w.games.some(g=>g.weekday || g.gameday);
+    if(hasDay){
+      const order = ["Thursday","Friday","Saturday","Sunday","Monday","Tuesday","Wednesday"];
+      const groups = {};
+      w.games.forEach(g=>{ const k=g.weekday||g.gameday||"TBD"; (groups[k]=groups[k]||[]).push(g); });
+      Object.keys(groups).sort((a,b)=>{
+        const ia=order.indexOf(a), ib=order.indexOf(b);
+        return (ia<0?99:ia)-(ib<0?99:ib);
+      }).forEach(day=>{
+        h += `<div class="daygrp">${day}</div>`;
+        groups[day].forEach(g=> h += gameRow(g));
+      });
+    } else {
+      w.games.forEach(g=> h += gameRow(g));
+    }
     h += "</div>";
   });
   return h;
@@ -589,6 +678,13 @@ function render(){
   document.getElementById("view").innerHTML = tab==="seeds" ? seedsView() : gamesView();
   document.querySelectorAll("td.team.clickable").forEach(el=>
     el.onclick=()=>openTeam(el.dataset.team));
+  document.querySelectorAll("th[data-sk]").forEach(el=>el.onclick=()=>{
+    const k=el.dataset.sk;
+    if(k==="grouped") sortState=null;
+    else if(sortState && sortState.key===k) sortState.dir*=-1;
+    else sortState={key:k, dir:-1};
+    render();
+  });
   document.getElementById("foot").innerHTML =
     `Seeds 1&ndash;${DATA.seeds_per_conf} per conference (top ${DATA.seeds_per_conf-3} are division winners). `+
     `Win probabilities come from historical Elo ratings (K-factor with margin-of-victory scaling, home-field edge, and preseason regression toward the mean). `+

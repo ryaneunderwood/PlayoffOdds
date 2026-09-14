@@ -87,13 +87,17 @@ class SportConfig:
 
     def __init__(self, key, name, divisions, aliases, schedule_loader,
                  k=20.0, home_field=55.0, mean=1500.0, rho=0.65,
-                 division_winner_seeds=4, wildcard_seeds=3, byes=1):
+                 division_winner_seeds=4, wildcard_seeds=3, byes=1,
+                 meta_loader=None):
         self.key = key
         self.name = name
         # divisions: {division_label: [canonical team codes]}
         self.divisions = divisions
         self.aliases = aliases
         self.schedule_loader = schedule_loader  # fn(season) -> list of games
+        # optional fn(season) -> {(week, home, away): {weekday, gameday,
+        # home_ml, away_ml}} used to enrich the upcoming-games view
+        self.meta_loader = meta_loader
         self.k = k
         self.home_field = home_field
         self.mean = mean
@@ -170,12 +174,44 @@ def load_nfl_schedule(season: int, include_playoffs: bool = True):
     return weekly
 
 
+def load_nfl_meta(season: int):
+    """Per-game kickoff day + closing moneylines keyed by (week, home, away)
+    canonical codes. Used only to enrich the upcoming-games view; missing
+    columns (e.g. moneylines for a season the books haven't priced) come back
+    as None and the renderer simply omits them."""
+    import nfl_data_py as nfl
+    sched = nfl.import_schedules([season])
+    cols = set(sched.columns)
+
+    def num(x):
+        return float(x) if x is not None and x == x else None
+
+    def txt(x):
+        return str(x) if x is not None and x == x else None
+
+    meta = {}
+    for r in sched.itertuples(index=False):
+        try:
+            wk = int(r.week)
+        except (TypeError, ValueError):
+            continue
+        h, a = NFL.canon(r.home_team), NFL.canon(r.away_team)
+        meta[(wk, h, a)] = {
+            "weekday": txt(getattr(r, "weekday", None)) if "weekday" in cols else None,
+            "gameday": txt(getattr(r, "gameday", None)) if "gameday" in cols else None,
+            "home_ml": num(getattr(r, "home_moneyline", None)) if "home_moneyline" in cols else None,
+            "away_ml": num(getattr(r, "away_moneyline", None)) if "away_moneyline" in cols else None,
+        }
+    return meta
+
+
 NFL = SportConfig(
     key="nfl",
     name="NFL Football",
     divisions=NFL_DIVISIONS,
     aliases=NFL_ALIASES,
     schedule_loader=load_nfl_schedule,
+    meta_loader=load_nfl_meta,
     k=20.0,
     home_field=55.0,
     division_winner_seeds=4,
@@ -470,6 +506,20 @@ def run(sport_key: str, season: int, start_year: int, sims: int):
 
     schedule = build_schedule(sport, ratings, weekly)
     games = upcoming_games(sport, ratings, weekly)
+
+    # Enrich the upcoming-games view with kickoff day + moneylines when the
+    # sport provides a metadata loader (graceful: any missing field is omitted).
+    if sport.meta_loader is not None:
+        try:
+            meta = sport.meta_loader(season)
+            for wk in games:
+                for g in wk["games"]:
+                    m = meta.get((wk["week"], g["home"], g["away"]))
+                    if m:
+                        g.update({k: v for k, v in m.items() if v is not None})
+            print(f"  enriched {sum(len(w['games']) for w in games)} games with kickoff/line metadata")
+        except Exception as e:  # never let metadata break the core pipeline
+            print(f"  (metadata enrichment skipped: {e})")
 
     print(f"[{sport.name}] simulating regular season ({sims} sims, NFL tiebreakers) ...")
     season_res = simulate_season(sport, ratings, schedule, sims=sims)
