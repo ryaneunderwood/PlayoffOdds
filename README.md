@@ -69,6 +69,27 @@ embedded in the page) and shows how each odd shifts versus the un-forced
 baseline. No server or rebuild needed — it all runs client-side from the single
 HTML file.
 
+## Survivor pool planner
+
+The **Upcoming Games** tab opens with a survivor-pool plan: one team per week,
+no repeats, ordered to maximise the chance of surviving the whole season (the
+product of the picks' win probabilities). That is an assignment problem over
+weeks x teams, solved exactly with the Hungarian method rather than greedily,
+so a big favourite is held back for a week where nothing else is safe. The
+panel shows the next pick, every later pick with the cumulative survival odds,
+and each week's best alternatives (flagged if the plan needs them later).
+
+Picks live in `survivor.json`. After you lock a pick, record it so the planner
+stops reusing that team:
+
+```bash
+python sports_elo.py --pick 2:LAC     # records the pick, then regenerates
+```
+
+Completed picks show as survived / eliminated, and a completed week with no
+recorded pick is flagged. The order is re-optimised on every run, so it tracks
+the latest ratings and results. A tie is treated as a loss.
+
 ## How it works
 
 1. **Build Elo** from `--start` through the last completed season (regular

@@ -478,7 +478,7 @@ def upcoming_games(sport: SportConfig, ratings: Dict[str, float], weekly_schedul
             p = elo_expected(ratings.get(h, sport.mean),
                              ratings.get(a, sport.mean), H)
             games.append({
-                "home": h, "away": a, "neutral": neutral,
+                "week": wk, "home": h, "away": a, "neutral": neutral,
                 "home_wp": round(100 * p, 1), "away_wp": round(100 * (1 - p), 1),
             })
         if games:
@@ -567,9 +567,148 @@ def team_records(sport: SportConfig, schedule):
 
 
 # ----------------------------------------------------------------------------
+# Survivor-pool planner
+# ----------------------------------------------------------------------------
+def load_survivor_picks(path):
+    """{week: team} from the survivor picks file (missing file -> {})."""
+    import os
+    if not path or not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        raw = json.load(f).get("picks", {})
+    return {int(k): str(v).upper() for k, v in raw.items()}
+
+
+def save_survivor_pick(path, week, team):
+    import os
+    doc = {"picks": {}}
+    if os.path.exists(path):
+        with open(path) as f:
+            doc = json.load(f)
+    doc.setdefault("picks", {})[str(int(week))] = team.upper()
+    doc["picks"] = dict(sorted(doc["picks"].items(), key=lambda kv: int(kv[0])))
+    with open(path, "w") as f:
+        json.dump(doc, f, indent=2)
+        f.write("\n")
+
+
+def survivor_plan(sport: SportConfig, schedule, picks, alternatives=4):
+    """Survivor pool: pick one team to win each week, never the same team
+    twice. Given the picks already made, choose the remaining weeks' picks to
+    maximise the probability of surviving the whole season -- the product of
+    the picks' win probabilities. With no repeats that is an assignment
+    problem (weeks x teams, cost = -log p), solved exactly by the Hungarian
+    method, so the plan is globally optimal for the current probabilities.
+    It is recomputed on every run, so as results land and ratings move the
+    order updates by itself."""
+    from math import log
+    from scipy.optimize import linear_sum_assignment
+
+    picks = {int(k): sport.canon(v) for k, v in (picks or {}).items()}
+    weeks = sorted({g["week"] for g in schedule})
+    by_week = {wk: [g for g in schedule if g["week"] == wk] for wk in weeks}
+
+    def team_game(wk, t):
+        for g in by_week[wk]:
+            if g["home"] == t or g["away"] == t:
+                return g
+        return None
+
+    def wp(g, t):
+        return g["p_home"] if g["home"] == t else 1.0 - g["p_home"]
+
+    def describe(g, t):
+        home = g["home"] == t
+        return {"team": t, "opp": g["away"] if home else g["home"],
+                "home": home, "neutral": g["neutral"], "p": round(100 * wp(g, t), 1)}
+
+    history, used, open_weeks = [], set(), []
+    alive = True
+    for wk in weeks:
+        games = by_week[wk]
+        t = picks.get(wk)
+        if t is not None:
+            used.add(t)
+            g = team_game(wk, t)
+            if g is None:
+                entry = {"week": wk, "team": t, "status": "invalid"}  # bye week
+            else:
+                entry = {"week": wk, **describe(g, t), "status": "pending"}
+                if g["played"]:
+                    won = g["winner"] == ("home" if g["home"] == t else "away")
+                    entry["status"] = ("survived" if won else
+                                       "tie" if g["winner"] == "tie" else "eliminated")
+                    if entry["status"] != "survived":
+                        alive = False  # a tie counts as a loss in most pools
+            history.append(entry)
+        elif all(g["played"] for g in games):
+            history.append({"week": wk, "team": None, "status": "missing"})
+        else:
+            open_weeks.append(wk)
+
+    cands = [t for t in sport.teams if t not in used]
+    W, C = len(open_weeks), len(cands)
+    cost = np.full((W, C), 60.0)            # ~= impossible (bye / played / used)
+    prob = np.zeros((W, C))
+    for i, wk in enumerate(open_weeks):
+        for j, t in enumerate(cands):
+            g = team_game(wk, t)
+            if g is None or g["played"]:
+                continue
+            p = wp(g, t)
+            prob[i, j] = p
+            cost[i, j] = -log(max(p, 1e-9))
+
+    plan, p_season = [], 1.0
+    if W and C:
+        rows, cols = linear_sum_assignment(cost)
+        chosen = {open_weeks[i]: cands[j] for i, j in zip(rows, cols)}
+        planned = set(chosen.values())
+        for i, wk in enumerate(open_weeks):
+            t = chosen[wk]
+            g = team_game(wk, t)
+            e = {"week": wk, **describe(g, t)}
+            p_season *= wp(g, t)
+            e["cum"] = round(100 * p_season, 1)
+            # Best other options this week, flagged if the plan needs them later.
+            order = np.argsort(-prob[i])
+            alts = []
+            for j in order:
+                if cands[j] == t or prob[i, j] <= 0:
+                    continue
+                ga = team_game(wk, cands[j])
+                alts.append({**describe(ga, cands[j]),
+                             "planned": cands[j] in planned})
+                if len(alts) >= alternatives:
+                    break
+            e["alts"] = alts
+            plan.append(e)
+
+        # Baseline: the naive strategy of taking the biggest available
+        # favourite each week, for comparison.
+        p_greedy, taken = 1.0, set()
+        for i, wk in enumerate(open_weeks):
+            best = max((prob[i, j], cands[j]) for j in range(C) if cands[j] not in taken)
+            taken.add(best[1]); p_greedy *= best[0]
+    else:
+        p_greedy = 1.0
+
+    return {
+        "alive": alive,
+        "history": history,
+        "plan": plan,
+        "next": plan[0] if plan else None,
+        "p_season": round(100 * p_season, 2),
+        "p_greedy": round(100 * p_greedy, 2),
+        "weeks_left": W,
+    }
+
+
+# ----------------------------------------------------------------------------
 # Orchestration
 # ----------------------------------------------------------------------------
-def run(sport_key: str, season: int, start_year: int, sims: int):
+def run(sport_key: str, season: int, start_year: int, sims: int,
+        survivor_picks=None):
     sport = SPORTS[sport_key]
     print(f"[{sport.name}] building Elo {start_year}..{season - 1} ...")
     ratings, last_completed = build_ratings(sport, start_year, season - 1)
@@ -618,6 +757,14 @@ def run(sport_key: str, season: int, start_year: int, sims: int):
     data = assemble_payload(sport, season, start_year, ratings, preseason,
                             last_completed, season_res, bracket, games,
                             schedule, progress)
+    if survivor_picks is not None:
+        data["survivor"] = survivor_plan(sport, schedule, survivor_picks)
+        sv = data["survivor"]
+        nxt = sv["next"]
+        print(f"[{sport.name}] survivor plan: {len(sv['history'])} weeks picked, "
+              f"{sv['weeks_left']} to go; season survival {sv['p_season']}% "
+              f"(weekly favourite: {sv['p_greedy']}%)"
+              + (f"; next: week {nxt['week']} {nxt['team']} ({nxt['p']}%)" if nxt else ""))
     return sport, data
 
 
@@ -714,9 +861,19 @@ def main():
     ap.add_argument("--sims", type=int, default=20000)
     ap.add_argument("--out", default="index.html")
     ap.add_argument("--json", default="data.json")
+    ap.add_argument("--survivor", default="survivor.json",
+                    help="survivor-pool picks file (omit the panel with --survivor '')")
+    ap.add_argument("--pick", action="append", default=[], metavar="WEEK:TEAM",
+                    help="record a survivor pick (e.g. --pick 2:BUF) before running")
     args = ap.parse_args()
 
-    sport, data = run(args.sport, args.season, args.start, args.sims)
+    for spec in args.pick:
+        wk, team = spec.split(":")
+        save_survivor_pick(args.survivor, int(wk), team)
+        print(f"  recorded survivor pick: week {int(wk)} -> {team.upper()}")
+    picks = load_survivor_picks(args.survivor) if args.survivor else None
+
+    sport, data = run(args.sport, args.season, args.start, args.sims, picks)
 
     with open(args.json, "w") as f:
         json.dump(data, f, indent=2)

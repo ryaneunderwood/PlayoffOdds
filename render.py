@@ -63,6 +63,41 @@ TEMPLATE = r"""<!DOCTYPE html>
   .elod.up{color:#4ade80}.elod.down{color:#f87171}
   .sub .live{color:#4ade80;font-weight:700}
   .sub .stamp{color:var(--muted);opacity:.8}
+  /* survivor pool */
+  .surv{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+        margin:0 0 22px;overflow:hidden}
+  .surv-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;
+          padding:10px 14px;background:#10182a;border-bottom:1px solid var(--line)}
+  .surv-h b{font-size:14px;color:#fff}
+  .surv-h .st{font-size:12px;color:var(--muted)}
+  .surv-h .st .ok{color:#4ade80;font-weight:700}
+  .surv-h .st .bad{color:#f87171;font-weight:700}
+  .surv-h .st .num{color:#fff;font-weight:700}
+  .surv table{border-radius:0}
+  .surv th{position:static}
+  .surv td{text-align:left;padding:6px 10px}
+  .surv th{text-align:left;padding:6px 10px}
+  .surv td.n{text-align:right;font-weight:700;white-space:nowrap}
+  .surv th.n{text-align:right}
+  .surv tr.next td{background:#16243f}
+  .surv tr.done td{color:var(--muted)}
+  .surv tr.done td.pick{color:var(--txt)}
+  .surv td.pick{font-weight:800;white-space:nowrap}
+  .surv .badge{display:inline-block;font-size:10px;font-weight:800;border-radius:5px;
+               padding:1px 5px;margin-left:6px;vertical-align:middle;letter-spacing:.3px}
+  .surv .badge.next{background:var(--accent);color:#fff}
+  .surv .badge.ok{color:#4ade80;border:1px solid #1f7a4d}
+  .surv .badge.bad{color:#f87171;border:1px solid #9b3030}
+  .surv .badge.warn{color:#ffd16b;border:1px solid #5a4a1e}
+  .surv .alt{display:inline-block;font-size:11px;color:var(--muted);margin-right:9px;
+             white-space:nowrap}
+  .surv .alt.free{color:var(--txt)}
+  .surv .alt i{font-style:normal;opacity:.6;font-size:10px}
+  .surv .note{padding:8px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}
+  .surv .note code{background:#0d1322;padding:1px 5px;border-radius:4px}
+  .sflag{display:inline-block;font-size:10px;font-weight:800;color:#fff;background:var(--accent);
+         border-radius:5px;padding:0 5px;margin-left:6px;vertical-align:middle}
+  @media (max-width:640px){ .surv .alts{display:none} }
   /* results */
   .res{display:grid;grid-template-columns:1fr 60px 40px 60px 1fr 74px;align-items:center;
        gap:10px;padding:7px 12px;border-bottom:1px solid var(--line)}
@@ -362,18 +397,69 @@ function vegasFlag(g){
 function gameRow(g){
   const hp = g.home_wp, ap = g.away_wp, favHome = hp>=ap;
   const sp = impliedSpread(g);
+  const sflag = t => SURV_PICK[g.week]===t ? ` <span class="sflag" title="survivor pick this week">★ SURVIVOR</span>` : "";
   return `<div class="game">
-    <div class="away">${tname(g.away)}</div>
+    <div class="away">${sflag(g.away)}${tname(g.away)}</div>
     <div class="p" style="text-align:right;color:${!favHome?'#fff':'var(--muted)'}">${ap.toFixed(0)}%</div>
     <div class="mid"><div class="bar"><i class="away" style="width:${ap}%"></i><i class="home" style="width:${hp}%"></i></div>
       ${sp?`<div class="spread">${sp}</div>`:""}</div>
     <div class="p" style="color:${favHome?'#fff':'var(--muted)'}">${hp.toFixed(0)}%</div>
-    <div class="home">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''} <span class="dim">(H)</span>${vegasFlag(g)}</div>
+    <div class="home">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''} <span class="dim">(H)</span>${vegasFlag(g)}${sflag(g.home)}</div>
+  </div>`;
+}
+// Survivor pool: picks made so far, then the optimal order for the remaining
+// weeks (computed server-side as an assignment problem, re-solved on every
+// regeneration so it tracks the latest ratings and results).
+const SURV = DATA.survivor || null;
+const SURV_PICK = {};   // week -> planned/made pick, for badging the game list
+if(SURV){
+  SURV.history.forEach(e=>{ if(e.team) SURV_PICK[e.week]=e.team; });
+  SURV.plan.forEach(e=> SURV_PICK[e.week]=e.team);
+}
+function survivorPanel(){
+  if(!SURV) return "";
+  const vs = e => e.neutral ? "vs" : (e.home ? "vs" : "@");
+  const badge = (cls, txt) => `<span class="badge ${cls}">${txt}</span>`;
+  const status = {survived:["ok","SURVIVED"], eliminated:["bad","ELIMINATED"], tie:["bad","TIE"],
+                  pending:["warn","IN PLAY"], missing:["warn","NO PICK RECORDED"], invalid:["bad","ON BYE"]};
+  let rows = "";
+  SURV.history.forEach(e=>{
+    const [c,t] = status[e.status] || ["warn", e.status.toUpperCase()];
+    rows += `<tr class="done"><td class="n">Wk ${e.week}</td>
+      <td class="pick">${e.team ? tname(e.team) : "&mdash;"}${badge(c,t)}</td>
+      <td>${e.opp ? vs(e)+" "+tname(e.opp) : ""}</td>
+      <td class="n">${e.p!=null ? e.p.toFixed(0)+"%" : ""}</td><td class="n"></td><td class="alts"></td></tr>`;
+  });
+  SURV.plan.forEach((e,i)=>{
+    const alts = e.alts.map(a=>`<span class="alt${a.planned?"":" free"}" title="${a.planned?"needed later in the plan":"not used elsewhere in the plan"}">${a.team} ${a.p.toFixed(0)}%${a.planned?" <i>(wk later)</i>":""}</span>`).join("");
+    rows += `<tr class="${i===0?"next":""}"><td class="n">Wk ${e.week}</td>
+      <td class="pick">${tname(e.team)}${i===0?badge("next","NEXT PICK"):""}</td>
+      <td>${vs(e)} ${tname(e.opp)}</td>
+      <td class="n">${e.p.toFixed(0)}%</td>
+      <td class="n" title="probability of surviving through this week">${e.cum.toFixed(1)}%</td>
+      <td class="alts">${alts}</td></tr>`;
+  });
+  const made = SURV.history.filter(e=>e.status==="survived").length;
+  const state = SURV.alive
+    ? `<span class="ok">Alive</span>${made?" through Week "+SURV.history[SURV.history.length-1].week:""}`
+    : `<span class="bad">Eliminated</span>`;
+  const lift = SURV.p_greedy>0 ? (SURV.p_season/SURV.p_greedy).toFixed(1)+"&times;" : "";
+  return `<div class="surv">
+    <div class="surv-h"><b>Survivor pool</b>
+      <span class="st">${state} &middot; ${SURV.weeks_left} weeks to go &middot;
+        survive the season: <span class="num">${SURV.p_season.toFixed(1)}%</span> with this order
+        (vs ${SURV.p_greedy.toFixed(1)}% taking each week's biggest favorite${lift?", "+lift+" better":""})</span>
+    </div>
+    <div class="tablewrap" style="border:none;border-radius:0"><table><thead><tr>
+      <th class="n">Week</th><th>Pick</th><th>Opponent</th><th class="n">Win</th><th class="n">Survive thru</th><th class="alts">Other options this week</th>
+    </tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="note">Order maximizes the product of the picks' win probabilities with no team reused (solved exactly, not greedily), and is re-optimized every time the page is regenerated.
+      After you lock a pick, record it so the plan stops reusing that team: <code>python sports_elo.py --pick ${SURV.next?SURV.next.week+":"+SURV.next.team:"WEEK:TEAM"}</code> (or edit <code>survivor.json</code>).</div>
   </div>`;
 }
 function gamesView(){
-  if(!DATA.upcoming.length) return "<p>No upcoming games.</p>";
-  let h = "";
+  if(!DATA.upcoming.length) return survivorPanel() + "<p>No upcoming games.</p>";
+  let h = survivorPanel();
   DATA.upcoming.forEach(w=>{
     h += `<div class="wk"><h3>Week ${w.week}</h3>`;
     // group by kickoff day when the payload carries it; otherwise one flat list
