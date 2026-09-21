@@ -569,22 +569,31 @@ def team_records(sport: SportConfig, schedule):
 # ----------------------------------------------------------------------------
 # Survivor-pool planner
 # ----------------------------------------------------------------------------
-def load_survivor_picks(path):
-    """{week: team} from the survivor picks file (missing file -> {})."""
+def load_survivor_picks(path, season=None):
+    """{week: team} from the survivor picks file (missing file -> {}). Picks
+    are tied to the file's "season"; a file from another season is ignored so
+    last year's picks never leak into a new plan."""
     import os
     if not path or not os.path.exists(path):
         return {}
     with open(path) as f:
-        raw = json.load(f).get("picks", {})
+        doc = json.load(f)
+    if season is not None and doc.get("season") not in (None, season):
+        return {}
+    raw = doc.get("picks", {})
     return {int(k): str(v).upper() for k, v in raw.items()}
 
 
-def save_survivor_pick(path, week, team):
+def save_survivor_pick(path, week, team, season=None):
     import os
     doc = {"picks": {}}
     if os.path.exists(path):
         with open(path) as f:
             doc = json.load(f)
+    if season is not None and doc.get("season") not in (None, season):
+        doc["picks"] = {}          # new season: start a fresh entry
+    if season is not None:
+        doc["season"] = season
     doc.setdefault("picks", {})[str(int(week))] = team.upper()
     doc["picks"] = dict(sorted(doc["picks"].items(), key=lambda kv: int(kv[0])))
     with open(path, "w") as f:
@@ -869,9 +878,9 @@ def main():
 
     for spec in args.pick:
         wk, team = spec.split(":")
-        save_survivor_pick(args.survivor, int(wk), team)
+        save_survivor_pick(args.survivor, int(wk), team, args.season)
         print(f"  recorded survivor pick: week {int(wk)} -> {team.upper()}")
-    picks = load_survivor_picks(args.survivor) if args.survivor else None
+    picks = load_survivor_picks(args.survivor, args.season) if args.survivor else None
 
     sport, data = run(args.sport, args.season, args.start, args.sims, picks)
 

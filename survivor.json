@@ -1,5 +1,6 @@
 {
   "_comment": "Survivor pool picks by week. Record each pick here or with: python sports_elo.py --pick WEEK:TEAM",
+  "season": 2026,
   "picks": {
     "1": "KC",
     "2": "LAC"

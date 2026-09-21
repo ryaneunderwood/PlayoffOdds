@@ -414,7 +414,7 @@ const SURV = DATA.survivor || null;
 const SURV_PICK = {};   // week -> planned/made pick, for badging the game list
 if(SURV){
   SURV.history.forEach(e=>{ if(e.team) SURV_PICK[e.week]=e.team; });
-  SURV.plan.forEach(e=> SURV_PICK[e.week]=e.team);
+  if(SURV.alive) SURV.plan.forEach(e=> SURV_PICK[e.week]=e.team);
 }
 function survivorPanel(){
   if(!SURV) return "";
@@ -430,7 +430,7 @@ function survivorPanel(){
       <td>${e.opp ? vs(e)+" "+tname(e.opp) : ""}</td>
       <td class="n">${e.p!=null ? e.p.toFixed(0)+"%" : ""}</td><td class="n"></td><td class="alts"></td></tr>`;
   });
-  SURV.plan.forEach((e,i)=>{
+  (SURV.alive ? SURV.plan : []).forEach((e,i)=>{
     const alts = e.alts.map(a=>`<span class="alt${a.planned?"":" free"}" title="${a.planned?"needed later in the plan":"not used elsewhere in the plan"}">${a.team} ${a.p.toFixed(0)}%${a.planned?" <i>(wk later)</i>":""}</span>`).join("");
     rows += `<tr class="${i===0?"next":""}"><td class="n">Wk ${e.week}</td>
       <td class="pick">${tname(e.team)}${i===0?badge("next","NEXT PICK"):""}</td>
@@ -443,18 +443,18 @@ function survivorPanel(){
   const out = SURV.history.find(e=>e.status==="eliminated"||e.status==="tie");
   const state = SURV.alive
     ? `<span class="ok">Alive</span>${made?" through Week "+SURV.history[SURV.history.length-1].week:""}`
-    : `<span class="bad">Eliminated in Week ${out?out.week:"?"}</span>${out?" ("+out.team+" "+(out.status==="tie"?"tied":"lost to")+" "+out.opp+")":""} &middot; survived ${made} week${made===1?"":"s"} &middot; order below is for a re-entry or second-chance pool`;
+    : `<span class="bad">Eliminated in Week ${out?out.week:"?"}</span>${out?" ("+out.team+" "+(out.status==="tie"?"tied":"lost to")+" "+out.opp+")":""} &middot; survived ${made} week${made===1?"":"s"} &middot; out for the season`;
   const lift = SURV.p_greedy>0 ? (SURV.p_season/SURV.p_greedy).toFixed(1)+"&times;" : "";
   return `<div class="surv">
     <div class="surv-h"><b>Survivor pool</b>
-      <span class="st">${state} &middot; ${SURV.weeks_left} weeks to go &middot;
+      <span class="st">${state}${SURV.alive ? ` &middot; ${SURV.weeks_left} weeks to go &middot;
         survive the season: <span class="num">${SURV.p_season.toFixed(1)}%</span> with this order
-        (vs ${SURV.p_greedy.toFixed(1)}% taking each week's biggest favorite${lift?", "+lift+" better":""})</span>
+        (vs ${SURV.p_greedy.toFixed(1)}% taking each week's biggest favorite${lift?", "+lift+" better":""})` : ""}</span>
     </div>
     <div class="tablewrap" style="border:none;border-radius:0"><table><thead><tr>
       <th class="n">Week</th><th>Pick</th><th>Opponent</th><th class="n">Win</th><th class="n">Survive thru</th><th class="alts">Other options this week</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="note">Order maximizes the product of the picks' win probabilities with no team reused (solved exactly, not greedily), and is re-optimized every time the page is regenerated.
+    <div class="note"${SURV.alive?"":" hidden"}>Order maximizes the product of the picks' win probabilities with no team reused (solved exactly, not greedily), and is re-optimized every time the page is regenerated.
       After you lock a pick, record it so the plan stops reusing that team: <code>python sports_elo.py --pick ${SURV.next?SURV.next.week+":"+SURV.next.team:"WEEK:TEAM"}</code> (or edit <code>survivor.json</code>).</div>
   </div>`;
 }
