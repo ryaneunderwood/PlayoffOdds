@@ -440,9 +440,10 @@ function survivorPanel(){
       <td class="alts">${alts}</td></tr>`;
   });
   const made = SURV.history.filter(e=>e.status==="survived").length;
+  const out = SURV.history.find(e=>e.status==="eliminated"||e.status==="tie");
   const state = SURV.alive
     ? `<span class="ok">Alive</span>${made?" through Week "+SURV.history[SURV.history.length-1].week:""}`
-    : `<span class="bad">Eliminated</span>`;
+    : `<span class="bad">Eliminated in Week ${out?out.week:"?"}</span>${out?" ("+out.team+" "+(out.status==="tie"?"tied":"lost to")+" "+out.opp+")":""} &middot; survived ${made} week${made===1?"":"s"} &middot; order below is for a re-entry or second-chance pool`;
   const lift = SURV.p_greedy>0 ? (SURV.p_season/SURV.p_greedy).toFixed(1)+"&times;" : "";
   return `<div class="surv">
     <div class="surv-h"><b>Survivor pool</b>
