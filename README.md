@@ -25,6 +25,15 @@ are embedded inline, so it loads straight from disk with no web server).
 
 ## Keeping it current
 
+**Live page: https://ryaneunderwood.github.io/PlayoffOdds/** — a GitHub Action
+(`.github/workflows/update.yml`) regenerates the odds every hour, and on every
+push, and publishes them to GitHub Pages. Nothing is committed back, so the
+`index.html` in the repo is only as fresh as the last manual run; use the live
+page, or regenerate locally as below. (GitHub pauses scheduled workflows after
+60 days without a commit; re-enable it from the Actions tab if that happens.)
+
+Survivor picks reach the live page by committing `survivor.json` and pushing.
+
 **Re-run `python sports_elo.py` after each week's games** (or any time — it is
 safe to run mid-week). Nothing else is needed:
 

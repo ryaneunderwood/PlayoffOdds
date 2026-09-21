@@ -875,6 +875,9 @@ def main():
 
     sport, data = run(args.sport, args.season, args.start, args.sims, picks)
 
+    import os
+    for path in (args.json, args.out):
+        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(args.json, "w") as f:
         json.dump(data, f, indent=2)
     print(f"  wrote {args.json}")
