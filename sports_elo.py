@@ -5,7 +5,8 @@ historical-Elo Monte Carlo simulation.
 
 Originally derived from the "Sports Monte Carlo" notebook. The Elo model and
 playoff-bracket simulation are generalized behind a per-sport configuration so
-new leagues can be added later. Currently only football (NFL) is implemented.
+new leagues can be added. Football (NFL) and hockey (NHL, see nhl.py) are
+implemented.
 
 Pipeline (per sport):
   1. Build Elo ratings from `start_year` through the end of the most recent
@@ -42,6 +43,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
+import nhl
 import seeding
 
 rng = np.random.default_rng()
@@ -94,7 +96,9 @@ class SportConfig:
     def __init__(self, key, name, divisions, aliases, schedule_loader,
                  k=20.0, home_field=55.0, mean=1500.0, rho=0.65,
                  division_winner_seeds=4, wildcard_seeds=3, byes=1,
-                 meta_loader=None):
+                 meta_loader=None, rules="nfl", seed_labels=None,
+                 default_start=2018, season_fn=None, out_name="index",
+                 div_title_seeds=None):
         self.key = key
         self.name = name
         # divisions: {division_label: [canonical team codes]}
@@ -111,6 +115,14 @@ class SportConfig:
         self.division_winner_seeds = division_winner_seeds  # seeds 1..n are div winners
         self.wildcard_seeds = wildcard_seeds                # seeds n+1.. are wild cards
         self.byes = byes  # number of top seeds with a first-round bye
+        # "nfl": wins/ties, NFL tiebreakers, reseeding single elimination.
+        # "nhl": points (OT loser point), NHL tiebreakers, best-of-7 bracket.
+        self.rules = rules
+        self.default_start = default_start
+        self.season_fn = season_fn          # fn() -> current season
+        self.out_name = out_name            # page / json basename
+        # seeds 1..div_title_seeds mean "won the division" (NFL 1-4, NHL 1)
+        self.div_title_seeds = div_title_seeds or division_winner_seeds
 
         # Derived lookups
         self.teams = [t for tlist in divisions.values() for t in tlist]
@@ -121,6 +133,7 @@ class SportConfig:
                           for t in tlist}
         self.conferences = sorted(set(self.team_conf.values()))
         self.seeds_per_conf = division_winner_seeds + wildcard_seeds
+        self.seed_labels = seed_labels or [f"#{i}" for i in range(1, self.seeds_per_conf + 1)]
 
     def canon(self, t: str) -> str:
         return self.aliases.get(t, t)
@@ -244,9 +257,34 @@ NFL = SportConfig(
     division_winner_seeds=4,
     wildcard_seeds=3,
     byes=1,
+    season_fn=lambda: current_season(),
 )
 
-SPORTS = {"nfl": NFL}
+NHL = SportConfig(
+    key="nhl",
+    name="NHL Hockey",
+    divisions=nhl.NHL_DIVISIONS,
+    aliases=nhl.NHL_ALIASES,
+    schedule_loader=nhl.load_nhl_schedule,
+    meta_loader=nhl.load_nhl_meta,
+    # Tuned on 2021-22..2025-26 results (walk-forward log-loss): hockey games
+    # are much closer to a coin flip than football, so ratings move slowly.
+    k=8.0,
+    home_field=25.0,
+    rho=0.65,
+    # Seeds: 1-3 = place in the division, 4-5 = wild cards (per conference).
+    division_winner_seeds=3,
+    wildcard_seeds=2,
+    div_title_seeds=1,
+    byes=0,
+    rules="nhl",
+    seed_labels=nhl.SEED_LABELS,
+    default_start=2015,
+    season_fn=nhl.current_season,
+    out_name="nhl",
+)
+
+SPORTS = {"nfl": NFL, "nhl": NHL}
 
 
 # ----------------------------------------------------------------------------
@@ -255,7 +293,8 @@ SPORTS = {"nfl": NFL}
 def apply_week(sport: SportConfig, ratings: Dict[str, float], games) -> Dict[str, float]:
     """Update ratings for one week of *played* games (scores not None)."""
     new_r = ratings.copy()
-    for home, away, hs, as_, neutral in games:
+    for g in games:
+        home, away, hs, as_, neutral = g[:5]
         if hs is None or as_ is None:
             continue
         home, away = sport.canon(home), sport.canon(away)
@@ -470,7 +509,8 @@ def upcoming_games(sport: SportConfig, ratings: Dict[str, float], weekly_schedul
     out = []
     for wk in sorted(weekly_schedule):
         games = []
-        for home, away, hs, as_, neutral in weekly_schedule[wk]:
+        for gm in weekly_schedule[wk]:
+            home, away, hs, as_, neutral = gm[:5]
             if hs is not None and as_ is not None:
                 continue
             h, a = sport.canon(home), sport.canon(away)
@@ -507,7 +547,8 @@ def build_schedule(sport: SportConfig, ratings: Dict[str, float], weekly_schedul
     out = []
     gid = 0
     for wk in weeks:
-        for home, away, hs, as_, neutral in weekly_schedule[wk]:
+        for gm in weekly_schedule[wk]:
+            home, away, hs, as_, neutral = gm[:5]
             h, a = sport.canon(home), sport.canon(away)
             if h not in sport.team_conf or a not in sport.team_conf:
                 continue
@@ -526,6 +567,8 @@ def build_schedule(sport: SportConfig, ratings: Dict[str, float], weekly_schedul
             if played:
                 g["home_score"] = int(hs)
                 g["away_score"] = int(as_)
+                if len(gm) > 5 and gm[5]:
+                    g["dec"] = gm[5]      # NHL: REG / OT / SO
             out.append(g)
             gid += 1
     return out, ratings_now
@@ -552,7 +595,17 @@ def season_progress(weekly_schedule):
 
 
 def team_records(sport: SportConfig, schedule):
-    """Current W-L-T per team from the played games."""
+    """Current W-L-T per team from the played games. For the NHL the third
+    number is overtime/shootout losses (there are no ties)."""
+    if sport.rules == "nhl":
+        rec = {t: [0, 0, 0] for t in sport.teams}
+        for g in schedule:
+            if not g["played"]:
+                continue
+            w, l = (g["home"], g["away"]) if g["winner"] == "home" else (g["away"], g["home"])
+            rec[w][0] += 1
+            rec[l][2 if g.get("dec") in ("OT", "SO") else 1] += 1
+        return rec
     rec = {t: [0, 0, 0] for t in sport.teams}
     for g in schedule:
         if not g["played"]:
@@ -757,16 +810,23 @@ def run(sport_key: str, season: int, start_year: int, sims: int,
         except Exception as e:  # never let metadata break the core pipeline
             print(f"  (metadata enrichment skipped: {e})")
 
-    print(f"[{sport.name}] simulating regular season ({sims} sims, NFL tiebreakers) ...")
-    season_res = simulate_season(sport, ratings, schedule, sims=sims)
-
-    print(f"[{sport.name}] simulating playoff brackets ...")
-    bracket = simulate_bracket(sport, ratings, season_res)
+    if sport.rules == "nhl":
+        # The full remaining NHL slate is ~1,000 games; list the next week.
+        games = games[:7]
+        print(f"[{sport.name}] simulating regular season ({sims} sims, NHL tiebreakers) ...")
+        season_res = nhl.simulate_season(sport, ratings, schedule, sims, rng)
+        print(f"[{sport.name}] simulating playoff brackets (best-of-7) ...")
+        bracket = nhl.simulate_bracket(sport, ratings, season_res, rng, elo_expected)
+    else:
+        print(f"[{sport.name}] simulating regular season ({sims} sims, NFL tiebreakers) ...")
+        season_res = simulate_season(sport, ratings, schedule, sims=sims)
+        print(f"[{sport.name}] simulating playoff brackets ...")
+        bracket = simulate_bracket(sport, ratings, season_res)
 
     data = assemble_payload(sport, season, start_year, ratings, preseason,
                             last_completed, season_res, bracket, games,
                             schedule, progress)
-    if survivor_picks is not None:
+    if survivor_picks is not None and sport.rules == "nfl":
         data["survivor"] = survivor_plan(sport, schedule, survivor_picks)
         sv = data["survivor"]
         nxt = sv["next"]
@@ -796,6 +856,9 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
     for gi, g in enumerate(schedule):
         if g["played"] and g["winner"] in ("home", "away"):
             base_winners[gi] = idx[g["home"] if g["winner"] == "home" else g["away"]]
+    is_nhl = sport.rules == "nhl"
+    if is_nhl:
+        bounds = nhl.points_bounds(league, schedule)
 
     rows = []
     for t in teams:
@@ -807,9 +870,12 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
         # unioned with every seed actually reached across the MC trials.
         fs = final_seed[:, idx[t]]
         mc_hit = {int(x) if x >= 1 else miss_seed for x in np.unique(fs)}
-        ach = seeding.achievable_seeds(league, base_winners, idx[t], rng, mc_hit)
+        if is_nhl:
+            ach = nhl.achievable_seeds(league, bounds, idx[t], mc_hit)
+        else:
+            ach = seeding.achievable_seeds(league, base_winners, idx[t], rng, mc_hit)
 
-        rows.append({
+        row = {
             "team": t,
             "conf": sport.team_conf[t],
             "div": sport.team_division[t],
@@ -824,8 +890,13 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
             "win_div": round(100 * season_res["div_winner"][t] / sims, 1),
             "win_conf": round(100 * bracket["conf_champ"][t] / sims, 1),
             "win_title": round(100 * bracket["title"][t] / sims, 1),
-        })
-    rows.sort(key=lambda r: (-r["make_playoffs"], -r["proj_wins"]))
+        }
+        if is_nhl:
+            w, l, otl = records[t]
+            row.update({"otl": otl, "ties": 0, "pts": 2 * w + otl,
+                        "proj_pts": round(float(np.mean(season_res["pts_dist"][t])), 1)})
+        rows.append(row)
+    rows.sort(key=lambda r: (-r["make_playoffs"], -r.get("proj_pts", r["proj_wins"])))
 
     return {
         "sport": sport.name,
@@ -834,7 +905,15 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
         "start_year": start_year,
         "last_completed": last_completed,
         "sims": sims,
+        "rules": sport.rules,
+        "season_label": (f"{season}\u2013{(season + 1) % 100:02d}" if is_nhl else str(season)),
+        "seed_labels": sport.seed_labels,
+        "ot_rate": nhl.OT_RATE if is_nhl else None,
+        "so_share": nhl.SO_SHARE if is_nhl else None,
+        "sport_links": [{"key": s.key, "label": s.key.upper(), "href": s.out_name + ".html"}
+                        for s in SPORTS.values()],
         "seeds_per_conf": sport.seeds_per_conf,
+        "div_title_seeds": sport.div_title_seeds,
         "division_winner_seeds": sport.division_winner_seeds,
         "wildcard_seeds": sport.wildcard_seeds,
         "byes": sport.byes,
@@ -863,39 +942,48 @@ def current_season() -> int:
 
 def main():
     ap = argparse.ArgumentParser(description="playoffstatus-style odds via Elo Monte Carlo")
-    ap.add_argument("--sport", default="nfl", choices=list(SPORTS))
-    ap.add_argument("--season", type=int, default=current_season(),
-                    help="season to project (default: the current/upcoming one)")
-    ap.add_argument("--start", type=int, default=2018, help="Elo history start year")
+    ap.add_argument("--sport", default="all", choices=["all"] + list(SPORTS),
+                    help="league to build (default: all, one page each)")
+    ap.add_argument("--season", type=int, default=None,
+                    help="season to project (default: each league's current/upcoming one)")
+    ap.add_argument("--start", type=int, default=None,
+                    help="Elo history start year (default: 2018 NFL, 2015 NHL)")
     ap.add_argument("--sims", type=int, default=20000)
-    ap.add_argument("--out", default="index.html")
-    ap.add_argument("--json", default="data.json")
+    ap.add_argument("--outdir", default=".",
+                    help="where to write the pages: index.html + data.json (NFL), "
+                         "nhl.html + nhl.json (NHL)")
     ap.add_argument("--survivor", default="survivor.json",
                     help="survivor-pool picks file (omit the panel with --survivor '')")
     ap.add_argument("--pick", action="append", default=[], metavar="WEEK:TEAM",
                     help="record a survivor pick (e.g. --pick 2:BUF) before running")
     args = ap.parse_args()
 
-    for spec in args.pick:
-        wk, team = spec.split(":")
-        save_survivor_pick(args.survivor, int(wk), team, args.season)
-        print(f"  recorded survivor pick: week {int(wk)} -> {team.upper()}")
-    picks = load_survivor_picks(args.survivor, args.season) if args.survivor else None
-
-    sport, data = run(args.sport, args.season, args.start, args.sims, picks)
-
     import os
-    for path in (args.json, args.out):
-        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-    with open(args.json, "w") as f:
-        json.dump(data, f, indent=2)
-    print(f"  wrote {args.json}")
-
     from render import render_html
-    html = render_html(data)
-    with open(args.out, "w") as f:
-        f.write(html)
-    print(f"  wrote {args.out}")
+    os.makedirs(args.outdir, exist_ok=True)
+    keys = list(SPORTS) if args.sport == "all" else [args.sport]
+    for key in keys:
+        sport = SPORTS[key]
+        season = args.season or sport.season_fn()
+        start = args.start or sport.default_start
+        picks = None
+        if key == "nfl":   # survivor pool is football-only
+            for spec in args.pick:
+                wk, team = spec.split(":")
+                save_survivor_pick(args.survivor, int(wk), team, season)
+                print(f"  recorded survivor pick: week {int(wk)} -> {team.upper()}")
+            picks = load_survivor_picks(args.survivor, season) if args.survivor else None
+
+        sport, data = run(key, season, start, args.sims, picks)
+
+        json_path = os.path.join(args.outdir, "data.json" if key == "nfl" else f"{sport.out_name}.json")
+        html_path = os.path.join(args.outdir, f"{sport.out_name}.html")
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=2)
+        print(f"  wrote {json_path}")
+        with open(html_path, "w") as f:
+            f.write(render_html(data))
+        print(f"  wrote {html_path}")
 
 
 if __name__ == "__main__":

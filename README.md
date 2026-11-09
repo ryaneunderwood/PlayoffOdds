@@ -10,7 +10,9 @@ landing in each playoff seed, winning its division, making the playoffs, and
 winning the conference / title. It also lists every upcoming game with a win
 probability and every completed game with its score and the pre-kickoff odds.
 
-Currently only **football (NFL)** is supported. The engine is written behind a
+Two leagues are supported, each on its own page with an **NFL / NHL** switch at
+the top: **football (NFL)** at `index.html` and **hockey (NHL)** at `nhl.html`
+(see [NHL](#nhl) for how hockey differs). The engine is written behind a
 per-sport config (`SportConfig`) so other leagues can be added later.
 
 ## Quick start
@@ -20,8 +22,9 @@ pip install -r requirements.txt
 python sports_elo.py
 ```
 
-Then open **`index.html`** in any browser — it is fully self-contained (the odds
-are embedded inline, so it loads straight from disk with no web server).
+Then open **`index.html`** (NFL) or **`nhl.html`** (NHL) in any browser. Each is
+fully self-contained (the odds are embedded inline, so it loads straight from
+disk with no web server).
 
 ## Keeping it current
 
@@ -61,12 +64,11 @@ fresh every Tuesday morning after Monday Night Football.
 
 | flag | default | meaning |
 |------|---------|---------|
-| `--sport` | `nfl` | which league (only `nfl` for now) |
-| `--season` | current season | the season to project |
-| `--start` | `2018` | first year of game results used to seed Elo |
+| `--sport` | `all` | `nfl`, `nhl`, or `all` (one page each) |
+| `--season` | each league's current season | the season to project |
+| `--start` | `2018` NFL, `2015` NHL | first year of game results used to seed Elo |
 | `--sims` | `20000` | number of simulated seasons |
-| `--out` | `index.html` | output web page |
-| `--json` | `data.json` | raw odds output |
+| `--outdir` | `.` | where to write `index.html` + `data.json` (NFL) and `nhl.html` + `nhl.json` (NHL) |
 
 ## Interactive what-if
 
@@ -132,6 +134,34 @@ necessarily lift whoever beats them. When too many coupled games remain to
 enumerate (early season), the team is reported as fully live — never a false
 `X`/`^`.
 
+## NHL
+
+`nhl.py` holds the hockey-specific pieces; everything else (Elo, the
+in-season walk-forward, the pages and the in-browser what-if) is shared.
+
+- **Data** comes from the [NHL stats API](https://api.nhle.com/stats/rest/en/game),
+  one request per season, refreshed on every run. Elo is walked forward a day
+  at a time, and history starts in 2015-16. K = 8, home ice = 25 Elo and
+  offseason regression 0.65 were tuned on 2021-22 to 2025-26 results.
+- **Points.** Win 2, overtime/shootout loss 1. In simulated games, 22% go past
+  regulation (28% of those to a shootout), matching recent seasons, so the
+  loser picks up a point. Standings show W-L-OT and points; the table projects
+  final points.
+- **Seeding** per conference: top three in each division (**Div 1-3**) plus two
+  wild cards (**WC1**, **WC2**). Ties go to regulation wins, then regulation +
+  overtime wins, total wins and head-to-head points. Goal differential (not
+  simulated) is a random draw. This reproduces the 2025-26 final standings
+  exactly.
+- **Bracket**: fixed, no reseeding. The better division winner plays WC2, the
+  other WC1, and 2 plays 3 in each division. Every round is a best-of-seven
+  (2-2-1-1-1) with home ice to the better record. "Title" is the Stanley Cup.
+- **X / ^** come from exact points bounds: current points to current points
+  plus 2 per game left. They never fire falsely, but they ignore that
+  contenders take points off each other, so they can show up a day or two
+  after the league declares a clinch or elimination.
+- The **Upcoming Games** tab lists the next seven game days. The survivor
+  pool is NFL-only.
+
 ## Franchise continuity
 
 Relocations and renames that keep the same roster are mapped to a single
@@ -150,6 +180,8 @@ sim, and renderer are all sport-agnostic.
 
 - `sports_elo.py` — nflverse data loader, Elo engine, sport config, Monte
   Carlo, feasibility, CLI.
+- `nhl.py` — NHL stats-API loader, points/OT model, NHL tiebreakers and
+  seeding, best-of-seven bracket, clinch/elimination bounds.
 - `seeding.py` — NFL tiebreaker + conference-seeding engine and the
   clinch/elimination feasibility search.
 - `render.py` — self-contained HTML renderer; the in-browser engine is a faithful

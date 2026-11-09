@@ -29,6 +29,14 @@ TEMPLATE = r"""<!DOCTYPE html>
   body{margin:0;background:var(--bg);color:var(--txt);
        font:14px/1.45 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
   header{padding:22px 20px 8px;max-width:1180px;margin:0 auto}
+  .sports{display:inline-flex;border:1px solid var(--line);border-radius:999px;
+          overflow:hidden;margin-bottom:12px;background:var(--panel)}
+  .sports a{padding:6px 18px;color:var(--muted);text-decoration:none;font-weight:800;
+            letter-spacing:.6px;font-size:13px}
+  .sports a:not(:last-child){border-right:1px solid var(--line)}
+  .sports a.on{background:var(--accent);color:#fff}
+  .sports a:not(.on):hover{color:var(--txt)}
+  .res .ot{font-size:10px;font-weight:800;color:#ffd16b}
   h1{margin:0;font-size:24px;letter-spacing:.2px}
   .sub{color:var(--muted);margin-top:4px;font-size:13px}
   .wrap{max-width:1180px;margin:0 auto;padding:0 20px 60px}
@@ -209,6 +217,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 </head>
 <body>
 <header>
+  <nav class="sports" id="sports"></nav>
   <h1 id="title">Playoff Odds</h1>
   <div class="sub" id="subtitle"></div>
 </header>
@@ -225,7 +234,8 @@ TEMPLATE = r"""<!DOCTYPE html>
 <script>
 const DATA = __PAYLOAD__;
 
-const NAMES = {
+const IS_NHL = DATA.rules === "nhl";
+const NFL_NAMES = {
   ARI:"Cardinals",ATL:"Falcons",BAL:"Ravens",BUF:"Bills",CAR:"Panthers",
   CHI:"Bears",CIN:"Bengals",CLE:"Browns",DAL:"Cowboys",DEN:"Broncos",
   DET:"Lions",GB:"Packers",HOU:"Texans",IND:"Colts",JAX:"Jaguars",
@@ -234,7 +244,27 @@ const NAMES = {
   PHI:"Eagles",PIT:"Steelers",SF:"49ers",SEA:"Seahawks",TB:"Buccaneers",
   TEN:"Titans",WAS:"Commanders"
 };
+const NHL_NAMES = {
+  ANA:"Ducks",BOS:"Bruins",BUF:"Sabres",CAR:"Hurricanes",CBJ:"Blue Jackets",
+  CGY:"Flames",CHI:"Blackhawks",COL:"Avalanche",DAL:"Stars",DET:"Red Wings",
+  EDM:"Oilers",FLA:"Panthers",LAK:"Kings",MIN:"Wild",MTL:"Canadiens",
+  NJD:"Devils",NSH:"Predators",NYI:"Islanders",NYR:"Rangers",OTT:"Senators",
+  PHI:"Flyers",PIT:"Penguins",SEA:"Kraken",SJS:"Sharks",STL:"Blues",
+  TBL:"Lightning",TOR:"Maple Leafs",UTA:"Mammoth",VAN:"Canucks",VGK:"Golden Knights",
+  WPG:"Jets",WSH:"Capitals"
+};
+const NAMES = IS_NHL ? NHL_NAMES : NFL_NAMES;
 function tname(t){return NAMES[t] ? t+" "+NAMES[t] : t;}
+const SEEDLBL = DATA.seed_labels || Array.from({length:DATA.seeds_per_conf},(_,i)=>"#"+(i+1));
+const DIVT = DATA.div_title_seeds || DATA.division_winner_seeds;
+const SEASON = DATA.season_label || DATA.season;
+// Schedule "week" keys: NFL week numbers, NHL calendar dates (yyyymmdd).
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function keyDate(k){ return new Date(Math.floor(k/10000), Math.floor(k/100)%100-1, k%100); }
+function periodLong(k){ if(!IS_NHL) return "Week "+k; const d=keyDate(k); return `${DOW[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`; }
+function periodShort(k){ if(!IS_NHL) return "Wk "+k; const d=keyDate(k); return `${MON[d.getMonth()]} ${d.getDate()}`; }
+function projOf(r){ return IS_NHL ? r.proj_pts : r.proj_wins; }
 
 // Perceptual heat scale. The old linear-alpha blue made 5% and 30% look
 // nearly identical (both faint); this expands the low/mid range and shifts hue
@@ -264,7 +294,7 @@ function token(prob, st){
 }
 function statusSet(ach){
   const set = new Set(ach), arr = ach;
-  const MISS = DATA.seeds_per_conf + 1, DWS = DATA.division_winner_seeds;
+  const MISS = DATA.seeds_per_conf + 1, DWS = DIVT;
   return {
     seed:  s => ({poss:set.has(s), guar:set.size===1 && set.has(s)}),
     miss:  {poss:set.has(MISS), guar:set.size===1 && set.has(MISS)},
@@ -291,8 +321,10 @@ DATA.rows.forEach(r=>rowsByTeam[r.team]=r);
 let sortState = null;
 function sortVal(r,key){
   if(key==="elo") return r.elo;
+  if(key==="rec" && IS_NHL) { const g=r.wins+r.losses+r.otl; return g ? r.pts/(2*g) + r.pts*1e-4 : -1; }
   if(key==="rec") { const g=r.wins+r.losses+r.ties; return g ? (r.wins+0.5*r.ties)/g + r.wins*1e-4 : -1; }
-  if(key==="pw")  return r.proj_wins;
+  if(key==="pts") return r.pts;
+  if(key==="pw")  return projOf(r);
   if(key==="miss")return r.miss;
   if(key==="mk")  return r.make_playoffs;
   if(key==="wd")  return r.win_div;
@@ -302,7 +334,8 @@ function sortVal(r,key){
   return 0;
 }
 
-function recStr(r){ return `${r.wins}-${r.losses}${r.ties?"-"+r.ties:""}`; }
+function recStr(r){ return IS_NHL ? `${r.wins}-${r.losses}-${r.otl}` : `${r.wins}-${r.losses}${r.ties?"-"+r.ties:""}`; }
+function gamesPlayed(r){ return r.wins+r.losses+(IS_NHL?r.otl:r.ties); }
 // Elo movement since the preseason (results to date), shown next to the rating.
 function eloDelta(r){
   const d = r.elo - (r.elo_pre==null ? r.elo : r.elo_pre);
@@ -314,9 +347,10 @@ function teamRow(r, withTag){
   const tag = withTag ? `<span class="dtag">${r.div.split(" ")[1]||r.div}</span>` : "";
   let h = "<tr>";
   h += `<td class="team clickable" data-team="${r.team}">${tname(r.team)}${tag}</td>`;
-  h += `<td class="rec${(r.wins+r.losses+r.ties)?"":" zero"}">${recStr(r)}</td>`;
+  h += `<td class="rec${gamesPlayed(r)?"":" zero"}">${recStr(r)}</td>`;
+  if(IS_NHL) h += `<td class="rec">${r.pts}</td>`;
   h += `<td class="dim">${r.elo}${eloDelta(r)}</td>`;
-  h += `<td>${r.proj_wins.toFixed(1)}</td>`;
+  h += `<td>${projOf(r).toFixed(1)}</td>`;
   r.seed_probs.forEach((p,i)=> h += pcell(p, S.seed(i+1), i===0?"sep":"") );
   h += pcell(r.miss, S.miss, "sep");
   h += pcell(r.make_playoffs, S.make, "sep");
@@ -334,24 +368,26 @@ function seedTable(conf){
 
   let h = "<table><thead><tr>";
   h += `<th class="teamh sortable${sortState?"":" sorted"}" data-sk="grouped">Team</th>`;
-  h += th("rec","W-L") + th("elo","Elo") + th("pw","Proj W");
-  for(let s=1;s<=S;s++) h += th("s"+s, "#"+s, s===1?"sep":"");
+  h += IS_NHL ? th("rec","W-L-OT") + th("pts","Pts") : th("rec","W-L");
+  h += th("elo","Elo") + th("pw", IS_NHL ? "Proj Pts" : "Proj W");
+  for(let s=1;s<=S;s++) h += th("s"+s, SEEDLBL[s-1], s===1?"sep":"");
   h += th("miss","Miss","sep") + th("mk","Playoffs","sep");
-  h += th("wd","Win Div") + th("wc","Win Conf") + th("ti","Title");
+  h += th("wd","Win Div") + th("wc","Win Conf") + th("ti", IS_NHL ? "Cup" : "Title");
   h += "</tr></thead><tbody>";
 
   if(sortState){
     // flat: every team in the conference, sorted by the chosen column
     const ts = DATA.rows.filter(r=>r.conf===conf)
                  .sort((a,b)=>(sortVal(b,sortState.key)-sortVal(a,sortState.key))*-sortState.dir
-                              || b.proj_wins-a.proj_wins);
+                              || projOf(b)-projOf(a));
     ts.forEach(r=> h += teamRow(r, true));
   } else {
     // grouped by division; teams within a division by make-playoffs then wins
     Object.keys(DATA.divisions).filter(d=>d.split(" ")[0]===conf).forEach(d=>{
-      h += `<tr class="divrow"><td colspan="${S+9}">${d}</td></tr>`;
+      h += `<tr class="divrow"><td colspan="${S+9+(IS_NHL?1:0)}">${d}</td></tr>`;
       DATA.divisions[d].map(t=>rowsByTeam[t])
-        .sort((a,b)=>b.make_playoffs-a.make_playoffs||b.proj_wins-a.proj_wins)
+        .sort((a,b)=>IS_NHL ? projOf(b)-projOf(a)||b.make_playoffs-a.make_playoffs
+                            : b.make_playoffs-a.make_playoffs||b.proj_wins-a.proj_wins)
         .forEach(r=> h += teamRow(r, false));
     });
   }
@@ -377,6 +413,7 @@ function seedsView(){
 // Implied point spread from the Elo edge (~25 Elo per point, the standard
 // conversion). Returns the favorite's line, e.g. "KC −6.5" (or "PK" pick'em).
 function impliedSpread(g){
+  if(IS_NHL) return g.gametime ? fmtTime(g.gametime) : "";   // no spreads in hockey
   const eh = DATA.ratings[g.home], ea = DATA.ratings[g.away];
   if(eh==null || ea==null) return "";
   const H = g.neutral ? 0 : DATA.home_field;
@@ -386,6 +423,7 @@ function impliedSpread(g){
   const fav = homeMargin >= 0 ? g.home : g.away;
   return `${fav} −${(Math.round(num*2)/2).toFixed(1)}`;
 }
+function fmtTime(hm){ const [h,m]=hm.split(":").map(Number); return `${(h%12)||12}:${String(m).padStart(2,"0")} ${h<12?"AM":"PM"} ET`; }
 // Vegas disagreement: present only if the payload carried moneylines (future
 // seasons have none until books post lines, so this stays dormant until then).
 function vegasFlag(g){
@@ -461,8 +499,9 @@ function survivorPanel(){
 function gamesView(){
   if(!DATA.upcoming.length) return survivorPanel() + "<p>No upcoming games.</p>";
   let h = survivorPanel();
+  if(IS_NHL) h += `<p class="dim" style="font-size:12px;margin:4px 0 0">The next ${DATA.upcoming.length} game days. Win probabilities include overtime and shootouts.</p>`;
   DATA.upcoming.forEach(w=>{
-    h += `<div class="wk"><h3>Week ${w.week}</h3>`;
+    h += `<div class="wk"><h3>${periodLong(w.week)}</h3>`;
     // group by kickoff day when the payload carries it; otherwise one flat list
     const hasDay = w.games.some(g=>g.weekday || g.gameday);
     if(hasDay){
@@ -498,7 +537,7 @@ function resultsView(){
     const total = DATA.schedule.filter(g=>g.week===wk).length;
     let favHits=0, favTot=0;
     gs.forEach(g=>{ if(g.winner!=="tie"){ favTot++; if((g.p_home>=0.5)===(g.winner==="home")) favHits++; } });
-    h += `<div class="reswk"><h3><span>Week ${wk}</span><span class="n">${gs.length}${gs.length<total?" of "+total:""} played &middot; model favorite won ${favHits}/${favTot}</span></h3>`;
+    h += `<div class="reswk"><h3><span>${periodLong(wk)}</span><span class="n">${gs.length}${gs.length<total?" of "+total:""} played &middot; model favorite won ${favHits}/${favTot}</span></h3>`;
     gs.forEach(g=>{
       const hw = g.winner==="home", aw = g.winner==="away", tie = g.winner==="tie";
       const favHome = g.p_home>=0.5;
@@ -507,7 +546,7 @@ function resultsView(){
       h += `<div class="res">
         <div class="away ${aw?"w":"l"}">${tname(g.away)}<div class="pre">${ap}%</div></div>
         <div class="sc ${aw?"w":"l"}">${g.away_score}</div>
-        <div class="pre" style="text-align:center">${tie?"T":"@"}</div>
+        <div class="pre" style="text-align:center">${tie?"T":(g.dec&&g.dec!=="REG"?`<span class="ot">${g.dec}</span>`:"@")}</div>
         <div class="sc ${hw?"w":"l"}">${g.home_score}</div>
         <div class="home ${hw?"w":"l"}">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''}<div class="pre">${hp}%</div></div>
         <div class="tag ${upset?"upset":"chalk"}">${tie?"TIE":(upset?"UPSET":"FAVORITE")}</div>
@@ -553,6 +592,8 @@ const GAMES=DATA.schedule.map(g=>{ const hi=TIDX[g.home], ai=TIDX[g.away];
     fixed: g.played&&g.winner==="home"?hi : g.played&&g.winner==="away"?ai : -1,
     isDiv: TEAMDIV[hi]===TEAMDIV[ai], isConf: TEAMCONFI[hi]===TEAMCONFI[ai] }; });
 const OPENG=[]; GAMES.forEach((g,gi)=>{ if(g.fixed<0) OPENG.push(gi); });
+const DECCODE={REG:0,OT:1,SO:2};
+DATA.schedule.forEach((g,gi)=>{ GAMES[gi].dec = g.played ? (DECCODE[g.dec]||0) : 0; });
 
 const TEAMGAMES=[], DIVGAMES=[], CONFGAMES=[], OPPSET=[], TOTG=new Int32Array(NT), PAIRMAP=new Map();
 for(let i=0;i<NT;i++){ TEAMGAMES.push([]); DIVGAMES.push([]); CONFGAMES.push([]); OPPSET.push(new Set()); }
@@ -591,9 +632,112 @@ function winProbElo(ta, tb, homeForA){
   return 1/(1+Math.pow(10, -((ra-rb+H)/400)));
 }
 
+/* ---------------- NHL engine (mirrors nhl.py) ---------------- */
+const OTP = DATA.ot_rate || 0, SOSH = DATA.so_share || 0;
+const DIVIDX = {}; for(const d in DATA.divisions) DIVIDX[d]=DATA.divisions[d].map(t=>TIDX[t]);
+function nhlKey(P,RW,ROW,W){ return ((P*200+RW)*200+ROW)*200+W; }
+function h2hPct(winners,dec,group,t){ let got=0,av=0;
+  for(const o of group){ if(o===t) continue; for(const gi of PAIR(t,o)){ av+=2; if(winners[gi]===t) got+=2; else if(dec[gi]>0) got+=1; } }
+  return av?got/av:0.5; }
+// conference teams best-first: points, RW, ROW, W, head-to-head points, random
+function orderConfNHL(conf,key,winners,dec){
+  const ts=CONF_IDX[conf].slice().sort((a,b)=>key[b]-key[a]); const out=[];
+  for(let i=0;i<ts.length;){ let j=i; while(j+1<ts.length && key[ts[j+1]]===key[ts[i]]) j++;
+    let grp=ts.slice(i,j+1);
+    if(grp.length>1){ const hh={},rr={}; grp.forEach(t=>{ hh[t]=h2hPct(winners,dec,grp,t); rr[t]=Math.random(); });
+      grp.sort((a,b)=>(hh[b]-hh[a])||(rr[a]-rr[b])); }
+    out.push(...grp); i=j+1; }
+  return out; }
+function seedConfNHL(conf,key,winners,dec){
+  const order=orderConfNHL(conf,key,winners,dec), rank={}; order.forEach((t,r)=>rank[t]=r);
+  const seeds={};
+  for(const d of CONF_DIV_LABELS[conf]) DIVIDX[d].slice().sort((a,b)=>rank[a]-rank[b]).slice(0,3).forEach((t,p)=>seeds[t]=p+1);
+  order.filter(t=>!(t in seeds)).slice(0,2).forEach((t,k)=>seeds[t]=4+k);
+  return [seeds,rank]; }
+// P(team with home ice wins a best-of-7, 2-2-1-1-1)
+function seriesProb(ph,pa){ const home=[1,1,0,0,1,0,1]; let st={"0,0":1}, win=0;
+  for(let g=0;g<7;g++){ const p=home[g]?ph:pa, nx={};
+    for(const k in st){ const [a,b]=k.split(",").map(Number), pr=st[k];
+      if(a+1===4) win+=pr*p; else { const kk=(a+1)+","+b; nx[kk]=(nx[kk]||0)+pr*p; }
+      if(b+1<4){ const kk=a+","+(b+1); nx[kk]=(nx[kk]||0)+pr*(1-p); } }
+    st=nx; }
+  return win; }
+const SERIES_MEMO=new Map();
+function playSeries(a,b,key){ const [hi,lo]= (key[a]>key[b]||(key[a]===key[b]&&a<b))?[a,b]:[b,a];
+  const k=hi*NT+lo; if(!SERIES_MEMO.has(k)){ const rh=RAT[TEAMS[hi]]??MEAN, rl=RAT[TEAMS[lo]]??MEAN;
+    const e=x=>1/(1+Math.pow(10,-x/400)); SERIES_MEMO.set(k, seriesProb(e(rh-rl+HF), e(rh-rl-HF))); }
+  return Math.random()<SERIES_MEMO.get(k)?hi:lo; }
+
+function simulateNHL(nSims, forced){
+  forced = forced || {};
+  const seedHits=[]; for(let i=0;i<NT;i++) seedHits.push(new Float64Array(NSEED+1));
+  const makeP=new Float64Array(NT), winDiv=new Float64Array(NT);
+  const confCh=new Float64Array(NT), title=new Float64Array(NT);
+  const winners=new Int32Array(NG), dec=new Int8Array(NG);
+  for(let gi=0;gi<NG;gi++) if(GAMES[gi].fixed>=0){ winners[gi]=GAMES[gi].fixed; dec[gi]=GAMES[gi].dec; }
+  const W=new Float64Array(NT),RW=new Float64Array(NT),ROW=new Float64Array(NT),OTL=new Float64Array(NT),key=new Float64Array(NT);
+  for(let s=0;s<nSims;s++){
+    for(let k=0;k<OPENG.length;k++){ const gi=OPENG[k], g=GAMES[gi], f=forced[g.id];
+      winners[gi] = f==="home"?g.hi : f==="away"?g.ai : (Math.random()<g.p?g.hi:g.ai);
+      const v=Math.random(); dec[gi] = v<OTP*(1-SOSH)?1 : v<OTP?2:0; }
+    W.fill(0); RW.fill(0); ROW.fill(0); OTL.fill(0);
+    for(let gi=0;gi<NG;gi++){ const w=winners[gi], g=GAMES[gi], d=dec[gi];
+      W[w]++; if(d===0) RW[w]++; if(d<2) ROW[w]++; if(d>0) OTL[w===g.hi?g.ai:g.hi]++; }
+    for(let i=0;i<NT;i++) key[i]=nhlKey(2*W[i]+OTL[i],RW[i],ROW[i],W[i]);
+    const finalSeed=new Int8Array(NT), champs=[];
+    for(const c of CONFS){
+      const [seeds,rank]=seedConfNHL(c,key,winners,dec);
+      for(const ti in seeds) finalSeed[+ti]=seeds[ti];
+      // bracket: better division winner draws WC2; 2 v 3 in each division
+      const divs=CONF_DIV_LABELS[c], byDiv={};
+      divs.forEach(d=>{ byDiv[d]={}; DIVIDX[d].forEach(t=>{ if(seeds[t]>=1&&seeds[t]<=3) byDiv[d][seeds[t]]=t; }); });
+      let wc1=-1,wc2=-1; for(const ti in seeds){ if(seeds[ti]===4) wc1=+ti; if(seeds[ti]===5) wc2=+ti; }
+      const dTop = rank[byDiv[divs[0]][1]] < rank[byDiv[divs[1]][1]] ? divs[0] : divs[1];
+      const side=divs.map(d=>{ const w1=playSeries(byDiv[d][1], d===dTop?wc2:wc1, key);
+        const w2=playSeries(byDiv[d][2], byDiv[d][3], key); return playSeries(w1,w2,key); });
+      const cw=playSeries(side[0],side[1],key); confCh[cw]++; champs.push(cw);
+    }
+    title[playSeries(champs[0],champs[1],key)]++;
+    for(let i=0;i<NT;i++){ const sd=finalSeed[i];
+      if(sd>=1){ seedHits[i][sd-1]++; makeP[i]++; if(sd<=DIVT) winDiv[i]++; } else seedHits[i][NSEED]++; }
+  }
+  const res={};
+  for(let i=0;i<NT;i++){ const sp=[]; for(let sd=0;sd<NSEED;sd++) sp.push(100*seedHits[i][sd]/nSims);
+    res[TEAMS[i]]={ seed_probs:sp, miss:100*seedHits[i][NSEED]/nSims,
+      make_playoffs:100*makeP[i]/nSims, win_div:100*winDiv[i]/nSims,
+      win_conf:100*confCh[i]/nSims, win_title:100*title[i]/nSims }; }
+  return res;
+}
+// Seeds team ti can still reach from exact points bounds (mirrors
+// nhl.achievable_seeds). A forced game fixes the winner's 2 points but not
+// whether the loser gets an OT point, so it widens the loser's range by one.
+function achievableNHL(team, forced, mcSeeds){
+  const lo=new Float64Array(NT), hi=new Float64Array(NT), W=new Float64Array(NT), RW=new Float64Array(NT), ROW=new Float64Array(NT), open=new Int32Array(NT);
+  for(let gi=0;gi<NG;gi++){ const g=GAMES[gi], f=forced[g.id];
+    if(g.fixed>=0){ const w=g.fixed, l=w===g.hi?g.ai:g.hi; lo[w]+=2; hi[w]+=2; W[w]++; if(g.dec===0) RW[w]++; if(g.dec<2) ROW[w]++; if(g.dec>0){ lo[l]++; hi[l]++; } }
+    else if(f){ const w=f==="home"?g.hi:g.ai, l=w===g.hi?g.ai:g.hi; lo[w]+=2; hi[w]+=2; hi[l]+=1; open[w]++; open[l]++; }
+    else { hi[g.hi]+=2; hi[g.ai]+=2; open[g.hi]++; open[g.ai]++; } }
+  const key=new Float64Array(NT); for(let i=0;i<NT;i++) key[i]=nhlKey(lo[i],RW[i],ROW[i],W[i]);
+  const ti=TIDX[team], conf=TEAMCONFI[ti], myDiv=TEAMDIV[ti];
+  const rivals=DIVIDX[myDiv].filter(t=>t!==ti), others=CONF_IDX[conf].filter(t=>TEAMDIV[t]!==myDiv);
+  const settled=t=> !open[t] && !open[ti] && lo[t]===lo[ti] && key[t]!==key[ti];
+  const sure=t=> lo[t]>hi[ti] || (settled(t) && key[t]>key[ti]);
+  const maybe=t=> hi[t]>=lo[ti] && !(settled(t) && key[t]<key[ti]);
+  const cnt=(ts,f)=>ts.filter(f).length;
+  const a=cnt(rivals,sure), b=cnt(rivals,maybe), a2=cnt(others,sure), b2=cnt(others,maybe);
+  const set=new Set();
+  for(let s=1;s<=3;s++) if(a+1<=s && s<=b+1) set.add(s);
+  if(b>=3){ const aw=Math.max(0,a-3)+Math.max(0,a2-3), ww=Math.max(0,b-3)+Math.max(0,b2-3);
+    if(aw===0) set.add(4); if(aw<=1 && ww>=1) set.add(5); if(ww>=2) set.add(NSEED+1); }
+  if(!set.size) for(let s=1;s<=NSEED+1;s++) set.add(s);
+  mcSeeds.forEach(s=>set.add(s));
+  return [...set].sort((x,y)=>x-y);
+}
+
 // forced: {gameId: 'home'|'away'} -> returns {team: oddsObj}
 // Each simulated season is seeded with the real NFL tiebreakers (seedConference).
 function simulate(nSims, forced){
+  if(IS_NHL) return simulateNHL(nSims, forced);
   forced = forced || {};
   const seedHits=[]; for(let i=0;i<NT;i++) seedHits.push(new Float64Array(NSEED+1));
   const makeP=new Float64Array(NT), winDiv=new Float64Array(NT);
@@ -692,6 +836,7 @@ function achievableFor(team, forced, odds){
   for(let gi=0;gi<NG;gi++){ if(GAMES[gi].fixed>=0) base[gi]=GAMES[gi].fixed;
     const f=forced[GAMES[gi].id]; if(f) base[gi]= f==="home"?GAMES[gi].hi:GAMES[gi].ai; }
   const mc=[]; for(let s=0;s<NSEED;s++) if(odds.seed_probs[s]>0) mc.push(s+1); if(odds.miss>0) mc.push(MISS);
+  if(IS_NHL) return achievableNHL(team, forced, mc);
   return achievableSeeds(base, TIDX[team], mc);
 }
 
@@ -760,7 +905,7 @@ function renderModal(cur){
   const ach = achievableFor(team, forced, cur);
   const S = statusSet(ach);
   let h = `<div class="modal-h">
-      <h2>${tname(team)} <span class="dim" style="font-weight:400;font-size:13px">&middot; ${recStr(rowsByTeam[team])} &middot; ${DATA.season} ${teamDivName(team)}</span></h2>
+      <h2>${tname(team)} <span class="dim" style="font-weight:400;font-size:13px">&middot; ${recStr(rowsByTeam[team])}${IS_NHL?" ("+rowsByTeam[team].pts+" pts)":""} &middot; ${SEASON} ${teamDivName(team)}</span></h2>
       <button class="x" onclick="closeModal()">&times;</button>
     </div><div class="modal-b">`;
 
@@ -769,7 +914,7 @@ function renderModal(cur){
     ${oddsCard("Make Playoffs", cur.make_playoffs, base.make_playoffs, S.make, show)}
     ${oddsCard("Win Division", cur.win_div, base.win_div, S.div, show)}
     ${oddsCard("Win Conference", cur.win_conf, base.win_conf, S.brkt, show)}
-    ${oddsCard("Win Title", cur.win_title, base.win_title, S.brkt, show)}
+    ${oddsCard(IS_NHL?"Win Stanley Cup":"Win Title", cur.win_title, base.win_title, S.brkt, show)}
   </div>`;
 
   // per-seed probability (each cell shows the seed and its odds; X / ^ markers)
@@ -779,7 +924,7 @@ function renderModal(cur){
   for(let s=0;s<NSEED;s++){
     const p=cur.seed_probs[s], tk=token(p, S.seed(s+1));
     const bg = tk==="X" ? "#141c30" : tk==="^" ? heat(100) : heat(p);
-    h += `<div class="sc" style="background:${bg}"><div class="sd">#${s+1}</div>`+
+    h += `<div class="sc" style="background:${bg}"><div class="sd">${SEEDLBL[s]}</div>`+
          `<div class="sv">${seedfmt(tk)}</div></div>`;
   }
   const mt=token(cur.miss, S.miss);
@@ -801,9 +946,9 @@ function renderModal(cur){
     if(g.played){
       const won = g.winner===(isHome?"home":"away");
       const my = isHome?g.home_score:g.away_score, their = isHome?g.away_score:g.home_score;
-      const score = (my==null||their==null) ? "" : ` ${my}&ndash;${their}`;
+      const score = (my==null||their==null) ? "" : ` ${my}&ndash;${their}${g.dec&&g.dec!=="REG"?" "+g.dec:""}`;
       h += `<div class="schrow played">
-        <div class="wk">Wk ${g.week}</div>
+        <div class="wk">${periodShort(g.week)}</div>
         <div class="opp">${ha} ${tname(opp)}</div>
         <div class="wp" title="pre-game win probability">${wp.toFixed(0)}%</div>
         <div class="resultpill" style="color:${g.winner==="tie"?"var(--muted)":(won?"#4ade80":"#f87171")}">${g.winner==="tie"?"TIE":(won?"WON":"LOST")}${score}</div>
@@ -812,7 +957,7 @@ function renderModal(cur){
       const f = forced[g.id];
       const state = f===undefined ? "auto" : (f===(isHome?"home":"away")?"win":"loss");
       h += `<div class="schrow">
-        <div class="wk">Wk ${g.week}</div>
+        <div class="wk">${periodShort(g.week)}</div>
         <div class="opp">${ha} ${tname(opp)} ${g.neutral?'<span class="ha">(N)</span>':''}</div>
         <div class="wp">${wp.toFixed(0)}%</div>
         <div class="toggle">
@@ -841,17 +986,22 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
 
 let tab = "seeds";
 function render(){
-  document.getElementById("title").textContent = `${DATA.season} ${DATA.sport} Playoff Odds`;
+  document.getElementById("title").textContent = `${SEASON} ${DATA.sport} Playoff Odds`;
+  document.title = `${DATA.sport_key ? DATA.sport_key.toUpperCase()+" " : ""}Playoff Odds`;
+  document.getElementById("sports").innerHTML = (DATA.sport_links||[]).map(l=>
+    `<a href="${l.href}" class="${l.key===DATA.sport_key?"on":""}">${l.label}</a>`).join("");
   const P = DATA.progress || {games_played:0};
   let status;
   if(!P.games_played){
-    status = `<span class="live">Preseason</span> &middot; no ${DATA.season} games played yet`;
+    status = `<span class="live">Preseason</span> &middot; no ${SEASON} games played yet`;
+  } else if(IS_NHL){
+    status = `<span class="live">Through ${periodShort(P.through_week)}</span> &middot; ${P.games_played} of ${P.games_total} games in the books`;
   } else {
     const wkState = P.week_complete ? "complete" : `${P.week_games_played} of ${P.week_games_total} played`;
     status = `<span class="live">Through Week ${P.through_week}</span> (${wkState}) &middot; ${P.games_played} of ${P.games_total} games in the books`;
   }
   document.getElementById("subtitle").innerHTML =
-    `${status} &middot; Elo from ${DATA.start_year}&ndash;${DATA.last_completed} + ${DATA.season} results to date &middot; ${DATA.sims.toLocaleString()} simulated seasons`+
+    `${status} &middot; Elo from ${DATA.start_year}&ndash;${DATA.last_completed} + ${SEASON} results to date &middot; ${DATA.sims.toLocaleString()} simulated seasons`+
     (DATA.generated_at ? ` <span class="stamp">&middot; updated ${DATA.generated_at}</span>` : "");
   const tabs = [["seeds","Playoff Seeds"],["games","Upcoming Games"],["results","Results"]];
   document.getElementById("tabs").innerHTML = tabs.map(([k,l])=>
@@ -867,7 +1017,14 @@ function render(){
     else sortState={key:k, dir:-1};
     render();
   });
-  document.getElementById("foot").innerHTML =
+  document.getElementById("foot").innerHTML = IS_NHL ?
+    `Per conference: the top three in each division (<b>Div 1&ndash;3</b>) plus two wild cards (<b>WC1</b>, <b>WC2</b>). `+
+    `Win probabilities come from historical Elo ratings (K-factor with margin-of-victory scaling, home-ice edge, and preseason regression toward the mean); ${Math.round(100*DATA.ot_rate)}% of simulated games go past regulation, giving the loser a point. `+
+    `Each simulated season is ranked by points, then regulation wins, regulation + overtime wins, total wins and head-to-head points (goal differential, which the model doesn't simulate, is a random draw). `+
+    `The bracket is fixed: the better division winner meets WC2, the other WC1, and 2 plays 3 in each division; every round is a best-of-seven with home ice to the better record. `+
+    `<b>X</b>/<b>^</b> come from exact points bounds, so they only appear when mathematically certain (sometimes a day or two after the league declares it). `+
+    `Click any team to open its schedule and toggle remaining games to Win/Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser and shows how the odds shift. `+
+    `Generated by <code>sports_elo.py</code>.` :
     `Seeds 1&ndash;${DATA.seeds_per_conf} per conference (top ${DATA.seeds_per_conf-3} are division winners). `+
     `Win probabilities come from historical Elo ratings (K-factor with margin-of-victory scaling, home-field edge, and preseason regression toward the mean). `+
     `Each simulated season plays out every remaining game and is seeded with the real NFL tiebreakers (head-to-head, division, common games, conference record, strength of victory/schedule), then runs the playoff bracket. `+

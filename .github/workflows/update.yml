@@ -30,7 +30,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Regenerate odds
-        run: python sports_elo.py --out _site/index.html --json _site/data.json
+        run: python sports_elo.py --outdir _site     # NFL -> index.html, NHL -> nhl.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
