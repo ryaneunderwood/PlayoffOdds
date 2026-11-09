@@ -115,6 +115,8 @@ TEMPLATE = r"""<!DOCTYPE html>
   .res .sc{font-weight:800;font-variant-numeric:tabular-nums;text-align:center}
   .res .sc.l{font-weight:600}
   .res .pre{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .trec{color:var(--muted);font-weight:500;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .res .pre .eu{color:#4ade80;font-weight:700}.res .pre .ed{color:#f87171;font-weight:700}
   .res .tag{font-size:10px;font-weight:800;text-align:center;border-radius:5px;padding:2px 4px}
   .res .tag.upset{color:#ffd16b;border:1px solid #5a4a1e;background:#2a2410}
   .res .tag.chalk{color:var(--muted);border:1px solid var(--line)}
@@ -432,17 +434,34 @@ function vegasFlag(g){
   const modelFav = g.home_wp >= g.away_wp ? "home" : "away";
   return (vegasFav && vegasFav!==modelFav) ? ` <span class="vflag" title="model disagrees with the Vegas favorite">⚡ UPSET</span>` : "";
 }
+// Team records: current (for upcoming games) and as of right after each
+// played game (for results), walked in schedule order.
+function fmtRec(w,l,x){ return IS_NHL ? `${w}-${l}-${x}` : `${w}-${l}${x?"-"+x:""}`; }
+const REC_AFTER = {};   // game id -> {home, away} record strings after the game
+(function(){
+  const r={}; DATA.teams.forEach(t=>r[t]=[0,0,0]);
+  DATA.schedule.filter(g=>g.played).forEach(g=>{
+    const H=r[g.home], A=r[g.away];
+    if(g.winner==="tie"){ H[2]++; A[2]++; }
+    else { const [W,L]= g.winner==="home"?[H,A]:[A,H]; W[0]++;
+      if(IS_NHL && g.dec && g.dec!=="REG") L[2]++; else L[1]++; }
+    REC_AFTER[g.id]={home:fmtRec(...H), away:fmtRec(...A)};
+  });
+})();
+function recTag(t, str){ return ` <span class="trec" title="${str!=null?"record after this game":"current record"}">(${str!=null?str:recStr(rowsByTeam[t])})</span>`; }
+function eloTag(d){ if(d==null) return ""; const r=Math.round(d*10)/10;
+  return ` &middot; Elo <span class="${r>0?"eu":r<0?"ed":""}">${r>0?"+":""}${r.toFixed(1)}</span>`; }
 function gameRow(g){
   const hp = g.home_wp, ap = g.away_wp, favHome = hp>=ap;
   const sp = impliedSpread(g);
   const sflag = t => SURV_PICK[g.week]===t ? ` <span class="sflag" title="survivor pick this week">★ SURVIVOR</span>` : "";
   return `<div class="game">
-    <div class="away">${sflag(g.away)}${tname(g.away)}</div>
+    <div class="away">${sflag(g.away)}${tname(g.away)}${recTag(g.away)}</div>
     <div class="p" style="text-align:right;color:${!favHome?'#fff':'var(--muted)'}">${ap.toFixed(0)}%</div>
     <div class="mid"><div class="bar"><i class="away" style="width:${ap}%"></i><i class="home" style="width:${hp}%"></i></div>
       ${sp?`<div class="spread">${sp}</div>`:""}</div>
     <div class="p" style="color:${favHome?'#fff':'var(--muted)'}">${hp.toFixed(0)}%</div>
-    <div class="home">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''} <span class="dim">(H)</span>${vegasFlag(g)}${sflag(g.home)}</div>
+    <div class="home">${tname(g.home)}${recTag(g.home)}${g.neutral?' <span class="dim">(N)</span>':''} <span class="dim">(H)</span>${vegasFlag(g)}${sflag(g.home)}</div>
   </div>`;
 }
 // Survivor pool: picks made so far, then the optimal order for the remaining
@@ -544,11 +563,11 @@ function resultsView(){
       const upset = !tie && (favHome!==hw);
       const hp = Math.round(g.p_home*100), ap = 100-hp;
       h += `<div class="res">
-        <div class="away ${aw?"w":"l"}">${tname(g.away)}<div class="pre">${ap}%</div></div>
+        <div class="away ${aw?"w":"l"}">${tname(g.away)}${recTag(g.away, REC_AFTER[g.id].away)}<div class="pre">${ap}% pre-game${eloTag(g.elo_d_away)}</div></div>
         <div class="sc ${aw?"w":"l"}">${g.away_score}</div>
         <div class="pre" style="text-align:center">${tie?"T":(g.dec&&g.dec!=="REG"?`<span class="ot">${g.dec}</span>`:"@")}</div>
         <div class="sc ${hw?"w":"l"}">${g.home_score}</div>
-        <div class="home ${hw?"w":"l"}">${tname(g.home)}${g.neutral?' <span class="dim">(N)</span>':''}<div class="pre">${hp}%</div></div>
+        <div class="home ${hw?"w":"l"}">${tname(g.home)}${recTag(g.home, REC_AFTER[g.id].home)}${g.neutral?' <span class="dim">(N)</span>':''}<div class="pre">${hp}% pre-game${eloTag(g.elo_d_home)}</div></div>
         <div class="tag ${upset?"upset":"chalk"}">${tie?"TIE":(upset?"UPSET":"FAVORITE")}</div>
       </div>`;
     });

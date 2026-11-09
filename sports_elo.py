@@ -290,10 +290,13 @@ SPORTS = {"nfl": NFL, "nhl": NHL}
 # ----------------------------------------------------------------------------
 # Build historical Elo ratings
 # ----------------------------------------------------------------------------
-def apply_week(sport: SportConfig, ratings: Dict[str, float], games) -> Dict[str, float]:
-    """Update ratings for one week of *played* games (scores not None)."""
+def apply_week(sport: SportConfig, ratings: Dict[str, float], games,
+               deltas=None) -> Dict[str, float]:
+    """Update ratings for one week of *played* games (scores not None). If
+    `deltas` is a dict, it is filled with {game position in `games`:
+    (home Elo change, away Elo change)}."""
     new_r = ratings.copy()
-    for g in games:
+    for gi, g in enumerate(games):
         home, away, hs, as_, neutral = g[:5]
         if hs is None or as_ is None:
             continue
@@ -309,6 +312,8 @@ def apply_week(sport: SportConfig, ratings: Dict[str, float], games) -> Dict[str
         H = 0.0 if neutral else sport.home_field
         ra2, rb2 = elo_update(ra, rb, sh, K=sport.k, H=H, margin=abs(hs - as_))
         new_r[home], new_r[away] = ra2, rb2
+        if deltas is not None:
+            deltas[gi] = (ra2 - ra, rb2 - rb)
     return new_r
 
 
@@ -537,17 +542,18 @@ def build_schedule(sport: SportConfig, ratings: Dict[str, float], weekly_schedul
     """
     weeks = sorted(weekly_schedule)
     # First pass: ratings entering each week, and the current ratings.
-    entering = {}
+    entering, deltas = {}, {}
     cur = dict(ratings)
     for wk in weeks:
         entering[wk] = cur
-        cur = apply_week(sport, cur, weekly_schedule[wk])
+        deltas[wk] = {}
+        cur = apply_week(sport, cur, weekly_schedule[wk], deltas[wk])
     ratings_now = cur
 
     out = []
     gid = 0
     for wk in weeks:
-        for gm in weekly_schedule[wk]:
+        for pos, gm in enumerate(weekly_schedule[wk]):
             home, away, hs, as_, neutral = gm[:5]
             h, a = sport.canon(home), sport.canon(away)
             if h not in sport.team_conf or a not in sport.team_conf:
@@ -569,6 +575,10 @@ def build_schedule(sport: SportConfig, ratings: Dict[str, float], weekly_schedul
                 g["away_score"] = int(as_)
                 if len(gm) > 5 and gm[5]:
                     g["dec"] = gm[5]      # NHL: REG / OT / SO
+                if pos in deltas[wk]:     # Elo each side gained/lost
+                    dh, da = deltas[wk][pos]
+                    g["elo_d_home"] = round(dh, 1)
+                    g["elo_d_away"] = round(da, 1)
             out.append(g)
             gid += 1
     return out, ratings_now
