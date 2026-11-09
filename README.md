@@ -26,7 +26,7 @@ are embedded inline, so it loads straight from disk with no web server).
 ## Keeping it current
 
 **Live page: https://ryaneunderwood.github.io/PlayoffOdds/** — a GitHub Action
-(`.github/workflows/update.yml`) regenerates the odds every hour, and on every
+(`.github/workflows/update.yml`) regenerates the odds every 5 minutes, and on every
 push, and publishes them to GitHub Pages. Nothing is committed back, so the
 `index.html` in the repo is only as fresh as the last manual run; use the live
 page, or regenerate locally as below. (GitHub pauses scheduled workflows after
