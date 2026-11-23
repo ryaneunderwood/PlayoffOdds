@@ -832,7 +832,9 @@ function splitDomain(L, m) {
 // their opponents'), evaluating the tiebreakers on intervals at every node:
 // prune when seed s is out of reach even in the best case, and stop with a
 // replayed season as soon as it is guaranteed.
-Engine.prototype.level2 = function (ti, s, P, cls, bounds, G) {
+// test(ctx) -> {maybe, sure} for the goal (default: ti gets seed s);
+// accept(full season) -> whether a replay confirms it.
+Engine.prototype.level2 = function (ti, s, P, cls, bounds, G, test, accept) {
   const L = this.L, gset = new Set(G);
   const dom = this.dom0.slice();
   const self = this;
@@ -869,12 +871,14 @@ Engine.prototype.level2 = function (ti, s, P, cls, bounds, G) {
       for (let t = 0; t < L.n; t++) if (bounds.has(t)) { const b = bounds.get(t); lo[t] = Math.max(lo[t], b[0]); hi[t] = Math.min(hi[t], b[1]); }
       this.plo = lo; this.phi = hi;
     } };
-    const r = L.nfl ? self.nflTieSeeds(ti, cls, G, ctx) : self.nhlTieSeeds(ti, cls, G, ctx);
-    if (!r.maybe.has(s)) return false;
-    if (r.sure.has(s)) {
+    let r;
+    if (test) r = test(ctx);
+    else { const x = L.nfl ? self.nflTieSeeds(ti, cls, G, ctx) : self.nhlTieSeeds(ti, cls, G, ctx); r = { maybe: x.maybe.has(s), sure: x.sure.has(s) }; }
+    if (!r.maybe) return false;
+    if (r.sure) {
       const full = self.realize(dom, bounds, 0);
       if (full) {
-        if (!self.verify(full, L.conf[ti], ti, s)) self.stats.mismatch++;
+        if (!(accept ? accept(full) : self.verify(full, L.conf[ti], ti, s))) self.stats.mismatch++;
         return true;
       }
     }
@@ -895,6 +899,68 @@ Engine.prototype.level2 = function (ti, s, P, cls, bounds, G) {
     return false;
   };
   return rec();
+};
+
+// Can ti still win its division (NFL: be a division winner, seeds 1-4; NHL:
+// finish first in it)? Only the division's teams matter, so this is a much
+// smaller search than a full seed query: every rival must finish below ti's
+// total P or level with it and lose the division tiebreak. If it fails, every
+// division-winner seed is out at once. Returns true / false / null (budget).
+Engine.prototype.divTitle = function (ti) {
+  const L = this.L, self = this;
+  this.nodes = 0;
+  const [lo, hi] = naturalBounds(L, this.dom0);
+  const rivals = L.divTeams[L.div[ti]].filter(t => t !== ti);
+  const divSeeds = L.nfl ? 4 : 1;
+  const accept = full => { for (const sd of seedConference(L, full, L.conf[ti], null).get(ti)) if (sd <= divSeeds) return true; return false; };
+  const test = G => ctx => {
+    const top = L.nfl ? (g => nflDivTop(ctx, g)) : (g => nhlTop(ctx, g));
+    const r = tiPositions(G, top, ti);
+    let maybe = r.maybe.has(0), sure = r.sure.has(0);
+    if (!L.nfl && G.length >= 3) for (const o of nhlSortOnce(ctx, G)) if (o[0] === ti) { maybe = true; sure = true; }
+    return { maybe, sure };
+  };
+  try {
+    for (let P = hi[ti]; P >= lo[ti]; P--) {
+      if (rivals.some(t => lo[t] > P)) break;           // lower totals only get worse
+      const cls = new Map();
+      const dfs = i => {
+        if (++self.nodes > self.budget) throw "budget";
+        const b = new Map([[ti, [P, P]]]);
+        for (const [t, k] of cls) {
+          if (k === TIE) b.set(t, [P, P]);
+          else if (hi[t] > P - 1) b.set(t, [lo[t], P - 1]);
+        }
+        // unassigned rivals may not pass ti either way
+        for (let j = i; j < rivals.length; j++) { const t = rivals[j]; if (hi[t] > P) b.set(t, [lo[t], P]); }
+        if (!flowCheck(L, self.dom0, b, false)) return false;
+        if (i === rivals.length) {
+          const tied = rivals.filter(t => cls.get(t) === TIE);
+          if (!tied.length) {
+            const out = self.realize(self.dom0, b, 0);
+            if (!out) return false;
+            if (!accept(out)) self.stats.mismatch++;
+            if (self.onSeason) self.onSeason(out);
+            return true;
+          }
+          const G = [ti].concat(tied);
+          return self.level2(ti, 0, P, cls, b, G, test(G), full => { if (self.onSeason) self.onSeason(full); return accept(full); });
+        }
+        const t = rivals[i];
+        const opts = [];
+        if (lo[t] <= P - 1) opts.push(BELOW);
+        if (lo[t] <= P && hi[t] >= P) opts.push(TIE);
+        for (const k of opts) { cls.set(t, k); if (dfs(i + 1)) return true; }
+        cls.delete(t);
+        return false;
+      };
+      if (dfs(0)) return true;
+    }
+    return false;
+  } catch (e) {
+    if (e === "budget") return null;
+    throw e;
+  }
 };
 
 // Positions ti can take when `group` is ranked by repeatedly taking one of
@@ -1105,9 +1171,18 @@ function exactSeeds(L, dom, opts) {
   };
   for (const ti of want) {
     if (gated(ti)) { for (let s = 1; s <= L.MISS; s++) res.get(ti).seeds.add(s); E.stats.gated = (E.stats.gated || 0) + 1; continue; }
+    // division title first: if it is out of reach, so is every division seed
+    const divSeeds = L.nfl ? 4 : 1;
+    let skipDiv = false;
+    if (![...res.get(ti).seeds].some(x => x <= divSeeds) && Date.now() <= deadline) {
+      E.cnt = { l1: 0, l2: 0, sov: 0, leaves2: 0 };
+      E.stats.queries++;
+      if (E.divTitle(ti) === false) skipDiv = true;
+    }
     for (let s = 1; s <= L.MISS; s++) {
       const r = res.get(ti);
       if (r.seeds.has(s)) continue;
+      if (skipDiv && s <= divSeeds) continue;
       if (Date.now() > deadline) { r.seeds.add(s); r.unknown.add(s); E.stats.unknown++; E.stats.late = (E.stats.late || 0) + 1; continue; }
       E.stats.queries++;
       const tq = Date.now(); E.cnt = { l1: 0, l2: 0, sov: 0, leaves2: 0 };
