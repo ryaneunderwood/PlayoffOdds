@@ -979,6 +979,7 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
         "ratings_pre": {t: round(preseason.get(t, sport.mean), 1) for t in sport.teams},
         "progress": progress,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "generated_iso": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rows": rows,
         "ach_exact": exact is not None,   # False: the page refines `ach` itself
         "upcoming": games,

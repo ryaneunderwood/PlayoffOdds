@@ -911,6 +911,18 @@ document.getElementById("modal").addEventListener("click",e=>{
 });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
 
+// Build time in the viewer's time zone (Pacific if it can't be determined).
+function stampText(){
+  const iso = DATA.generated_iso || (DATA.generated_at||"").replace(" UTC","Z").replace(" ","T");
+  const d = new Date(iso);
+  if(isNaN(d)) return DATA.generated_at;
+  const opts = {year:"numeric", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZoneName:"short"};
+  let tz = null;
+  try{ tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null; }catch(e){}
+  try{ return d.toLocaleString(undefined, tz ? {...opts, timeZone: tz} : {...opts, timeZone: "America/Los_Angeles"}); }
+  catch(e){ try{ return d.toLocaleString(undefined, {...opts, timeZone: "America/Los_Angeles"}); }catch(e2){ return DATA.generated_at; } }
+}
+
 let tab = "seeds";
 function render(){
   document.getElementById("title").textContent = `${SEASON} ${DATA.sport} Playoff Odds`;
@@ -929,7 +941,7 @@ function render(){
   }
   document.getElementById("subtitle").innerHTML =
     `${status} &middot; Elo from ${DATA.start_year}&ndash;${DATA.last_completed} + ${SEASON} results to date &middot; ${DATA.sims.toLocaleString()} simulated seasons`+
-    (DATA.generated_at ? ` <span class="stamp">&middot; updated ${DATA.generated_at}</span>` : "");
+    (DATA.generated_at ? ` <span class="stamp">&middot; updated ${stampText()}</span>` : "");
   const tabs = [["seeds","Playoff Seeds"],["games","Upcoming Games"],["results","Results"]];
   document.getElementById("tabs").innerHTML = tabs.map(([k,l])=>
     `<div class="tab ${tab===k?'active':''}" data-k="${k}">${l}</div>`).join("");
