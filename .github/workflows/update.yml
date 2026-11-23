@@ -17,7 +17,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false   # a long clinch/elimination search must not be cancelled by the next tick
 
 jobs:
   build:
@@ -28,6 +28,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      - uses: actions/setup-node@v4     # runs the exact clinch/elimination search (rules.js)
+        with:
+          node-version: "20"
       - run: pip install -r requirements.txt
       - name: Regenerate odds
         run: python sports_elo.py --outdir _site     # NFL -> index.html, NHL -> nhl.html

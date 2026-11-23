@@ -351,6 +351,8 @@ def build_game_arrays(sport, ratings, schedule):
         p_home.append(g["p_home"])
         if g["played"] and g["winner"] in ("home", "away"):
             fixed.append(h if g["winner"] == "home" else a)
+        elif g["played"] and g["winner"] == "tie":
+            fixed.append(-2)          # played to a tie: half a win each
         else:
             fixed.append(-1)
     team_conf = {idx[t]: sport.team_conf[t] for t in sport.teams}
@@ -362,7 +364,7 @@ def build_game_arrays(sport, ratings, schedule):
 def simulate_season(sport: SportConfig, ratings: Dict[str, float],
                     schedule, sims: int = 20000):
     """Monte-Carlo the upcoming regular season, seeding each simulated season
-    with the real NFL tiebreaker engine (seeding.py).
+    with the real NFL tiebreaking procedure (seeding.py, mirroring rules.js).
 
     Returns per-team seed/division/playoff probabilities, the win-total
     distribution, and the per-sim final seeds for the bracket sim.
@@ -372,26 +374,28 @@ def simulate_season(sport: SportConfig, ratings: Dict[str, float],
     n = len(teams)
     ng = len(p_home)
 
-    # Per-game winners for every sim: played games are fixed, open games drawn.
-    open_mask = fixed < 0
+    # Per-game winners for every sim: played games are fixed (-1 = a tie),
+    # open games drawn.
+    open_mask = fixed == -1
     home_idx = league.home.astype(np.int64)
     away_idx = league.away.astype(np.int64)
     winners = np.empty((sims, ng), dtype=np.int32)
-    winners[:, ~open_mask] = fixed[~open_mask]
+    winners[:, ~open_mask] = np.maximum(fixed[~open_mask], -1)
     if open_mask.any():
         draws = rng.random((sims, int(open_mask.sum())))
         hp = p_home[open_mask]
         oh = home_idx[open_mask]; oa = away_idx[open_mask]
         winners[:, open_mask] = np.where(draws < hp, oh, oa).astype(np.int32)
 
-    # Vectorized win / division-win / conference-win totals per sim.
+    # Standings points per sim: 2 per win, 1 per tie.
     rows = np.arange(sims)[:, None]
-    W = np.zeros((sims, n)); dW = np.zeros((sims, n)); cW = np.zeros((sims, n))
-    np.add.at(W, (rows, winners), 1.0)
-    div_cols = winners[:, league.is_div]
-    np.add.at(dW, (rows, div_cols), 1.0)
-    conf_cols = winners[:, league.is_conf]
-    np.add.at(cW, (rows, conf_cols), 1.0)
+    tie_mask = fixed == -2
+    P = np.zeros((sims, n))
+    won = winners[:, ~tie_mask]
+    np.add.at(P, (rows, won), 2.0)
+    for gi in np.where(tie_mask)[0]:
+        P[:, home_idx[gi]] += 1; P[:, away_idx[gi]] += 1
+    W = P / 2.0                                   # wins, ties as half
 
     seed_counts = {t: np.zeros(sport.seeds_per_conf + 1) for t in teams}
     div_winner = {t: 0 for t in teams}
@@ -399,10 +403,9 @@ def simulate_season(sport: SportConfig, ratings: Dict[str, float],
     final_seed = np.zeros((sims, n), dtype=int)
 
     for s in range(sims):
-        ws = winners[s]
-        Ws, dWs, cWs = W[s], dW[s], cW[s]
+        ws, Ps = winners[s], P[s]
         for conf in sport.conferences:
-            seeds = seeding.seed_conference(league, conf, ws, Ws, dWs, cWs, rng)
+            seeds = seeding.seed_conference(league, conf, ws, Ps, rng)
             for ti, sd in seeds.items():
                 final_seed[s, ti] = sd
 
@@ -847,6 +850,39 @@ def run(sport_key: str, season: int, start_year: int, sims: int,
     return sport, data
 
 
+def exact_achievable(sport, schedule, timeout=900):
+    """Exact achievable seeds for every team from the search in rules.js, run
+    under Node (feasibility_cli.js). Returns ({team: [seeds]}, {team: [seeds
+    left possible only because the search budget ran out]}), or None when Node
+    is not installed or the run fails -- callers then fall back to bounds."""
+    import os
+    import shutil
+    import subprocess
+    node = shutil.which("node")
+    if not node:
+        return None
+    here = os.path.dirname(os.path.abspath(__file__))
+    payload = {
+        "sport": "nhl" if sport.rules == "nhl" else "nfl",
+        "teams": sport.teams,
+        "divisions": sport.divisions,
+        "schedule": [{"home": g["home"], "away": g["away"], "played": g["played"],
+                      "winner": g.get("winner"), "dec": g.get("dec")} for g in schedule],
+    }
+    try:
+        r = subprocess.run([node, os.path.join(here, "feasibility_cli.js")],
+                           input=json.dumps(payload), capture_output=True, text=True,
+                           timeout=timeout, check=True)
+        res = json.loads(r.stdout)
+    except (subprocess.SubprocessError, ValueError) as e:
+        print(f"[{sport.name}] exact clinch/elimination search failed ({e}); using bounds")
+        return None
+    st = res.get("stats", {})
+    print(f"[{sport.name}] exact clinch/elimination search: {st.get('queries', 0)} queries, "
+          f"{st.get('unknown', 0)} left open by budget, {st.get('mismatch', 0)} mismatches")
+    return res["seeds"], res["unknown"]
+
+
 def assemble_payload(sport, season, start_year, ratings, preseason,
                      last_completed, season_res, bracket, games, schedule,
                      progress):
@@ -859,16 +895,19 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
     league = season_res["league"]
     final_seed = season_res["final_seed"]
 
-    # Current results as a per-game winners array (-1 = still open), aligned to
-    # league.games / schedule order, for the feasibility (clinch/elimination)
-    # solver.
-    base_winners = np.full(len(schedule), -1, dtype=int)
-    for gi, g in enumerate(schedule):
-        if g["played"] and g["winner"] in ("home", "away"):
-            base_winners[gi] = idx[g["home"] if g["winner"] == "home" else g["away"]]
+    # Achievable seeds: the exact search (rules.js under Node) when available;
+    # otherwise sound bounds unioned with the simulated seeds (the page then
+    # runs the exact search in the browser).
+    exact = exact_achievable(sport, schedule)
     is_nhl = sport.rules == "nhl"
-    if is_nhl:
-        bounds = nhl.points_bounds(league, schedule)
+    if exact is None:
+        # per-game winners (-1 = open or tied) for the bound solvers
+        base_winners = np.full(len(schedule), -1, dtype=int)
+        for gi, g in enumerate(schedule):
+            if g["played"] and g["winner"] in ("home", "away"):
+                base_winners[gi] = idx[g["home"] if g["winner"] == "home" else g["away"]]
+        if is_nhl:
+            bounds = nhl.points_bounds(league, schedule)
 
     rows = []
     for t in teams:
@@ -876,14 +915,17 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
         seed_probs = [round(100 * sc[i] / sims, 1) for i in range(sport.seeds_per_conf)]
         miss = round(100 * sc[sport.seeds_per_conf] / sims, 1)
 
-        # Achievable seeds via the pruned, tiebreaker-aware feasibility search,
-        # unioned with every seed actually reached across the MC trials.
         fs = final_seed[:, idx[t]]
         mc_hit = {int(x) if x >= 1 else miss_seed for x in np.unique(fs)}
-        if is_nhl:
-            ach = nhl.achievable_seeds(league, bounds, idx[t], mc_hit)
+        if exact is not None:
+            ach, ach_unknown = exact[0][t], exact[1][t]
+            odd = sorted(mc_hit - set(ach))
+            if odd:   # a simulated seed the exact search calls impossible
+                print(f"[{sport.name}] WARNING {t}: simulated seeds {odd} ruled out by the exact search")
+        elif is_nhl:
+            ach, ach_unknown = nhl.achievable_seeds(league, bounds, idx[t], mc_hit), []
         else:
-            ach = seeding.achievable_seeds(league, base_winners, idx[t], rng, mc_hit)
+            ach, ach_unknown = seeding.achievable_seeds(league, base_winners, idx[t], mc_hit), []
 
         row = {
             "team": t,
@@ -896,6 +938,7 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
             "seed_probs": seed_probs,
             "miss": miss,
             "ach": ach,
+            "ach_unknown": ach_unknown,
             "make_playoffs": round(100 * season_res["make_playoffs"][t] / sims, 1),
             "win_div": round(100 * season_res["div_winner"][t] / sims, 1),
             "win_conf": round(100 * bracket["conf_champ"][t] / sims, 1),
@@ -937,6 +980,7 @@ def assemble_payload(sport, season, start_year, ratings, preseason,
         "progress": progress,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "rows": rows,
+        "ach_exact": exact is not None,   # False: the page refines `ach` itself
         "upcoming": games,
         "schedule": schedule,
     }

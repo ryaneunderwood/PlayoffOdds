@@ -6,12 +6,15 @@ The data is embedded inline as JSON so the page loads straight from disk
 """
 
 import json
+import os
 
 
 def render_html(data: dict) -> str:
     payload = json.dumps(data)
-    # The JS/CSS below is a static template; only the JSON payload changes.
-    return TEMPLATE.replace("__PAYLOAD__", payload)
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "rules.js")) as f:
+        rules = f.read()
+    # The JS/CSS below is static; only the engine source and the payload vary.
+    return TEMPLATE.replace("__RULES__", rules).replace("__PAYLOAD__", payload)
 
 
 TEMPLATE = r"""<!DOCTYPE html>
@@ -233,6 +236,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   <div class="modal"><div id="modal-body"></div></div>
 </div>
 
+<script id="rules-src">__RULES__</script>
 <script>
 const DATA = __PAYLOAD__;
 
@@ -600,50 +604,28 @@ CONFS.forEach(c=>{
   });
 });
 
-// ---- static league structure (mirrors seeding.py League) ----
+// ---- static league structure ----
 const TEAMDIV=[], TEAMCONFI=[], DIV_TEAMS={}, CONF_DIV_LABELS={};
 TEAMS.forEach((t,i)=>{ for(const d in DATA.divisions){ if(DATA.divisions[d].includes(t)){ TEAMDIV[i]=d; TEAMCONFI[i]=d.split(" ")[0]; } } });
 for(const d in DATA.divisions){ DIV_TEAMS[d]=DATA.divisions[d].map(t=>TIDX[t]); const c=d.split(" ")[0]; (CONF_DIV_LABELS[c]=CONF_DIV_LABELS[c]||[]).push(d); }
 
 const NG=DATA.schedule.length;
-const GAMES=DATA.schedule.map(g=>{ const hi=TIDX[g.home], ai=TIDX[g.away];
-  return { id:g.id, hi, ai, p:g.p_home, played:g.played,
-    fixed: g.played&&g.winner==="home"?hi : g.played&&g.winner==="away"?ai : -1,
-    isDiv: TEAMDIV[hi]===TEAMDIV[ai], isConf: TEAMCONFI[hi]===TEAMCONFI[ai] }; });
-const OPENG=[]; GAMES.forEach((g,gi)=>{ if(g.fixed<0) OPENG.push(gi); });
-const DECCODE={REG:0,OT:1,SO:2};
-DATA.schedule.forEach((g,gi)=>{ GAMES[gi].dec = g.played ? (DECCODE[g.dec]||0) : 0; });
+const GAMES=DATA.schedule.map(g=>({ id:g.id, hi:TIDX[g.home], ai:TIDX[g.away], p:g.p_home }));
 
-const TEAMGAMES=[], DIVGAMES=[], CONFGAMES=[], OPPSET=[], TOTG=new Int32Array(NT), PAIRMAP=new Map();
-for(let i=0;i<NT;i++){ TEAMGAMES.push([]); DIVGAMES.push([]); CONFGAMES.push([]); OPPSET.push(new Set()); }
-GAMES.forEach((g,gi)=>{ const h=g.hi,a=g.ai;
-  TEAMGAMES[h].push([gi,a]); TEAMGAMES[a].push([gi,h]);
-  OPPSET[h].add(a); OPPSET[a].add(h); TOTG[h]++; TOTG[a]++;
-  if(g.isDiv){ DIVGAMES[h].push(gi); DIVGAMES[a].push(gi); }
-  if(g.isConf){ CONFGAMES[h].push(gi); CONFGAMES[a].push(gi); }
-  const k=h<a?h*NT+a:a*NT+h; if(!PAIRMAP.has(k)) PAIRMAP.set(k,[]); PAIRMAP.get(k).push(gi); });
-function PAIR(a,b){ return PAIRMAP.get(a<b?a*NT+b:b*NT+a)||[]; }
-
-// ---- NFL tiebreaker criteria (mirror seeding.py; null = not applicable) ----
-function h2hBest(winners,t,group){ let w=0,g=0; for(const o of group){ if(o===t) continue; for(const gi of PAIR(t,o)){ g++; if(winners[gi]===t) w++; } } return g?w/g:null; }
-function h2hSweep(winners,t,group){ let tot=0,wins=0; for(const o of group){ if(o===t) continue; const pl=PAIR(t,o); if(!pl.length) return null; for(const gi of pl){ tot++; if(winners[gi]===t) wins++; } } if(!tot) return null; if(wins===tot) return 1; if(wins===0) return 0; return null; }
-function divPct(dW,t){ const g=DIVGAMES[t].length; return g?dW[t]/g:0; }
-function confPct(cW,t){ const g=CONFGAMES[t].length; return g?cW[t]/g:0; }
-function commonPct(winners,group,t,minG){ let inter=null; for(const x of group){ if(inter===null) inter=new Set(OPPSET[x]); else { const s=OPPSET[x]; inter=new Set([...inter].filter(y=>s.has(y))); } } if(!inter||!inter.size) return null; let w=0,g=0; for(const [gi,o] of TEAMGAMES[t]){ if(inter.has(o)){ g++; if(winners[gi]===t) w++; } } if(g<minG||g===0) return null; return w/g; }
-function sov(winners,W,t){ let tw=0,tg=0; for(const [gi,o] of TEAMGAMES[t]){ if(winners[gi]===t){ tw+=W[o]; tg+=TOTG[o]; } } return tg?tw/tg:0; }
-function sos(winners,W,t){ let tw=0,tg=0; for(const [gi,o] of TEAMGAMES[t]){ tw+=W[o]; tg+=TOTG[o]; } return tg?tw/tg:0; }
-function filterMax(group,fn){ const v=group.map(fn); let mx=-Infinity,any=false; for(const x of v){ if(x!=null){ any=true; if(x>mx) mx=x; } } if(!any) return group; const keep=group.filter((t,i)=>v[i]!=null&&v[i]===mx); return keep.length?keep:group; }
-function pickTopDivision(winners,dW,cW,W,group){ let cur=group.slice(); const L=[t=>h2hBest(winners,t,cur),t=>divPct(dW,t),t=>commonPct(winners,cur,t,0),t=>confPct(cW,t),t=>sov(winners,W,t),t=>sos(winners,W,t)]; for(const c of L){ cur=filterMax(cur,c); if(cur.length===1) return cur[0]; } return cur[(Math.random()*cur.length)|0]; }
-function pickTopWildcard(winners,dW,cW,W,group){ let cur=group.slice();
-  if(cur.length>2){ const bd={}; cur.forEach(t=>{ (bd[TEAMDIV[t]]=bd[TEAMDIV[t]]||[]).push(t); }); const red=[]; for(const d in bd){ const m=bd[d]; red.push(m.length===1?m[0]:pickTopDivision(winners,dW,cW,W,m)); } cur=red; if(cur.length===1) return cur[0]; }
-  const L=[t=> cur.length>2?h2hSweep(winners,t,cur):h2hBest(winners,t,cur),t=>confPct(cW,t),t=>commonPct(winners,cur,t,4),t=>sov(winners,W,t),t=>sos(winners,W,t)]; for(const c of L){ cur=filterMax(cur,c); if(cur.length===1) return cur[0]; } return cur[(Math.random()*cur.length)|0]; }
-function orderByRecord(W,teams,pickTop){ const rem=teams.slice(),out=[]; while(rem.length){ let best=-Infinity; for(const t of rem) if(W[t]>best) best=W[t]; const tied=rem.filter(t=>W[t]===best); const win=tied.length===1?tied[0]:pickTop(tied); out.push(win); rem.splice(rem.indexOf(win),1); } return out; }
-function seedConference(conf,winners,W,dW,cW){ const pwc=g=>pickTopWildcard(winners,dW,cW,W,g);
-  const divW=[]; for(const d of CONF_DIV_LABELS[conf]){ const mem=DIV_TEAMS[d]; let best=-Infinity; for(const t of mem) if(W[t]>best) best=W[t]; const tied=mem.filter(t=>W[t]===best); divW.push(tied.length===1?tied[0]:pickTopDivision(winners,dW,cW,W,tied)); }
-  const ranked=orderByRecord(W,divW,pwc); const seeds={}; ranked.forEach((t,i)=>seeds[t]=i+1);
-  const dwset=new Set(divW); const nonwin=CONF_IDX[conf].filter(t=>!dwset.has(t)); const wc=orderByRecord(W,nonwin,pwc);
-  for(let i=0;i<WCS;i++) seeds[wc[i]]=DWS+1+i; return seeds; }
-function recordsFrom(winners){ const W=new Float64Array(NT),dW=new Float64Array(NT),cW=new Float64Array(NT); for(let gi=0;gi<NG;gi++){ const w=winners[gi]; W[w]++; if(GAMES[gi].isDiv) dW[w]++; if(GAMES[gi].isConf) cW[w]++; } return [W,dW,cW]; }
+// ---- rules engine (rules.js): league, game domains, seeding ----
+const RL = Rules.buildLeague({sport: IS_NHL?"nhl":"nfl", teams: TEAMS, divisions: DATA.divisions,
+  games: DATA.schedule.map(g=>[g.home, g.away])});
+const BASE_DOM = Rules.domainsFromSchedule(RL, DATA.schedule, null);
+const GAMEIDX = {}; DATA.schedule.forEach((g,gi)=>GAMEIDX[g.id]=gi);
+// played results as outcome codes; open games listed for the sims
+const BASE_OUT = new Int8Array(NG), OPEN_OUT = [];
+for(let gi=0;gi<NG;gi++){ if(Rules.single(BASE_DOM[gi])) BASE_OUT[gi]=Rules.bitIndex(BASE_DOM[gi]); else OPEN_OUT.push(gi); }
+// one random seeding of a complete season: finalSeed (0 = missed) + conference order rank
+function seedSeason(out, finalSeed, rank){
+  for(const c of CONFS){ const r=Rules.seedConference(RL, out, c, Math.random);
+    for(const [t,sd] of r.seed) finalSeed[t] = sd<=NSEED ? sd : 0;
+    if(rank && r.rank) r.rank.forEach((t,i)=>rank[t]=i); }
+}
 
 function winProbElo(ta, tb, homeForA){
   const ra = RAT[ta]!=null?RAT[ta]:MEAN, rb = RAT[tb]!=null?RAT[tb]:MEAN;
@@ -654,25 +636,6 @@ function winProbElo(ta, tb, homeForA){
 /* ---------------- NHL engine (mirrors nhl.py) ---------------- */
 const OTP = DATA.ot_rate || 0, SOSH = DATA.so_share || 0;
 const DIVIDX = {}; for(const d in DATA.divisions) DIVIDX[d]=DATA.divisions[d].map(t=>TIDX[t]);
-function nhlKey(P,RW,ROW,W){ return ((P*200+RW)*200+ROW)*200+W; }
-function h2hPct(winners,dec,group,t){ let got=0,av=0;
-  for(const o of group){ if(o===t) continue; for(const gi of PAIR(t,o)){ av+=2; if(winners[gi]===t) got+=2; else if(dec[gi]>0) got+=1; } }
-  return av?got/av:0.5; }
-// conference teams best-first: points, RW, ROW, W, head-to-head points, random
-function orderConfNHL(conf,key,winners,dec){
-  const ts=CONF_IDX[conf].slice().sort((a,b)=>key[b]-key[a]); const out=[];
-  for(let i=0;i<ts.length;){ let j=i; while(j+1<ts.length && key[ts[j+1]]===key[ts[i]]) j++;
-    let grp=ts.slice(i,j+1);
-    if(grp.length>1){ const hh={},rr={}; grp.forEach(t=>{ hh[t]=h2hPct(winners,dec,grp,t); rr[t]=Math.random(); });
-      grp.sort((a,b)=>(hh[b]-hh[a])||(rr[a]-rr[b])); }
-    out.push(...grp); i=j+1; }
-  return out; }
-function seedConfNHL(conf,key,winners,dec){
-  const order=orderConfNHL(conf,key,winners,dec), rank={}; order.forEach((t,r)=>rank[t]=r);
-  const seeds={};
-  for(const d of CONF_DIV_LABELS[conf]) DIVIDX[d].slice().sort((a,b)=>rank[a]-rank[b]).slice(0,3).forEach((t,p)=>seeds[t]=p+1);
-  order.filter(t=>!(t in seeds)).slice(0,2).forEach((t,k)=>seeds[t]=4+k);
-  return [seeds,rank]; }
 // P(team with home ice wins a best-of-7, 2-2-1-1-1)
 function seriesProb(ph,pa){ const home=[1,1,0,0,1,0,1]; let st={"0,0":1}, win=0;
   for(let g=0;g<7;g++){ const p=home[g]?ph:pa, nx={};
@@ -692,21 +655,17 @@ function simulateNHL(nSims, forced){
   const seedHits=[]; for(let i=0;i<NT;i++) seedHits.push(new Float64Array(NSEED+1));
   const makeP=new Float64Array(NT), winDiv=new Float64Array(NT);
   const confCh=new Float64Array(NT), title=new Float64Array(NT);
-  const winners=new Int32Array(NG), dec=new Int8Array(NG);
-  for(let gi=0;gi<NG;gi++) if(GAMES[gi].fixed>=0){ winners[gi]=GAMES[gi].fixed; dec[gi]=GAMES[gi].dec; }
-  const W=new Float64Array(NT),RW=new Float64Array(NT),ROW=new Float64Array(NT),OTL=new Float64Array(NT),key=new Float64Array(NT);
+  const out=BASE_OUT.slice(), key=new Float64Array(NT), rank=new Int32Array(NT);
   for(let s=0;s<nSims;s++){
-    for(let k=0;k<OPENG.length;k++){ const gi=OPENG[k], g=GAMES[gi], f=forced[g.id];
-      winners[gi] = f==="home"?g.hi : f==="away"?g.ai : (Math.random()<g.p?g.hi:g.ai);
-      const v=Math.random(); dec[gi] = v<OTP*(1-SOSH)?1 : v<OTP?2:0; }
-    W.fill(0); RW.fill(0); ROW.fill(0); OTL.fill(0);
-    for(let gi=0;gi<NG;gi++){ const w=winners[gi], g=GAMES[gi], d=dec[gi];
-      W[w]++; if(d===0) RW[w]++; if(d<2) ROW[w]++; if(d>0) OTL[w===g.hi?g.ai:g.hi]++; }
-    for(let i=0;i<NT;i++) key[i]=nhlKey(2*W[i]+OTL[i],RW[i],ROW[i],W[i]);
+    for(const gi of OPEN_OUT){ const g=GAMES[gi], f=forced[g.id];
+      const hw = f==="home" ? true : f==="away" ? false : Math.random()<g.p;
+      const v=Math.random(), d = v<OTP*(1-SOSH)?1 : v<OTP?2:0;
+      out[gi] = (hw?0:3)+d; }
     const finalSeed=new Int8Array(NT), champs=[];
+    seedSeason(out, finalSeed, rank);
+    for(let i=0;i<NT;i++) key[i] = -rank[i];       // home ice: better conference rank
     for(const c of CONFS){
-      const [seeds,rank]=seedConfNHL(c,key,winners,dec);
-      for(const ti in seeds) finalSeed[+ti]=seeds[ti];
+      const seeds={}; for(const t of CONF_IDX[c]) if(finalSeed[t]) seeds[t]=finalSeed[t];
       // bracket: better division winner draws WC2; 2 v 3 in each division
       const divs=CONF_DIV_LABELS[c], byDiv={};
       divs.forEach(d=>{ byDiv[d]={}; DIVIDX[d].forEach(t=>{ if(seeds[t]>=1&&seeds[t]<=3) byDiv[d][seeds[t]]=t; }); });
@@ -727,32 +686,6 @@ function simulateNHL(nSims, forced){
       win_conf:100*confCh[i]/nSims, win_title:100*title[i]/nSims }; }
   return res;
 }
-// Seeds team ti can still reach from exact points bounds (mirrors
-// nhl.achievable_seeds). A forced game fixes the winner's 2 points but not
-// whether the loser gets an OT point, so it widens the loser's range by one.
-function achievableNHL(team, forced, mcSeeds){
-  const lo=new Float64Array(NT), hi=new Float64Array(NT), W=new Float64Array(NT), RW=new Float64Array(NT), ROW=new Float64Array(NT), open=new Int32Array(NT);
-  for(let gi=0;gi<NG;gi++){ const g=GAMES[gi], f=forced[g.id];
-    if(g.fixed>=0){ const w=g.fixed, l=w===g.hi?g.ai:g.hi; lo[w]+=2; hi[w]+=2; W[w]++; if(g.dec===0) RW[w]++; if(g.dec<2) ROW[w]++; if(g.dec>0){ lo[l]++; hi[l]++; } }
-    else if(f){ const w=f==="home"?g.hi:g.ai, l=w===g.hi?g.ai:g.hi; lo[w]+=2; hi[w]+=2; hi[l]+=1; open[w]++; open[l]++; }
-    else { hi[g.hi]+=2; hi[g.ai]+=2; open[g.hi]++; open[g.ai]++; } }
-  const key=new Float64Array(NT); for(let i=0;i<NT;i++) key[i]=nhlKey(lo[i],RW[i],ROW[i],W[i]);
-  const ti=TIDX[team], conf=TEAMCONFI[ti], myDiv=TEAMDIV[ti];
-  const rivals=DIVIDX[myDiv].filter(t=>t!==ti), others=CONF_IDX[conf].filter(t=>TEAMDIV[t]!==myDiv);
-  const settled=t=> !open[t] && !open[ti] && lo[t]===lo[ti] && key[t]!==key[ti];
-  const sure=t=> lo[t]>hi[ti] || (settled(t) && key[t]>key[ti]);
-  const maybe=t=> hi[t]>=lo[ti] && !(settled(t) && key[t]<key[ti]);
-  const cnt=(ts,f)=>ts.filter(f).length;
-  const a=cnt(rivals,sure), b=cnt(rivals,maybe), a2=cnt(others,sure), b2=cnt(others,maybe);
-  const set=new Set();
-  for(let s=1;s<=3;s++) if(a+1<=s && s<=b+1) set.add(s);
-  if(b>=3){ const aw=Math.max(0,a-3)+Math.max(0,a2-3), ww=Math.max(0,b-3)+Math.max(0,b2-3);
-    if(aw===0) set.add(4); if(aw<=1 && ww>=1) set.add(5); if(ww>=2) set.add(NSEED+1); }
-  if(!set.size) for(let s=1;s<=NSEED+1;s++) set.add(s);
-  mcSeeds.forEach(s=>set.add(s));
-  return [...set].sort((x,y)=>x-y);
-}
-
 // forced: {gameId: 'home'|'away'} -> returns {team: oddsObj}
 // Each simulated season is seeded with the real NFL tiebreakers (seedConference).
 function simulate(nSims, forced){
@@ -761,16 +694,14 @@ function simulate(nSims, forced){
   const seedHits=[]; for(let i=0;i<NT;i++) seedHits.push(new Float64Array(NSEED+1));
   const makeP=new Float64Array(NT), winDiv=new Float64Array(NT);
   const confCh=new Float64Array(NT), title=new Float64Array(NT);
-  const winners=new Int32Array(NG);
-  for(let gi=0;gi<NG;gi++) if(GAMES[gi].fixed>=0) winners[gi]=GAMES[gi].fixed;
+  const out=BASE_OUT.slice();
 
   for(let s=0;s<nSims;s++){
-    for(let k=0;k<OPENG.length;k++){ const gi=OPENG[k], g=GAMES[gi], f=forced[g.id];
-      winners[gi] = f==="home"?g.hi : f==="away"?g.ai : (Math.random()<g.p?g.hi:g.ai); }
-    const [W,dW,cW]=recordsFrom(winners);
+    for(const gi of OPEN_OUT){ const g=GAMES[gi], f=forced[g.id];
+      out[gi] = f==="home" ? 0 : f==="away" ? 1 : (Math.random()<g.p ? 0 : 1); }
     const finalSeed=new Int8Array(NT), confSeedTeam={};
-    for(let ci=0;ci<CONFS.length;ci++){ const c=CONFS[ci]; const seeds=seedConference(c,winners,W,dW,cW);
-      const st={}; for(const ti in seeds){ const k=+ti, sd=seeds[ti]; finalSeed[k]=sd; st[sd]=k; } confSeedTeam[c]=st; }
+    seedSeason(out, finalSeed, null);
+    for(const c of CONFS){ const st={}; for(const t of CONF_IDX[c]) if(finalSeed[t]) st[finalSeed[t]]=t; confSeedTeam[c]=st; }
 
     for(let i=0;i<NT;i++){ const sd=finalSeed[i];
       if(sd>=1){ seedHits[i][sd-1]++; makeP[i]++; if(sd<=DWS) winDiv[i]++; } else seedHits[i][NSEED]++; }
@@ -805,153 +736,35 @@ function simulate(nSims, forced){
   return res;
 }
 
-/* --------- clinch / elimination with real tiebreakers (mirrors seeding.py) --- */
-const MISS = NSEED + 1, SEARCH_CAP = 14;
-
-function seedOf(conf,winners,W,dW,cW,ti){ const s=seedConference(conf,winners,W,dW,cW); return (ti in s)?s[ti]:MISS; }
-function recordsSkip(winners,skip){ const W=new Float64Array(NT),dW=new Float64Array(NT),cW=new Float64Array(NT);
-  for(let gi=0;gi<NG;gi++){ if(skip.has(gi)) continue; const w=winners[gi]; if(w<0) continue; W[w]++; if(GAMES[gi].isDiv) dW[w]++; if(GAMES[gi].isConf) cW[w]++; } return [W,dW,cW]; }
-
-// Best (wantMin) or worst seed `ti` can reach. Games vs ti are fixed win/lose;
-// games between two contenders are enumerated; others fixed favorably/not.
-function searchExtreme(base, ti, conf, openIdx, cset, teamWinsOut, wantMin){
-  const winners=base.slice(), mutual=[];
-  for(const gi of openIdx){ const g=GAMES[gi], h=g.hi, a=g.ai;
-    if(h===ti||a===ti){ winners[gi]= teamWinsOut?ti:(h===ti?a:h); }
-    else if(cset.has(h)&&cset.has(a)){ mutual.push(gi); }
-    else { const cs= cset.has(h)?h:(cset.has(a)?a:-1), os= cs===h?a:h; winners[gi]= cs<0?h:(wantMin?os:cs); } }
-  const m=mutual.length; if(m>SEARCH_CAP) return null;
-  const skip=new Set(mutual); const [W0,dW0,cW0]=recordsSkip(winners,skip);
-  const mg=mutual.map(gi=>[gi,GAMES[gi].hi,GAMES[gi].ai,GAMES[gi].isDiv,GAMES[gi].isConf]);
-  let extreme=null;
-  for(let bits=0; bits<(1<<m); bits++){
-    const W=W0.slice(),dW=dW0.slice(),cW=cW0.slice();
-    for(let k=0;k<m;k++){ const e=mg[k], w=((bits>>k)&1)?e[1]:e[2]; winners[e[0]]=w; W[w]++; if(e[3]) dW[w]++; if(e[4]) cW[w]++; }
-    const sd=seedOf(conf,winners,W,dW,cW,ti);
-    if(extreme===null || (wantMin? sd<extreme : sd>extreme)) extreme=sd;
-    if(wantMin && extreme===1) break;
-    if(!wantMin && extreme===MISS) break;
-  }
-  return extreme;
-}
-// ---- sound elimination bounds (mirrors seeding.bound_seeds) ----
-// Each check proves a seed impossible; when it can't (budget spent, a tie only
-// SOV/SOS could break) the seed stays live. The team wins out in every check.
-const DIV_NODE_BUDGET=200000, WC_COMBO_BUDGET=20000;
-function flowFeasible(caps, games){        // b-matching: each game -> one of its teams, within caps
-  for(const t in caps) if(caps[t]<0) return false;
-  const load={}; for(const t in caps) load[t]=[];
-  function augment(g, seen){
-    for(const t of games[g]){ if(seen.has(t)) continue; seen.add(t);
-      if(load[t].length<caps[t]){ load[t].push(g); return true; }
-      for(const g2 of load[t].slice()){ if(augment(g2,seen)){ load[t].splice(load[t].indexOf(g2),1); load[t].push(g); return true; } } }
-    return false; }
-  for(let g=0;g<games.length;g++) if(!augment(g,new Set())) return false;
-  return true;
-}
-function holdFeasible(openIdx, ti, cur, mx, constrained){
-  const caps={}; for(const t of constrained) caps[t]=mx-cur[t];
-  const games=[];
-  for(const gi of openIdx){ const h=GAMES[gi].hi, a=GAMES[gi].ai;
-    if(h===ti||a===ti) continue; if((h in caps)&&(a in caps)) games.push([h,a]); }
-  return flowFeasible(caps, games);
-}
-function canWinDivision(base, openIdx, ti, cur, mx){   // true / false / null (budget)
-  const rivals=DIV_TEAMS[TEAMDIV[ti]].filter(t=>t!==ti);
-  if(rivals.some(t=>cur[t]>mx)) return false;
-  const rset=new Set(rivals), winners=Int32Array.from(base), todo=[];
-  for(const gi of openIdx){ const h=GAMES[gi].hi, a=GAMES[gi].ai;
-    if(h===ti||a===ti) winners[gi]=ti; else if(rset.has(h)||rset.has(a)) todo.push(gi); }
-  const W={}; rivals.forEach(t=>W[t]=cur[t]); let nodes=0;
-  function leaf(){
-    const group=[ti, ...rivals.filter(t=>W[t]===mx)]; if(group.length===1) return true;
-    const dW={}, cW={};
-    for(const t of group){ dW[t]=DIVGAMES[t].filter(gi=>winners[gi]===t).length; cW[t]=CONFGAMES[t].filter(gi=>winners[gi]===t).length; }
-    let g=group.slice();
-    const ladder=[t=>h2hBest(winners,t,g), t=>divPct(dW,t), t=>commonPct(winners,g,t,0), t=>confPct(cW,t)];
-    for(const c of ladder){ g=filterMax(g,c); if(!g.includes(ti)) return false; if(g.length===1) return true; }
-    return true;
-  }
-  function dfs(k){
-    if(++nodes>DIV_NODE_BUDGET) throw "budget";
-    if(k===todo.length) return leaf();
-    const gi=todo[k], h=GAMES[gi].hi, a=GAMES[gi].ai;
-    const opts=(rset.has(h)&&!rset.has(a))?[a,h]:[h,a];
-    for(const w of opts){
-      if(rset.has(w) && W[w]+1>mx) continue;
-      winners[gi]=w; if(rset.has(w)) W[w]++;
-      const ok=dfs(k+1);
-      if(rset.has(w)) W[w]--;
-      if(ok) return true; }
-    winners[gi]=-1; return false;
-  }
-  try { return dfs(0); } catch(e){ if(e==="budget") return null; throw e; }
-}
-function combos(arr,k){ const out=[]; (function r(s,acc){ if(acc.length===k){ out.push(acc.slice()); return; }
-  for(let i=s;i<arr.length;i++){ acc.push(arr[i]); r(i+1,acc); acc.pop(); } })(0,[]); return out; }
-function boundSeeds(base, ti){
-  const conf=TEAMCONFI[ti], confteams=CONF_IDX[conf];
-  const openIdx=[]; for(let gi=0;gi<NG;gi++) if(base[gi]<0) openIdx.push(gi);
-  const cur={}, emax={}; confteams.forEach(t=>{cur[t]=0; emax[t]=0;});
-  for(let gi=0;gi<NG;gi++){ const w=base[gi];
-    if(w>=0){ if(w in cur) cur[w]++; }
-    else { const h=GAMES[gi].hi, a=GAMES[gi].ai;
-      if((h in emax)&&a!==ti) emax[h]++; if((a in emax)&&h!==ti) emax[a]++; } }
-  confteams.forEach(t=>emax[t]+=cur[t]);
-  const mx=emax[ti], divs=CONF_DIV_LABELS[conf], myDiv=TEAMDIV[ti];
-  const others=divs.filter(d=>d!==myDiv), ndiv=divs.length, ok=new Set([MISS]);
-  // division seeds
-  if(canWinDivision(base, openIdx, ti, cur, mx)!==false){
-    const rivals=DIV_TEAMS[myDiv].filter(t=>t!==ti);
-    for(let s=1;s<=ndiv;s++){
-      if(combos(others, ndiv-s).some(held=>holdFeasible(openIdx,ti,cur,mx, rivals.concat(...held.map(d=>DIV_TEAMS[d]))))){
-        for(let x=s;x<=ndiv;x++) ok.add(x); break; } } }
-  // wild-card seeds
-  const risky={}, forced={};
-  for(const d of divs){ risky[d]=DIV_TEAMS[d].filter(t=>t!==ti && emax[t]>mx); forced[d]=risky[d].filter(t=>cur[t]>mx); }
-  let ncomb=0;
-  function wcFeasible(budget){
-    const choices=divs.map(d=>{ const r=risky[d], f=forced[d], opts=[];
-      if(!r.length) opts.push([]);
-      else { const rest=r.filter(t=>!f.includes(t));
-        for(let k=Math.max(1,f.length); k<=Math.min(r.length,1+budget); k++)
-          for(const ex of combos(rest,k-f.length)) opts.push(f.concat(ex)); }
-      return opts; });
-    function rec(i, used, free){
-      if(used>budget) return false;
-      if(i===divs.length){ if(++ncomb>WC_COMBO_BUDGET) throw "budget";
-        return holdFeasible(openIdx,ti,cur,mx, confteams.filter(t=>t!==ti && !free.has(t))); }
-      for(const opt of choices[i]) if(rec(i+1, used+Math.max(0,opt.length-1), new Set([...free,...opt]))) return true;
-      return false; }
-    return rec(0,0,new Set());
-  }
-  try { for(let s=ndiv+1;s<=NSEED;s++) if(wcFeasible(s-ndiv-1)){ for(let x=s;x<=NSEED;x++) ok.add(x); break; } }
-  catch(e){ if(e!=="budget") throw e; for(let x=ndiv+1;x<=NSEED;x++) ok.add(x); }
-  return ok;
-}
-function achievableSeeds(base, ti, mcSeeds){
-  const conf=TEAMCONFI[ti], confteams=CONF_IDX[conf];
-  const openIdx=[]; for(let gi=0;gi<NG;gi++) if(base[gi]<0) openIdx.push(gi);
-  const cw={}; confteams.forEach(t=>cw[t]=0);
-  for(let gi=0;gi<NG;gi++){ const w=base[gi]; if(w>=0 && (w in cw)) cw[w]++; }
-  const line=confteams.map(t=>cw[t]).sort((a,b)=>b-a)[6];
-  const myDiv=TEAMDIV[ti];
-  const cset=new Set(confteams.filter(t=>t!==ti && (Math.abs(cw[t]-line)<=2 || TEAMDIV[t]===myDiv)));
-  const best=searchExtreme(base,ti,conf,openIdx,cset,true,true);
-  const worst=searchExtreme(base,ti,conf,openIdx,cset,false,false);
-  const bound=boundSeeds(base,ti), set=new Set(mcSeeds);
-  const lo=(best===null||worst===null)?1:best, hi=(best===null||worst===null)?MISS:worst;
-  for(let s=lo;s<=hi;s++) if(bound.has(s)) set.add(s);
-  return [...set].sort((a,b)=>a-b);
-}
-// achievable seed set for the focal team given played + user-forced results
+/* --------- clinch / elimination: exact search in rules.js --------- */
+// With no forced games the table's sets are used (exact from the build, or
+// refined in the background below). With forced games the search runs here
+// for this one team, seeded with the seeds the panel's simulation reached.
 function achievableFor(team, forced, odds){
-  const base=new Int32Array(NG).fill(-1);
-  for(let gi=0;gi<NG;gi++){ if(GAMES[gi].fixed>=0) base[gi]=GAMES[gi].fixed;
-    const f=forced[GAMES[gi].id]; if(f) base[gi]= f==="home"?GAMES[gi].hi:GAMES[gi].ai; }
-  const mc=[]; for(let s=0;s<NSEED;s++) if(odds.seed_probs[s]>0) mc.push(s+1); if(odds.miss>0) mc.push(MISS);
-  if(IS_NHL) return achievableNHL(team, forced, mc);
-  return achievableSeeds(base, TIDX[team], mc);
+  const ti=TIDX[team], fm=new Map();
+  for(const id in forced) fm.set(GAMEIDX[id], forced[id]);
+  if(!fm.size) return rowsByTeam[team].ach;
+  const dom=Rules.domainsFromSchedule(RL, DATA.schedule, fm);
+  const mc=new Set(); for(let s=0;s<NSEED;s++) if(odds.seed_probs[s]>0) mc.add(s+1); if(odds.miss>0) mc.add(NSEED+1);
+  const r=Rules.exactSeeds(RL, dom, {teams:[ti], known:new Map([[ti,mc]]), budget:60000, randomSeasons:100, deadline:Date.now()+4000});
+  return [...r.get(ti).seeds].sort((a,b)=>a-b);
+}
+// Built without Node (no exact sets in the data): run the exact search in a
+// worker and repaint the table as each team finishes.
+if(!DATA.ach_exact && typeof Worker!=="undefined"){
+  try{
+    const src = document.getElementById("rules-src").textContent + `
+      onmessage = e => { const d=e.data, L=Rules.buildLeague(d.spec), dom=Rules.domainsFromSchedule(L, d.schedule, null);
+        for(let t=0;t<L.n;t++){ const r=Rules.exactSeeds(L, dom, {teams:[t], budget:150000, randomSeasons:300, deadline:Date.now()+8000});
+          postMessage({team:L.teams[t], seeds:[...r.get(t).seeds].sort((a,b)=>a-b)}); } };`;
+    const w = new Worker(URL.createObjectURL(new Blob([src], {type:"text/javascript"})));
+    w.onerror = e => { window.ACH_WORKER_ERROR = e.message || String(e); };
+    w.onmessage = e => { window.ACH_WORKER_MSGS = (window.ACH_WORKER_MSGS||0)+1; const r=rowsByTeam[e.data.team]; if(!r) return;
+      const same = r.ach.length===e.data.seeds.length && r.ach.every((x,i)=>x===e.data.seeds[i]);
+      r.ach = e.data.seeds; if(!same && tab==="seeds" && !activeTeam) render(); };
+    w.postMessage({spec:{sport: IS_NHL?"nhl":"nfl", teams: TEAMS, divisions: DATA.divisions,
+      games: DATA.schedule.map(g=>[g.home,g.away])}, schedule: DATA.schedule});
+  }catch(e){ /* keep the build's bounds */ }
 }
 
 /* ----------------------- team detail modal ----------------------- */
@@ -1136,13 +949,13 @@ function render(){
     `Win probabilities come from historical Elo ratings (K-factor with margin-of-victory scaling, home-ice edge, and preseason regression toward the mean); ${Math.round(100*DATA.ot_rate)}% of simulated games go past regulation, giving the loser a point. `+
     `Each simulated season is ranked by points, then regulation wins, regulation + overtime wins, total wins and head-to-head points (goal differential, which the model doesn't simulate, is a random draw). `+
     `The bracket is fixed: the better division winner meets WC2, the other WC1, and 2 plays 3 in each division; every round is a best-of-seven with home ice to the better record. `+
-    `<b>X</b>/<b>^</b> come from exact points bounds, so they only appear when mathematically certain (sometimes a day or two after the league declares it). `+
+    `<b>X</b>/<b>^</b> come from an exact search over every way the remaining games (including overtime and shootout results) can finish, with the full NHL tiebreakers; a result that would come down to goal differential counts as possible either way. `+
     `Click any team to open its schedule and toggle remaining games to Win/Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser and shows how the odds shift. `+
     `Generated by <code>sports_elo.py</code>.` :
     `Seeds 1&ndash;${DATA.seeds_per_conf} per conference (top ${DATA.seeds_per_conf-3} are division winners). `+
     `Win probabilities come from historical Elo ratings (K-factor with margin-of-victory scaling, home-field edge, and preseason regression toward the mean). `+
     `Each simulated season plays out every remaining game and is seeded with the real NFL tiebreakers (head-to-head, division, common games, conference record, strength of victory/schedule), then runs the playoff bracket. `+
-    `<b>X</b>/<b>^</b> use a tiebreaker-aware feasibility search that accounts for how games interact &mdash; e.g. knocking out the current #7 seed lifts whoever beats them. `+
+    `<b>X</b>/<b>^</b> come from an exact search over every way the remaining games (ties included) can finish, with the full NFL tiebreaking procedure &mdash; including how games interact, e.g. a leader losing out hands those wins to its opponents; a result that would come down to points scored or a coin toss counts as possible either way. `+
     `Click any team to open its schedule and toggle remaining games to Win/Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser (with the same tiebreakers) and shows how the odds shift. `+
     `Generated by <code>sports_elo.py</code>.`;
 }

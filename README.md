@@ -123,16 +123,39 @@ the latest ratings and results. A tie is treated as a loss.
 
 ### Clinch / elimination (the `X` and `^` markers)
 
-`X` (mathematically eliminated) and `^` (clinched) come from a **pruned,
-tiebreaker-aware feasibility search**, not from the simulation count. For each
-team it limits attention to the contenders within two wins of the cut, fixes the
-other games favorably/unfavorably, and then **exhaustively enumerates the games
-between two contenders** — the *coupled* games — applying the real tiebreakers to
-each. This captures interactions like: a bubble team can pass the current #7 seed
-by record, yet still be eliminated because the games that knock the #7 down
-necessarily lift whoever beats them. When too many coupled games remain to
-enumerate (early season), the team is reported as fully live — never a false
-`X`/`^`.
+`X` (mathematically eliminated) and `^` (clinched) come from an **exact
+search** in `rules.js`, not from the simulation count, for both sports. For each
+team and seed it looks for a way the remaining games can finish (NFL ties and
+NHL overtime/shootout results included) that gives the team that seed under the
+full tiebreaking procedure. A seed gets an `X` only when no such finish exists.
+
+- It tries the team's final total one value at a time and assigns every other
+  conference team a class (above / tied / below). A max-flow check confirms
+  those classes can all happen at once, which accounts for coupled games: a
+  leader losing out hands those wins to its opponents.
+- Teams tied with it go through the real tiebreakers, evaluated on intervals
+  so hopeless branches are cut early.
+- Steps the model can't evaluate (points scored, goal differential, coin toss)
+  count as either way. Where the written rules allow two readings, both are
+  kept.
+- Every "possible" answer is replayed as a complete season. The search is
+  checked against brute-force enumeration of every remaining result.
+
+Two limits keep it practical:
+
+- A team whose best finish clears every conference rival's current total, and
+  whose worst finish stays under every rival's best, by more than two wins
+  (4 points), is left fully open without searching. That's a judgement rather
+  than a proof, but nothing is realistically decided with that much room, and
+  it skips the early season entirely.
+- Each search has a node budget and each sport an overall time limit. Anything
+  left unresolved stays possible (never a false `X`/`^`) and is listed in the
+  build log.
+
+The build runs the search under Node (`feasibility_cli.js`; GitHub Actions has
+Node). Without Node it falls back to simple sound bounds, and the page then runs
+the search in the background in the browser. The team panel's what-if toggles
+run it live for that team.
 
 ## NHL
 
@@ -149,16 +172,14 @@ in-season walk-forward, the pages and the in-browser what-if) is shared.
   final points.
 - **Seeding** per conference: top three in each division (**Div 1-3**) plus two
   wild cards (**WC1**, **WC2**). Ties go to regulation wins, then regulation +
-  overtime wins, total wins and head-to-head points. Goal differential (not
-  simulated) is a random draw. This reproduces the 2025-26 final standings
-  exactly.
+  overtime wins, total wins and head-to-head points (the "odd game" in the
+  city with an extra home game left out), ranked separately for each division
+  race and for the wild cards. Goal differential (not simulated) is a random
+  draw.
 - **Bracket**: fixed, no reseeding. The better division winner plays WC2, the
   other WC1, and 2 plays 3 in each division. Every round is a best-of-seven
   (2-2-1-1-1) with home ice to the better record. "Title" is the Stanley Cup.
-- **X / ^** come from exact points bounds: current points to current points
-  plus 2 per game left. They never fire falsely, but they ignore that
-  contenders take points off each other, so they can show up a day or two
-  after the league declares a clinch or elimination.
+- **X / ^** come from the same exact search as the NFL (see above).
 - The **Upcoming Games** tab lists the next seven game days. The survivor
   pool is NFL-only.
 
@@ -179,11 +200,12 @@ sim, and renderer are all sport-agnostic.
 ## Files
 
 - `sports_elo.py` — nflverse data loader, Elo engine, sport config, Monte
-  Carlo, feasibility, CLI.
-- `nhl.py` — NHL stats-API loader, points/OT model, NHL tiebreakers and
-  seeding, best-of-seven bracket, clinch/elimination bounds.
-- `seeding.py` — NFL tiebreaker + conference-seeding engine and the
-  clinch/elimination feasibility search.
-- `render.py` — self-contained HTML renderer; the in-browser engine is a faithful
-  JS port of `seeding.py` (validated by cross-check against the Python).
+  Carlo, CLI.
+- `rules.js` — NFL/NHL tiebreakers, seeding and the exact clinch/elimination
+  search; inlined into the pages and run by `feasibility_cli.js` under Node.
+- `nhl.py` — NHL stats-API loader, points/OT model, NHL seeding for the
+  simulation (mirrors `rules.js`), best-of-seven bracket, fallback bounds.
+- `seeding.py` — NFL tiebreakers and seeding for the simulation (mirrors
+  `rules.js`), plus fallback bounds for builds without Node.
+- `render.py` — self-contained HTML renderer.
 - `Sports Monte Carlo.ipynb` — the original notebook this was derived from.

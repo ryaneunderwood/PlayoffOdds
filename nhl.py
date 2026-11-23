@@ -207,51 +207,69 @@ def standings_key(P, RW, ROW, W):
 
 
 def _h2h_pct(L, winners, dec, group, t):
-    """Share of the available points `t` took in games among `group`."""
+    """Share of the available points `t` took in games among `group`. Where a
+    pair has an unequal number of home games, the first games in the city with
+    the extra home game(s) are left out (the NHL's "odd game" rule)."""
     got = avail = 0
     for o in group:
         if o == t:
             continue
-        for gi in L.pair(t, o):
+        gs = sorted(L.pair(t, o))
+        ht = sum(1 for gi in gs if L.home[gi] == t)
+        drop = abs(ht - (len(gs) - ht))
+        extra = t if ht > len(gs) - ht else o
+        for gi in gs:
+            if drop and L.home[gi] == extra:
+                drop -= 1
+                continue
             avail += 2
             if winners[gi] == t:
                 got += 2
             elif dec[gi] > 0:
                 got += 1          # OT / SO loss point
-    return got / avail if avail else 0.5
+    return (got, avail) if avail else None
 
 
-def order_conference(L, conf, key, winners, dec, rng):
-    """Conference teams best-first: by standings key, then head-to-head points
-    among teams still tied, then a random draw (goal differential)."""
-    teams = sorted(L.conf_idx[conf], key=lambda t: -key[t])
+def rank_teams(L, teams, key, winners, dec, rng):
+    """Teams best-first: points, regulation wins, regulation + OT wins, total
+    wins (all in `key`), then head-to-head points among the clubs still tied
+    (re-run after each club is placed), then a random draw for goal
+    differential, which the model does not simulate. Mirrors rules.js."""
+    rest = sorted(teams, key=lambda t: -key[t])
     out, i = [], 0
-    while i < len(teams):
+    while i < len(rest):
         j = i
-        while j + 1 < len(teams) and key[teams[j + 1]] == key[teams[i]]:
+        while j + 1 < len(rest) and key[rest[j + 1]] == key[rest[i]]:
             j += 1
-        grp = teams[i:j + 1]
-        if len(grp) > 1:
-            h2h = {t: _h2h_pct(L, winners, dec, grp, t) for t in grp}
-            rnd = {t: rng.random() for t in grp}
-            grp = sorted(grp, key=lambda t: (-h2h[t], rnd[t]))
-        out.extend(grp)
+        grp = rest[i:j + 1]
+        while grp:
+            if len(grp) == 1:
+                out.append(grp[0]); break
+            vals = [_h2h_pct(L, winners, dec, grp, t) for t in grp]
+            if any(v is None for v in vals):
+                tops = grp
+            else:
+                best = max(vals, key=lambda v: v[0] / v[1])
+                tops = [t for t, v in zip(grp, vals) if v[0] * best[1] == best[0] * v[1]]
+            t = tops[rng.integers(len(tops))]
+            out.append(t); grp = [x for x in grp if x != t]
         i = j + 1
     return out
 
 
 def seed_conference(L, conf, key, winners, dec, rng):
-    """{team_idx: seed} with seeds 1..3 = place in division, 4/5 = WC1/WC2.
-    Also returns the conference order (for home ice in the bracket)."""
-    order = order_conference(L, conf, key, winners, dec, rng)
-    seeds, rank = {}, {t: r for r, t in enumerate(order)}
+    """{team_idx: seed} with seeds 1..3 = place in division, 4/5 = WC1/WC2,
+    each ranked among the teams in that race. Also returns the conference
+    order (home ice in the bracket)."""
+    seeds = {}
     for d in L.conf_divs[conf]:
-        for place, t in enumerate(sorted(L.div_idx[d], key=lambda t: rank[t])[:3]):
+        for place, t in enumerate(rank_teams(L, L.div_idx[d], key, winners, dec, rng)[:3]):
             seeds[t] = place + 1
-    wc = [t for t in order if t not in seeds][:2]
-    for k, t in enumerate(wc):
+    pool = [t for t in L.conf_idx[conf] if t not in seeds]
+    for k, t in enumerate(rank_teams(L, pool, key, winners, dec, rng)[:2]):
         seeds[t] = 4 + k
-    return seeds, rank
+    order = rank_teams(L, L.conf_idx[conf], key, winners, dec, rng)
+    return seeds, {t: r for r, t in enumerate(order)}
 
 
 # ----------------------------------------------------------------------------
