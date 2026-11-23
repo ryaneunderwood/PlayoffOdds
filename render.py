@@ -335,12 +335,15 @@ function sortVal(r,key){
   if(key==="pts") return r.pts;
   if(key==="sos") return SOS[r.team] && SOS[r.team].pct!=null ? SOS[r.team].pct : -1;
   if(key==="pw")  return projOf(r);
-  if(key==="miss")return r.miss;
-  if(key==="mk")  return r.make_playoffs;
-  if(key==="wd")  return r.win_div;
-  if(key==="wc")  return r.win_conf;
-  if(key==="ti")  return r.win_title;
-  if(key[0]==="s")return r.seed_probs[(+key.slice(1))-1];
+  // probability columns: a mathematically impossible cell (X) sorts below
+  // any possible one, even one that never came up in the simulation
+  const S = statusSet(r.ach), pv = (p, st) => st.poss ? p : -1;
+  if(key==="miss")return pv(r.miss, S.miss);
+  if(key==="mk")  return pv(r.make_playoffs, S.make);
+  if(key==="wd")  return pv(r.win_div, S.div);
+  if(key==="wc")  return pv(r.win_conf, S.brkt);
+  if(key==="ti")  return pv(r.win_title, S.brkt);
+  if(key[0]==="s"){ const i=+key.slice(1); return pv(r.seed_probs[i-1], S.seed(i)); }
   return 0;
 }
 
