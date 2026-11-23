@@ -205,6 +205,8 @@ TEMPLATE = r"""<!DOCTYPE html>
   .schrow .opp .ha{color:var(--muted);font-weight:400}
   .schrow .wp{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
   .schrow.played{opacity:.65}
+  .schelo{font-weight:500;color:var(--muted);margin-top:1px}
+  .schelo .eu{color:#4ade80;font-weight:700}.schelo .ed{color:#f87171;font-weight:700}
   .toggle{display:flex;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden}
   .toggle button{flex:1;border:none;background:#16203a;color:var(--muted);
     padding:5px 0;cursor:pointer;font-size:11px;font-weight:700}
@@ -453,6 +455,9 @@ const REC_AFTER = {};   // game id -> {home, away} record strings after the game
   });
 })();
 function recTag(t, str){ return ` <span class="trec" title="${str!=null?"record after this game":"current record"}">(${str!=null?str:recStr(rowsByTeam[t])})</span>`; }
+// this team's Elo change from a played game, under its result in the team panel
+function schElo(d){ if(d==null) return ""; const r=Math.round(d*10)/10;
+  return `<div class="schelo">Elo <span class="${r>0?"eu":r<0?"ed":""}">${r>0?"+":""}${r.toFixed(1)}</span></div>`; }
 function eloTag(d){ if(d==null) return ""; const r=Math.round(d*10)/10;
   return ` &middot; Elo <span class="${r>0?"eu":r<0?"ed":""}">${r>0?"+":""}${r.toFixed(1)}</span>`; }
 function gameRow(g){
@@ -876,16 +881,16 @@ function renderModal(cur){
       const score = (my==null||their==null) ? "" : ` ${my}&ndash;${their}${g.dec&&g.dec!=="REG"?" "+g.dec:""}`;
       h += `<div class="schrow played">
         <div class="wk">${periodShort(g.week)}</div>
-        <div class="opp">${ha} ${tname(opp)}</div>
+        <div class="opp">${ha} ${tname(opp)}${recTag(opp)}</div>
         <div class="wp" title="pre-game win probability">${wp.toFixed(0)}%</div>
-        <div class="resultpill" style="color:${g.winner==="tie"?"var(--muted)":(won?"#4ade80":"#f87171")}">${g.winner==="tie"?"TIE":(won?"WON":"LOST")}${score}</div>
+        <div class="resultpill" style="color:${g.winner==="tie"?"var(--muted)":(won?"#4ade80":"#f87171")}">${g.winner==="tie"?"TIE":(won?"WON":"LOST")}${score}${schElo(isHome?g.elo_d_home:g.elo_d_away)}</div>
       </div>`;
     } else {
       const f = forced[g.id];
       const state = f===undefined ? "auto" : (f===(isHome?"home":"away")?"win":"loss");
       h += `<div class="schrow">
         <div class="wk">${periodShort(g.week)}</div>
-        <div class="opp">${ha} ${tname(opp)} ${g.neutral?'<span class="ha">(N)</span>':''}</div>
+        <div class="opp">${ha} ${tname(opp)}${recTag(opp)} ${g.neutral?'<span class="ha">(N)</span>':''}</div>
         <div class="wp">${wp.toFixed(0)}%</div>
         <div class="toggle">
           <button class="${state==='win'?'on-win':''}" onclick="setToggle(${g.id},'win')">Win</button>
