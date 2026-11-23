@@ -197,7 +197,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   .ctrlbar button{background:#23304d;border:1px solid var(--line);color:var(--txt);
     border-radius:7px;padding:5px 10px;cursor:pointer;font-weight:600}
   .ctrlbar button:hover{border-color:var(--accent)}
-  .schrow{display:grid;grid-template-columns:46px 1fr 64px 150px;align-items:center;
+  .schrow{display:grid;grid-template-columns:46px 1fr 64px var(--tw,190px);align-items:center;
     gap:10px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;
     margin-bottom:5px;background:#0f1626}
   .schrow .wk{color:var(--muted);font-size:12px;margin:0}
@@ -213,6 +213,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   .toggle button:not(:last-child){border-right:1px solid var(--line)}
   .toggle button.on-win{background:#1f7a4d;color:#fff}
   .toggle button.on-loss{background:#9b3030;color:#fff}
+  .toggle button.on-tie,.toggle button.on-otl,.toggle button.on-sol{background:#8a6a1c;color:#fff}
   .toggle button.on-auto{background:#33406a;color:#fff}
   .resultpill{font-size:11px;font-weight:700;text-align:center;border-radius:6px;
     padding:5px 0;background:#16203a;color:var(--muted)}
@@ -697,7 +698,8 @@ function simulateNHL(nSims, forced){
   const out=BASE_OUT.slice(), key=new Float64Array(NT), rank=new Int32Array(NT);
   for(let s=0;s<nSims;s++){
     for(const gi of OPEN_OUT){ const g=GAMES[gi], f=forced[g.id];
-      const hw = f==="home" ? true : f==="away" ? false : Math.random()<g.p;
+      if(f && Rules.single(f.mask)){ out[gi]=Rules.bitIndex(f.mask); continue; }
+      const hw = f ? (f.mask & 7)!==0 : Math.random()<g.p;
       const v=Math.random(), d = v<OTP*(1-SOSH)?1 : v<OTP?2:0;
       out[gi] = (hw?0:3)+d; }
     const finalSeed=new Int8Array(NT), champs=[];
@@ -737,7 +739,7 @@ function simulate(nSims, forced){
 
   for(let s=0;s<nSims;s++){
     for(const gi of OPEN_OUT){ const g=GAMES[gi], f=forced[g.id];
-      out[gi] = f==="home" ? 0 : f==="away" ? 1 : (Math.random()<g.p ? 0 : 1); }
+      out[gi] = f ? Rules.bitIndex(f.mask) : (Math.random()<g.p ? 0 : 1); }
     const finalSeed=new Int8Array(NT), confSeedTeam={};
     seedSeason(out, finalSeed, null);
     for(const c of CONFS){ const st={}; for(const t of CONF_IDX[c]) if(finalSeed[t]) st[finalSeed[t]]=t; confSeedTeam[c]=st; }
@@ -781,7 +783,7 @@ function simulate(nSims, forced){
 // for this one team, seeded with the seeds the panel's simulation reached.
 function achievableFor(team, forced, odds){
   const ti=TIDX[team], fm=new Map();
-  for(const id in forced) fm.set(GAMEIDX[id], forced[id]);
+  for(const id in forced) fm.set(GAMEIDX[id], forced[id].mask);
   if(!fm.size) return rowsByTeam[team].ach;
   const dom=Rules.domainsFromSchedule(RL, DATA.schedule, fm);
   const mc=new Set(); for(let s=0;s<NSEED;s++) if(odds.seed_probs[s]>0) mc.add(s+1); if(odds.miss>0) mc.add(NSEED+1);
@@ -841,12 +843,24 @@ function closeModal(){
 }
 function resetToggles(){ forced={}; renderModal(baseOdds); }
 
+// Result choices for a remaining game, from the panel team's side. Each maps
+// to the set of game outcomes it allows (rules.js outcome bits): NFL win /
+// tie / loss; NHL win (any way), loss in overtime, loss in a shootout (both a
+// point), or loss in regulation.
+const CHOICES = IS_NHL ? [["win","Win"],["otl","OTL"],["sol","SOL"],["loss","Loss"]]
+                       : [["win","Win"],["tie","Tie"],["loss","Loss"]];
+function choiceMask(choice, isHome){
+  if(!IS_NHL) return choice==="win" ? (isHome?1:2) : choice==="loss" ? (isHome?2:1) : 4;
+  const mine = isHome?0:3, theirs = isHome?3:0;
+  return choice==="win" ? 7<<mine : choice==="loss" ? 1<<theirs
+       : choice==="otl" ? 1<<(theirs+1) : 1<<(theirs+2);
+}
+document.getElementById("modal").style.setProperty("--tw", IS_NHL ? "250px" : "200px");
 function setToggle(gid, choice){
   const g = DATA.schedule.find(x=>x.id===gid);
   const isHome = g.home===activeTeam;
   if(choice==="auto") delete forced[gid];
-  else if(choice==="win") forced[gid] = isHome?"home":"away";
-  else forced[gid] = isHome?"away":"home";
+  else forced[gid] = {choice, mask: choiceMask(choice, isHome)};
   renderModal(baseOdds);   // instant repaint so the toggle state shows immediately
   if(nForced()) deferCompute(()=>{ renderModal(simulate(PANEL_SIMS, forced)[activeTeam]); });
 }
@@ -921,14 +935,13 @@ function renderModal(cur){
       </div>`;
     } else {
       const f = forced[g.id];
-      const state = f===undefined ? "auto" : (f===(isHome?"home":"away")?"win":"loss");
+      const state = f===undefined ? "auto" : f.choice;
       h += `<div class="schrow">
         <div class="wk">${periodShort(g.week)}</div>
         <div class="opp">${ha} ${tname(opp)}${recTag(opp)} ${g.neutral?'<span class="ha">(N)</span>':''}</div>
         <div class="wp">${wp.toFixed(0)}%</div>
         <div class="toggle">
-          <button class="${state==='win'?'on-win':''}" onclick="setToggle(${g.id},'win')">Win</button>
-          <button class="${state==='loss'?'on-loss':''}" onclick="setToggle(${g.id},'loss')">Loss</button>
+          ${CHOICES.map(([k,l])=>`<button class="${state===k?'on-'+k:''}" onclick="setToggle(${g.id},'${k}')">${l}</button>`).join("")}
           <button class="${state==='auto'?'on-auto':''}" onclick="setToggle(${g.id},'auto')">Auto</button>
         </div>
       </div>`;
@@ -1001,13 +1014,13 @@ function render(){
     `Each simulated season is ranked by points, then regulation wins, regulation + overtime wins, total wins and head-to-head points (goal differential, which the model doesn't simulate, is a random draw). `+
     `The bracket is fixed: the better division winner meets WC2, the other WC1, and 2 plays 3 in each division; every round is a best-of-seven with home ice to the better record. `+
     `<b>X</b>/<b>^</b> come from an exact search over every way the remaining games (including overtime and shootout results) can finish, with the full NHL tiebreakers; a result that would come down to goal differential counts as possible either way. `+
-    `Click any team to open its schedule and toggle remaining games to Win/Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser and shows how the odds shift. `+
+    `Click any team to open its schedule and toggle remaining games to Win, OT loss, shootout loss or Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser and shows how the odds shift. `+
     `Generated by <code>sports_elo.py</code>.` :
     `Seeds 1&ndash;${DATA.seeds_per_conf} per conference (top ${DATA.seeds_per_conf-3} are division winners). `+
     `Win probabilities come from historical Elo ratings (K-factor with margin-of-victory scaling, home-field edge, and preseason regression toward the mean). `+
     `Each simulated season plays out every remaining game and is seeded with the real NFL tiebreakers (head-to-head, division, common games, conference record, strength of victory/schedule), then runs the playoff bracket. `+
     `<b>X</b>/<b>^</b> come from an exact search over every way the remaining games (ties included) can finish, with the full NFL tiebreaking procedure &mdash; including how games interact, e.g. a leader losing out hands those wins to its opponents; a result that would come down to points scored or a coin toss counts as possible either way. `+
-    `Click any team to open its schedule and toggle remaining games to Win/Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser (with the same tiebreakers) and shows how the odds shift. `+
+    `Click any team to open its schedule and toggle remaining games to Win, Tie or Loss &mdash; the page re-runs a live ${PANEL_SIMS.toLocaleString()}-season simulation in your browser (with the same tiebreakers) and shows how the odds shift. `+
     `Generated by <code>sports_elo.py</code>.`;
 }
 render();
