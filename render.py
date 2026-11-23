@@ -834,21 +834,99 @@ function searchExtreme(base, ti, conf, openIdx, cset, teamWinsOut, wantMin){
   }
   return extreme;
 }
-// Seeds not ruled out by raw win counts (mirrors seeding.win_bound_seeds).
-// Cheap and sound, so it still applies when the search is too big to run.
-function winBoundSeeds(base, ti){
+// ---- sound elimination bounds (mirrors seeding.bound_seeds) ----
+// Each check proves a seed impossible; when it can't (budget spent, a tie only
+// SOV/SOS could break) the seed stays live. The team wins out in every check.
+const DIV_NODE_BUDGET=200000, WC_COMBO_BUDGET=20000;
+function flowFeasible(caps, games){        // b-matching: each game -> one of its teams, within caps
+  for(const t in caps) if(caps[t]<0) return false;
+  const load={}; for(const t in caps) load[t]=[];
+  function augment(g, seen){
+    for(const t of games[g]){ if(seen.has(t)) continue; seen.add(t);
+      if(load[t].length<caps[t]){ load[t].push(g); return true; }
+      for(const g2 of load[t].slice()){ if(augment(g2,seen)){ load[t].splice(load[t].indexOf(g2),1); load[t].push(g); return true; } } }
+    return false; }
+  for(let g=0;g<games.length;g++) if(!augment(g,new Set())) return false;
+  return true;
+}
+function holdFeasible(openIdx, ti, cur, mx, constrained){
+  const caps={}; for(const t of constrained) caps[t]=mx-cur[t];
+  const games=[];
+  for(const gi of openIdx){ const h=GAMES[gi].hi, a=GAMES[gi].ai;
+    if(h===ti||a===ti) continue; if((h in caps)&&(a in caps)) games.push([h,a]); }
+  return flowFeasible(caps, games);
+}
+function canWinDivision(base, openIdx, ti, cur, mx){   // true / false / null (budget)
+  const rivals=DIV_TEAMS[TEAMDIV[ti]].filter(t=>t!==ti);
+  if(rivals.some(t=>cur[t]>mx)) return false;
+  const rset=new Set(rivals), winners=Int32Array.from(base), todo=[];
+  for(const gi of openIdx){ const h=GAMES[gi].hi, a=GAMES[gi].ai;
+    if(h===ti||a===ti) winners[gi]=ti; else if(rset.has(h)||rset.has(a)) todo.push(gi); }
+  const W={}; rivals.forEach(t=>W[t]=cur[t]); let nodes=0;
+  function leaf(){
+    const group=[ti, ...rivals.filter(t=>W[t]===mx)]; if(group.length===1) return true;
+    const dW={}, cW={};
+    for(const t of group){ dW[t]=DIVGAMES[t].filter(gi=>winners[gi]===t).length; cW[t]=CONFGAMES[t].filter(gi=>winners[gi]===t).length; }
+    let g=group.slice();
+    const ladder=[t=>h2hBest(winners,t,g), t=>divPct(dW,t), t=>commonPct(winners,g,t,0), t=>confPct(cW,t)];
+    for(const c of ladder){ g=filterMax(g,c); if(!g.includes(ti)) return false; if(g.length===1) return true; }
+    return true;
+  }
+  function dfs(k){
+    if(++nodes>DIV_NODE_BUDGET) throw "budget";
+    if(k===todo.length) return leaf();
+    const gi=todo[k], h=GAMES[gi].hi, a=GAMES[gi].ai;
+    const opts=(rset.has(h)&&!rset.has(a))?[a,h]:[h,a];
+    for(const w of opts){
+      if(rset.has(w) && W[w]+1>mx) continue;
+      winners[gi]=w; if(rset.has(w)) W[w]++;
+      const ok=dfs(k+1);
+      if(rset.has(w)) W[w]--;
+      if(ok) return true; }
+    winners[gi]=-1; return false;
+  }
+  try { return dfs(0); } catch(e){ if(e==="budget") return null; throw e; }
+}
+function combos(arr,k){ const out=[]; (function r(s,acc){ if(acc.length===k){ out.push(acc.slice()); return; }
+  for(let i=s;i<arr.length;i++){ acc.push(arr[i]); r(i+1,acc); acc.pop(); } })(0,[]); return out; }
+function boundSeeds(base, ti){
   const conf=TEAMCONFI[ti], confteams=CONF_IDX[conf];
-  const cur={}, open={}; confteams.forEach(t=>{cur[t]=0; open[t]=0;});
+  const openIdx=[]; for(let gi=0;gi<NG;gi++) if(base[gi]<0) openIdx.push(gi);
+  const cur={}, emax={}; confteams.forEach(t=>{cur[t]=0; emax[t]=0;});
   for(let gi=0;gi<NG;gi++){ const w=base[gi];
     if(w>=0){ if(w in cur) cur[w]++; }
-    else { const g=GAMES[gi]; if(g.hi in open) open[g.hi]++; if(g.ai in open) open[g.ai]++; } }
-  const mx=cur[ti]+open[ti], above={};
-  confteams.forEach(t=>{ if(t!==ti && cur[t]>mx) (above[TEAMDIV[t]]=above[TEAMDIV[t]]||[]).push(t); });
-  const myDiv=TEAMDIV[ti], ok=new Set([MISS]);
-  if(!(myDiv in above)){ const bd=1+Object.keys(above).filter(d=>d!==myDiv).length;
-    for(let s=bd;s<=DWS;s++) ok.add(s); }
-  let bw=DWS+1; for(const d in above) bw+=above[d].length-1;
-  for(let s=bw;s<=NSEED;s++) ok.add(s);
+    else { const h=GAMES[gi].hi, a=GAMES[gi].ai;
+      if((h in emax)&&a!==ti) emax[h]++; if((a in emax)&&h!==ti) emax[a]++; } }
+  confteams.forEach(t=>emax[t]+=cur[t]);
+  const mx=emax[ti], divs=CONF_DIV_LABELS[conf], myDiv=TEAMDIV[ti];
+  const others=divs.filter(d=>d!==myDiv), ndiv=divs.length, ok=new Set([MISS]);
+  // division seeds
+  if(canWinDivision(base, openIdx, ti, cur, mx)!==false){
+    const rivals=DIV_TEAMS[myDiv].filter(t=>t!==ti);
+    for(let s=1;s<=ndiv;s++){
+      if(combos(others, ndiv-s).some(held=>holdFeasible(openIdx,ti,cur,mx, rivals.concat(...held.map(d=>DIV_TEAMS[d]))))){
+        for(let x=s;x<=ndiv;x++) ok.add(x); break; } } }
+  // wild-card seeds
+  const risky={}, forced={};
+  for(const d of divs){ risky[d]=DIV_TEAMS[d].filter(t=>t!==ti && emax[t]>mx); forced[d]=risky[d].filter(t=>cur[t]>mx); }
+  let ncomb=0;
+  function wcFeasible(budget){
+    const choices=divs.map(d=>{ const r=risky[d], f=forced[d], opts=[];
+      if(!r.length) opts.push([]);
+      else { const rest=r.filter(t=>!f.includes(t));
+        for(let k=Math.max(1,f.length); k<=Math.min(r.length,1+budget); k++)
+          for(const ex of combos(rest,k-f.length)) opts.push(f.concat(ex)); }
+      return opts; });
+    function rec(i, used, free){
+      if(used>budget) return false;
+      if(i===divs.length){ if(++ncomb>WC_COMBO_BUDGET) throw "budget";
+        return holdFeasible(openIdx,ti,cur,mx, confteams.filter(t=>t!==ti && !free.has(t))); }
+      for(const opt of choices[i]) if(rec(i+1, used+Math.max(0,opt.length-1), new Set([...free,...opt]))) return true;
+      return false; }
+    return rec(0,0,new Set());
+  }
+  try { for(let s=ndiv+1;s<=NSEED;s++) if(wcFeasible(s-ndiv-1)){ for(let x=s;x<=NSEED;x++) ok.add(x); break; } }
+  catch(e){ if(e!=="budget") throw e; for(let x=ndiv+1;x<=NSEED;x++) ok.add(x); }
   return ok;
 }
 function achievableSeeds(base, ti, mcSeeds){
@@ -861,7 +939,7 @@ function achievableSeeds(base, ti, mcSeeds){
   const cset=new Set(confteams.filter(t=>t!==ti && (Math.abs(cw[t]-line)<=2 || TEAMDIV[t]===myDiv)));
   const best=searchExtreme(base,ti,conf,openIdx,cset,true,true);
   const worst=searchExtreme(base,ti,conf,openIdx,cset,false,false);
-  const bound=winBoundSeeds(base,ti), set=new Set(mcSeeds);
+  const bound=boundSeeds(base,ti), set=new Set(mcSeeds);
   const lo=(best===null||worst===null)?1:best, hi=(best===null||worst===null)?MISS:worst;
   for(let s=lo;s<=hi;s++) if(bound.has(s)) set.add(s);
   return [...set].sort((a,b)=>a-b);

@@ -25,6 +25,8 @@ from __future__ import annotations
 
 from typing import Dict, List
 
+from itertools import combinations
+
 import numpy as np
 
 
@@ -285,8 +287,8 @@ def seed_conference(L: League, conf, winners, W, dW, cW, rng):
 #   * EXHAUSTIVELY searching the remaining games *between two contenders* (the
 #     coupled games -- beating the #7 seed necessarily lifts whoever beats it);
 #   * applying the real NFL tiebreakers to seed each resulting season.
-# When too many coupled games remain to enumerate (early season, nothing is
-# decided anyway) we report the team as fully live -- never a false X/^.
+# When too many coupled games remain to enumerate the search reports nothing,
+# and only the always-on elimination bounds (`bound_seeds`) apply.
 MISS = 8
 SEARCH_CAP = 14  # max coupled games to enumerate (2**14 = 16384 seasons)
 
@@ -361,45 +363,228 @@ def _search_extreme(L, base, ti, conf, open_idx, contenders, team_wins_out,
     return extreme
 
 
-def win_bound_seeds(L, base_winners, ti):
-    """Seeds `ti` is not ruled out of by raw win counts alone. Always cheap and
-    sound, so it still applies when the coupled-game search is too big to run.
+# --- Sound elimination bounds (always run, even when the search is capped) --
+# Everything below proves a seed IMPOSSIBLE; whenever it cannot (search budget
+# spent, a tie that only SOV/SOS could break, ...) it leaves the seed live.
+# In every bound the team wins out: that only adds to its own record and takes
+# wins away from opponents, so it is the best case for every seed it can reach.
+DIV_NODE_BUDGET = 200_000
+WC_COMBO_BUDGET = 20_000
 
-    A team "surely above" ti already has more wins than ti's maximum (current
-    wins + every open game). Then:
-      * a surely-above division rival means ti can't win the division;
-      * each other division holding a surely-above team has a winner above ti,
-        pushing ti's best division-winner seed down by one;
-      * as a wild card, every surely-above team beyond one per division is a
-        non-division-winner ranked above ti.
-    Open games (including recorded ties, which have no winner) count as
-    possible wins for everyone, which only loosens the bound."""
+
+def _flow_feasible(caps, games):
+    """Can every game in `games` (pairs of constrained teams) hand its win to
+    one of its two teams without anyone exceeding caps[t]? Bipartite
+    b-matching by augmenting paths; the graphs here are tiny."""
+    if any(c < 0 for c in caps.values()):
+        return False
+    load = {t: [] for t in caps}            # team -> games assigned to it
+    owner = [None] * len(games)
+
+    def augment(g, seen):
+        for t in games[g]:
+            if t in seen:
+                continue
+            seen.add(t)
+            if len(load[t]) < caps[t]:
+                load[t].append(g); owner[g] = t
+                return True
+            for g2 in list(load[t]):
+                if augment(g2, seen):
+                    load[t].remove(g2); load[t].append(g); owner[g] = t
+                    return True
+        return False
+
+    for g in range(len(games)):
+        if not augment(g, set()):
+            return False
+    return True
+
+
+def _hold_feasible(L, open_idx, ti, cur, mx, constrained):
+    """Can every team in `constrained` finish with at most mx wins (ties with
+    ti allowed -- optimistic) while ti wins out? Games against ti or against
+    an unconstrained team are given to the other side for free."""
+    caps = {t: mx - cur[t] for t in constrained}
+    games = []
+    for gi in open_idx:
+        h, a = int(L.home[gi]), int(L.away[gi])
+        if h == ti or a == ti:
+            continue
+        if h in caps and a in caps:
+            games.append((h, a))
+    return _flow_feasible(caps, games)
+
+
+def _can_win_division(L, base_winners, open_idx, ti, cur, mx):
+    """Exhaustive search over the open games involving ti's division rivals
+    (ti wins out; their other opponents are free). A rival finishing above mx
+    ends the branch; rivals level with ti go through the division tiebreakers
+    that the rivals' and ti's own games decide (head-to-head, division record,
+    common games, conference record). If ti survives those it counts as
+    possible, since SOV/SOS depend on games outside this search.
+    Returns True / False, or None if the node budget ran out."""
+    rivals = [t for t in L.div_teams[L.team_div[ti]] if t != ti]
+    if any(cur[t] > mx for t in rivals):
+        return False
+    winners = np.array(base_winners, copy=True)
+    rset = set(rivals)
+    todo = []
+    for gi in open_idx:
+        h, a = int(L.home[gi]), int(L.away[gi])
+        if h == ti or a == ti:
+            winners[gi] = ti
+        elif h in rset or a in rset:
+            todo.append(gi)
+    W = {t: cur[t] for t in rivals}
+    nodes = [0]
+
+    def leaf():
+        group = [ti] + [t for t in rivals if W[t] == mx]
+        if len(group) == 1:
+            return True
+        dW = {}; cW = {}
+        for t in group:
+            dW[t] = sum(1 for gi in L.div_games[t] if winners[gi] == t)
+            cW[t] = sum(1 for gi in L.conf_games[t] if winners[gi] == t)
+        cur_g = list(group)
+        ladder = [
+            lambda t: _h2h_best(L, winners, t, cur_g),
+            lambda t: dW[t] / len(L.div_games[t]) if L.div_games[t] else 0.0,
+            lambda t: _common_pct(L, winners, cur_g, t, 0),
+            lambda t: cW[t] / len(L.conf_games[t]) if L.conf_games[t] else 0.0,
+        ]
+        for crit in ladder:
+            cur_g[:] = _filter_max(cur_g, crit)
+            if ti not in cur_g:
+                return False
+            if len(cur_g) == 1:
+                return True
+        return True                     # still tied: SOV/SOS could go ti's way
+
+    def dfs(k):
+        nodes[0] += 1
+        if nodes[0] > DIV_NODE_BUDGET:
+            raise TimeoutError
+        if k == len(todo):
+            return leaf()
+        gi = todo[k]
+        h, a = int(L.home[gi]), int(L.away[gi])
+        # try the result that keeps a rival down first: finds witnesses fast
+        opts = [a, h] if h in rset and a not in rset else [h, a] if a in rset and h not in rset else [h, a]
+        for w in opts:
+            if w in rset and W[w] + 1 > mx:
+                continue
+            winners[gi] = w
+            if w in rset:
+                W[w] += 1
+            ok = dfs(k + 1)
+            if w in rset:
+                W[w] -= 1
+            if ok:
+                return True
+        winners[gi] = -1
+        return False
+
+    try:
+        return dfs(0)
+    except TimeoutError:
+        return None
+
+
+def bound_seeds(L, base_winners, ti):
+    """Seeds (1..7, 8 = miss) team `ti` is not provably shut out of.
+
+    * Division seeds: ti must be able to win the division (exact search with
+      the record-based division tiebreakers, `_can_win_division`), and to be
+      seed s it needs ndiv-s other divisions whose every team stays at or
+      below its max wins at the same time (`_hold_feasible`, a flow problem,
+      so a leader's losses count as wins for whoever it plays).
+    * Wild-card seed s: at most s-5 non-division-winners may finish above ti.
+      Each division may let one team (its winner) through for free plus s-5
+      extra teams overall; every choice of those teams is tried, and ti is
+      shut out if none lets the rest stay at or below its max.
+    Ties at ti's max count in ti's favour except in the division search, where
+    the record-based tiebreakers are applied."""
     conf = L.team_conf[ti]
     confteams = L.conf_idx[conf]
+    open_idx = [gi for gi in range(len(base_winners)) if base_winners[gi] < 0]
     cur = {t: 0 for t in confteams}
-    open_n = {t: 0 for t in confteams}
+    emax = {t: 0 for t in confteams}        # max wins, given ti wins out
     for gi in range(len(base_winners)):
         w = base_winners[gi]
         if w >= 0:
             if w in cur:
                 cur[w] += 1
         else:
-            for t in (int(L.home[gi]), int(L.away[gi])):
-                if t in open_n:
-                    open_n[t] += 1
-    mx = cur[ti] + open_n[ti]
-    above = {}
+            h, a = int(L.home[gi]), int(L.away[gi])
+            for t, o in ((h, a), (a, h)):
+                if t in emax and o != ti:
+                    emax[t] += 1
     for t in confteams:
-        if t != ti and cur[t] > mx:
-            above.setdefault(L.team_div[t], []).append(t)
+        emax[t] += cur[t]
+    mx = emax[ti]
+    divs = [d for d in L.div_teams if d.split()[0] == conf]
     my_div = L.team_div[ti]
-    ndiv = sum(1 for d in L.div_teams if d.split()[0] == conf)
+    others = [d for d in divs if d != my_div]
+    ndiv = len(divs)
     ok = {MISS}
-    if my_div not in above:
-        best_div = 1 + sum(1 for d in above if d != my_div)
-        ok.update(range(best_div, ndiv + 1))
-    best_wc = ndiv + 1 + sum(len(v) - 1 for v in above.values())
-    ok.update(range(best_wc, 8))
+
+    # --- division seeds -----------------------------------------------------
+    if _can_win_division(L, base_winners, open_idx, ti, cur, mx) is not False:
+        rivals = [t for t in L.div_teams[my_div] if t != ti]
+        for s in range(1, ndiv + 1):
+            need = ndiv - s                 # other divisions held below ti
+            if any(_hold_feasible(L, open_idx, ti, cur, mx,
+                                  rivals + [t for d in held for t in L.div_teams[d]])
+                   for held in combinations(others, need)):
+                ok.update(range(s, ndiv + 1))
+                break
+
+    # --- wild-card seeds ----------------------------------------------------
+    risky = {d: [t for t in L.div_teams[d] if t != ti and emax[t] > mx] for d in divs}
+    forced = {d: [t for t in risky[d] if cur[t] > mx] for d in divs}
+    nwc = MISS - 1 - ndiv
+    combos = [0]
+
+    def wc_feasible(budget):
+        """Some free set (one team per division + `budget` extras) works?"""
+        choices = []                        # per division: list of free subsets
+        for d in divs:
+            opts = []
+            r, f = risky[d], forced[d]
+            if not r:
+                opts.append(())
+            else:
+                rest = [t for t in r if t not in f]
+                for k in range(max(1, len(f)), min(len(r), 1 + budget) + 1):
+                    for extra in combinations(rest, k - len(f)):
+                        opts.append(tuple(f) + extra)
+            choices.append(opts)
+
+        def rec(i, used, free):
+            if used > budget:
+                return False
+            if i == len(divs):
+                combos[0] += 1
+                if combos[0] > WC_COMBO_BUDGET:
+                    raise TimeoutError
+                cons = [t for t in confteams if t != ti and t not in free]
+                return _hold_feasible(L, open_idx, ti, cur, mx, cons)
+            for opt in choices[i]:
+                if rec(i + 1, used + max(0, len(opt) - 1), free | set(opt)):
+                    return True
+            return False
+
+        return rec(0, 0, frozenset())
+
+    try:
+        for s in range(ndiv + 1, ndiv + nwc + 1):
+            if wc_feasible(s - ndiv - 1):
+                ok.update(range(s, ndiv + nwc + 1))
+                break
+    except TimeoutError:
+        ok.update(range(ndiv + 1, ndiv + nwc + 1))
     return ok
 
 
@@ -429,5 +614,5 @@ def achievable_seeds(L, base_winners, ti, rng, mc_seeds=frozenset()):
         ach = set(range(1, MISS + 1))
     else:
         ach = set(range(best, worst + 1))
-    ach &= win_bound_seeds(L, base_winners, ti)
+    ach &= bound_seeds(L, base_winners, ti)
     return sorted(ach | set(mc_seeds))
