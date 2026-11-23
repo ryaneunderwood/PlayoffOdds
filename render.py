@@ -332,6 +332,7 @@ function sortVal(r,key){
   if(key==="rec" && IS_NHL) { const g=r.wins+r.losses+r.otl; return g ? r.pts/(2*g) + r.pts*1e-4 : -1; }
   if(key==="rec") { const g=r.wins+r.losses+r.ties; return g ? (r.wins+0.5*r.ties)/g + r.wins*1e-4 : -1; }
   if(key==="pts") return r.pts;
+  if(key==="sos") return SOS[r.team] && SOS[r.team].pct!=null ? SOS[r.team].pct : -1;
   if(key==="pw")  return projOf(r);
   if(key==="miss")return r.miss;
   if(key==="mk")  return r.make_playoffs;
@@ -340,6 +341,38 @@ function sortVal(r,key){
   if(key==="ti")  return r.win_title;
   if(key[0]==="s")return r.seed_probs[(+key.slice(1))-1];
   return 0;
+}
+
+// Strength of schedule (NFL): the combined record of every opponent on the
+// full schedule (once per meeting), counting only their played games against
+// teams that are neither this team nor one of its own opponents -- games
+// between two of a team's opponents add a win and a loss to the total and
+// only pull it toward .500.
+const SOS = {};
+if(!IS_NHL){
+  const opps = {}, played = {};
+  DATA.teams.forEach(t=>{ opps[t]=new Set(); played[t]=[]; });
+  DATA.schedule.forEach(g=>{ opps[g.home].add(g.away); opps[g.away].add(g.home);
+    if(g.played){ played[g.home].push(g); played[g.away].push(g); } });
+  DATA.teams.forEach(t=>{
+    const excl = new Set([t, ...opps[t]]);
+    let w=0, l=0, ti=0;
+    DATA.schedule.forEach(g=>{
+      if(g.home!==t && g.away!==t) return;
+      const o = g.home===t ? g.away : g.home;
+      for(const x of played[o]){
+        const other = x.home===o ? x.away : x.home;
+        if(excl.has(other)) continue;
+        if(x.winner==="tie") ti++; else if((x.winner==="home")===(x.home===o)) w++; else l++;
+      }
+    });
+    const n=w+l+ti; SOS[t] = {w, l, t:ti, pct: n ? (w+0.5*ti)/n : null};
+  });
+}
+function sosCell(t){
+  const s=SOS[t]; if(!s) return `<td class="dim">&ndash;</td>`;
+  const pct = s.pct==null ? "" : s.pct.toFixed(3).replace(/^0/,"");
+  return `<td class="rec sos" title="opponents' record vs teams outside this schedule${pct?": "+pct:""}">${s.w}-${s.l}${s.t?"-"+s.t:""}</td>`;
 }
 
 function recStr(r){ return IS_NHL ? `${r.wins}-${r.losses}-${r.otl}` : `${r.wins}-${r.losses}${r.ties?"-"+r.ties:""}`; }
@@ -358,6 +391,7 @@ function teamRow(r, withTag){
   h += `<td class="rec${gamesPlayed(r)?"":" zero"}">${recStr(r)}</td>`;
   if(IS_NHL) h += `<td class="rec">${r.pts}</td>`;
   h += `<td class="dim">${r.elo}${eloDelta(r)}</td>`;
+  if(!IS_NHL) h += sosCell(r.team);
   h += `<td>${projOf(r).toFixed(1)}</td>`;
   r.seed_probs.forEach((p,i)=> h += pcell(p, S.seed(i+1), i===0?"sep":"") );
   h += pcell(r.miss, S.miss, "sep");
@@ -377,7 +411,7 @@ function seedTable(conf){
   let h = "<table><thead><tr>";
   h += `<th class="teamh sortable${sortState?"":" sorted"}" data-sk="grouped">Team</th>`;
   h += IS_NHL ? th("rec","W-L-OT") + th("pts","Pts") : th("rec","W-L");
-  h += th("elo","Elo") + th("pw", IS_NHL ? "Proj Pts" : "Proj W");
+  h += th("elo","Elo") + (IS_NHL ? "" : th("sos","SoS")) + th("pw", IS_NHL ? "Proj Pts" : "Proj W");
   for(let s=1;s<=S;s++) h += th("s"+s, SEEDLBL[s-1], s===1?"sep":"");
   h += th("miss","Miss","sep") + th("mk","Playoffs","sep");
   h += th("wd","Win Div") + th("wc","Win Conf") + th("ti", IS_NHL ? "Cup" : "Title");
@@ -392,7 +426,7 @@ function seedTable(conf){
   } else {
     // grouped by division; teams within a division by make-playoffs then wins
     Object.keys(DATA.divisions).filter(d=>d.split(" ")[0]===conf).forEach(d=>{
-      h += `<tr class="divrow"><td colspan="${S+9+(IS_NHL?1:0)}">${d}</td></tr>`;
+      h += `<tr class="divrow"><td colspan="${S+10}">${d}</td></tr>`;
       DATA.divisions[d].map(t=>rowsByTeam[t])
         .sort((a,b)=>IS_NHL ? projOf(b)-projOf(a)||b.make_playoffs-a.make_playoffs
                             : b.make_playoffs-a.make_playoffs||b.proj_wins-a.proj_wins)
