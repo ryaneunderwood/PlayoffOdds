@@ -361,6 +361,48 @@ def _search_extreme(L, base, ti, conf, open_idx, contenders, team_wins_out,
     return extreme
 
 
+def win_bound_seeds(L, base_winners, ti):
+    """Seeds `ti` is not ruled out of by raw win counts alone. Always cheap and
+    sound, so it still applies when the coupled-game search is too big to run.
+
+    A team "surely above" ti already has more wins than ti's maximum (current
+    wins + every open game). Then:
+      * a surely-above division rival means ti can't win the division;
+      * each other division holding a surely-above team has a winner above ti,
+        pushing ti's best division-winner seed down by one;
+      * as a wild card, every surely-above team beyond one per division is a
+        non-division-winner ranked above ti.
+    Open games (including recorded ties, which have no winner) count as
+    possible wins for everyone, which only loosens the bound."""
+    conf = L.team_conf[ti]
+    confteams = L.conf_idx[conf]
+    cur = {t: 0 for t in confteams}
+    open_n = {t: 0 for t in confteams}
+    for gi in range(len(base_winners)):
+        w = base_winners[gi]
+        if w >= 0:
+            if w in cur:
+                cur[w] += 1
+        else:
+            for t in (int(L.home[gi]), int(L.away[gi])):
+                if t in open_n:
+                    open_n[t] += 1
+    mx = cur[ti] + open_n[ti]
+    above = {}
+    for t in confteams:
+        if t != ti and cur[t] > mx:
+            above.setdefault(L.team_div[t], []).append(t)
+    my_div = L.team_div[ti]
+    ndiv = sum(1 for d in L.div_teams if d.split()[0] == conf)
+    ok = {MISS}
+    if my_div not in above:
+        best_div = 1 + sum(1 for d in above if d != my_div)
+        ok.update(range(best_div, ndiv + 1))
+    best_wc = ndiv + 1 + sum(len(v) - 1 for v in above.values())
+    ok.update(range(best_wc, 8))
+    return ok
+
+
 def achievable_seeds(L, base_winners, ti, rng, mc_seeds=frozenset()):
     """Return the sorted set of seeds (1..7, 8=miss) team `ti` can still reach,
     unioned with the seeds it reached in the Monte Carlo (mc_seeds)."""
@@ -387,4 +429,5 @@ def achievable_seeds(L, base_winners, ti, rng, mc_seeds=frozenset()):
         ach = set(range(1, MISS + 1))
     else:
         ach = set(range(best, worst + 1))
+    ach &= win_bound_seeds(L, base_winners, ti)
     return sorted(ach | set(mc_seeds))

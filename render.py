@@ -834,6 +834,23 @@ function searchExtreme(base, ti, conf, openIdx, cset, teamWinsOut, wantMin){
   }
   return extreme;
 }
+// Seeds not ruled out by raw win counts (mirrors seeding.win_bound_seeds).
+// Cheap and sound, so it still applies when the search is too big to run.
+function winBoundSeeds(base, ti){
+  const conf=TEAMCONFI[ti], confteams=CONF_IDX[conf];
+  const cur={}, open={}; confteams.forEach(t=>{cur[t]=0; open[t]=0;});
+  for(let gi=0;gi<NG;gi++){ const w=base[gi];
+    if(w>=0){ if(w in cur) cur[w]++; }
+    else { const g=GAMES[gi]; if(g.hi in open) open[g.hi]++; if(g.ai in open) open[g.ai]++; } }
+  const mx=cur[ti]+open[ti], above={};
+  confteams.forEach(t=>{ if(t!==ti && cur[t]>mx) (above[TEAMDIV[t]]=above[TEAMDIV[t]]||[]).push(t); });
+  const myDiv=TEAMDIV[ti], ok=new Set([MISS]);
+  if(!(myDiv in above)){ const bd=1+Object.keys(above).filter(d=>d!==myDiv).length;
+    for(let s=bd;s<=DWS;s++) ok.add(s); }
+  let bw=DWS+1; for(const d in above) bw+=above[d].length-1;
+  for(let s=bw;s<=NSEED;s++) ok.add(s);
+  return ok;
+}
 function achievableSeeds(base, ti, mcSeeds){
   const conf=TEAMCONFI[ti], confteams=CONF_IDX[conf];
   const openIdx=[]; for(let gi=0;gi<NG;gi++) if(base[gi]<0) openIdx.push(gi);
@@ -844,9 +861,9 @@ function achievableSeeds(base, ti, mcSeeds){
   const cset=new Set(confteams.filter(t=>t!==ti && (Math.abs(cw[t]-line)<=2 || TEAMDIV[t]===myDiv)));
   const best=searchExtreme(base,ti,conf,openIdx,cset,true,true);
   const worst=searchExtreme(base,ti,conf,openIdx,cset,false,false);
-  const set=new Set(mcSeeds);
-  if(best===null||worst===null){ for(let s=1;s<=MISS;s++) set.add(s); }
-  else { for(let s=best;s<=worst;s++) set.add(s); }
+  const bound=winBoundSeeds(base,ti), set=new Set(mcSeeds);
+  const lo=(best===null||worst===null)?1:best, hi=(best===null||worst===null)?MISS:worst;
+  for(let s=lo;s<=hi;s++) if(bound.has(s)) set.add(s);
   return [...set].sort((a,b)=>a-b);
 }
 // achievable seed set for the focal team given played + user-forced results
