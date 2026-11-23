@@ -41,6 +41,17 @@
  *   through the full seeding procedure, and every "impossible" answer comes
  *   from an exhausted search. If a search runs out of budget the seed is left
  *   possible and flagged, so an X is never shown without a proof.
+ *
+ *   What keeps the search small (none of it changes the answers):
+ *     - level 1 runs in passes by how many clubs it puts level with ti (none,
+ *       one, two, any), so the cheap tie-free seasons are tried first;
+ *     - level 1 leaves open the clubs that cannot matter (NFL seeds 1-4: a
+ *       division that already has a club above ti; NHL seeds 1-3: every
+ *       other division);
+ *     - level 2 propagates the point bounds onto the game domains, so a
+ *       result a bounded club cannot afford is never branched on;
+ *     - the NFL tie evaluation only works out what the wanted seed needs and
+ *       memoises the wild-card ladder on the best club of each division.
  */
 (function (root) {
 
@@ -309,6 +320,14 @@ function nflWcTop(ctx, group, divRank) {
 // city with the extra home game dropped, as a percentage for 3+ clubs); goal
 // differential and beyond are unmodeled.
 function nhlStatRanges(ctx, t) {
+  // ctx.dom does not change during the life of a ctx, so cache per team
+  const cache = ctx.statCache || (ctx.statCache = new Map());
+  let a = cache.get(t);
+  if (a) return a;
+  a = nhlStatRangesRaw(ctx, t); cache.set(t, a);
+  return a;
+}
+function nhlStatRangesRaw(ctx, t) {
   const L = ctx.L, a = [0, 0, 0, 0, 0, 0];
   for (const gi of L.teamGames[t]) {
     const mi = L.MASKINFO[ctx.dom[gi]], off = L.H[gi] === t ? 6 : 12;
@@ -585,6 +604,46 @@ function flowCheck(L, dom, bounds, want) {
 }
 
 /* ------------------------------------------------------------- engine */
+// Bounds propagation on game domains: a team that must finish within
+// [lb, ub] cannot take a result that would leave it out of that range even
+// with the best/worst of its other games, so such results are removed (and
+// the opponent re-examined). Only outcomes that occur in no season meeting
+// the bounds are dropped. stack: teams to (re)examine; every change is
+// recorded on trail as (game, old mask). Returns false on a contradiction.
+function propagate(L, dom, lb, ub, has, stack, trail) {
+  const MI = L.MASKINFO, PTS = L.PTS, NOUT = L.NOUT, H = L.H, A = L.A;
+  while (stack.length) {
+    const t = stack.pop(), games = L.teamGames[t], lbt = lb[t], ubt = ub[t];
+    let lo = 0, hi = 0;
+    for (let k = 0; k < games.length; k++) {
+      const gi = games[k], mi = MI[dom[gi]];
+      if (H[gi] === t) { lo += mi[0]; hi += mi[1]; } else { lo += mi[2]; hi += mi[3]; }
+    }
+    for (let changed = true; changed;) {
+      changed = false;
+      if (lo > ubt || hi < lbt) return false;
+      if (lo >= lbt && hi <= ubt) break;
+      for (let k = 0; k < games.length; k++) {
+        const gi = games[k], m = dom[gi], mi = MI[m], home = H[gi] === t;
+        const gl = home ? mi[0] : mi[2], gh = home ? mi[1] : mi[3];
+        if (gl === gh) continue;
+        const mn = lbt - (hi - gh), mx = ubt - (lo - gl);
+        if (gl >= mn && gh <= mx) continue;
+        let nm = 0;
+        for (let o = 0; o < NOUT; o++) if (m >> o & 1) { const p = PTS[o][home ? 0 : 1]; if (p >= mn && p <= mx) nm |= 1 << o; }
+        if (!nm) return false;
+        if (nm === m) continue;
+        trail.push(gi, m); dom[gi] = nm; changed = true;
+        const mi2 = MI[nm];
+        lo += (home ? mi2[0] : mi2[2]) - gl; hi += (home ? mi2[1] : mi2[3]) - gh;
+        const o = home ? A[gi] : H[gi];
+        if (has[o]) stack.push(o);
+      }
+    }
+  }
+  return true;
+}
+
 function naturalBounds(L, dom) {
   const lo = new Int32Array(L.n), hi = new Int32Array(L.n);
   for (let gi = 0; gi < L.ng; gi++) {
@@ -717,7 +776,16 @@ Engine.prototype.query = function (ti, s, known) {
   if (better) order.reverse();
   else if (!worse && s <= Math.ceil(L.NSEED / 2)) order.reverse();
   try {
-    for (const P of order) if (this.level1(ti, s, P, lo, hi)) return true;
+    // Seasons with few clubs level with ti are far cheaper to settle (no
+    // tied club at all needs no tiebreaker work), so search in passes by the
+    // number of clubs the search itself puts level with ti: none, one, two,
+    // then any. Each pass skips the leaves the earlier ones covered.
+    const lims = this.opts.tiePasses === false ? [Infinity] : [0, 1, 2, Infinity];
+    let prev = -1;
+    for (const lim of lims) {
+      for (const P of order) if (this.level1(ti, s, P, lo, hi, lim, prev)) return true;
+      prev = lim;
+    }
     return false;
   } catch (e) {
     if (e === "budget") { this.stats.unknown++; return null; }
@@ -725,9 +793,12 @@ Engine.prototype.query = function (ti, s, known) {
   }
 };
 
-Engine.prototype.level1 = function (ti, s, P, lo, hi) {
+Engine.prototype.level1 = function (ti, s, P, lo, hi, lim, prev) {
   const L = this.L, c = L.conf[ti], own = L.div[ti], divs = L.confDivs[c];
-  const others = L.confTeams[c].filter(t => t !== ti);
+  // The top three division places (NHL seeds 1-3) depend on the clubs of
+  // ti's own division only.
+  const ownOnly = !L.nfl && s <= 3;
+  const others = L.confTeams[c].filter(t => t !== ti && (!ownOnly || L.div[t] === own));
   const poss = new Map(), cls = new Map();
   for (const t of others) {
     let m = 0;
@@ -771,14 +842,19 @@ Engine.prototype.level1 = function (ti, s, P, lo, hi) {
     }
     return b;
   }
-  function dfs(i) {
+  // nt: free clubs put level with ti so far (kept within (prev, lim])
+  function dfs(i, nt) {
+    if (nt + free.length - i <= prev) return false;
     if (++self.nodes > self.budget) throw "budget";
     self.cnt.l1++;
     const [kmin, kmax, allowed] = analyse();
     if (!allowed) return false;
     const b = boundsFor(allowed, kmin, kmax);
     if (!flowCheck(L, self.dom0, b, false)) return false;
-    if (i === free.length) return self.leaf(ti, s, P, cls, b);
+    // NFL seeds 1-4: a division that already has a club above ti has its
+    // winner above ti whatever its other clubs do, so they are left open.
+    if (L.nfl && s <= 4) while (i < free.length && L.div[free[i]] !== own && kmin.get(L.div[free[i]]) >= 1) i++;
+    if (i === free.length) return nt > prev && self.leaf(ti, s, P, cls, b);
     const t = free[i], d = L.div[t], m = poss.get(t);
     const [mn, mx] = allowed.get(d);
     let pref;
@@ -786,13 +862,15 @@ Engine.prototype.level1 = function (ti, s, P, lo, hi) {
     else if (mn === kmax.get(d)) pref = [ABOVE, TIE, BELOW];
     else pref = (lo[t] + hi[t] >= 2 * P) ? [ABOVE, BELOW, TIE] : [BELOW, ABOVE, TIE];
     for (const k of pref) if (m >> k & 1) {
+      if (k === TIE && nt >= lim) continue;
       cls.set(t, k);
-      if (dfs(i + 1)) return true;
+      if (dfs(i + 1, k === TIE ? nt + 1 : nt)) return true;
     }
     cls.delete(t);
     return false;
   }
-  return dfs(0);
+  if (free.length <= prev) return false;
+  return dfs(0, 0);
 };
 
 // All classes assigned: with nobody tied the counts decide; otherwise run
@@ -856,6 +934,10 @@ Engine.prototype.level2 = function (ti, s, P, cls, bounds, G, test, accept) {
     return -1;
   };
   let sovNodes = 0;
+  const lbA = new Int32Array(L.n), ubA = new Int32Array(L.n), has = new Uint8Array(L.n);
+  const trail = [], stack = [];
+  for (const [t, b] of bounds) { lbA[t] = b[0]; ubA[t] = b[1]; has[t] = 1; stack.push(t); }
+  if (!propagate(L, dom, lbA, ubA, has, stack, trail)) return false;
   const rec = () => {
     if (++self.nodes > self.budget) throw "budget";
     self.cnt.l2++;
@@ -873,7 +955,7 @@ Engine.prototype.level2 = function (ti, s, P, cls, bounds, G, test, accept) {
     } };
     let r;
     if (test) r = test(ctx);
-    else { const x = L.nfl ? self.nflTieSeeds(ti, cls, G, ctx) : self.nhlTieSeeds(ti, cls, G, ctx); r = { maybe: x.maybe.has(s), sure: x.sure.has(s) }; }
+    else { const x = L.nfl ? self.nflTieSeeds(ti, cls, G, ctx, s) : self.nhlTieSeeds(ti, cls, G, ctx, s); r = { maybe: x.maybe.has(s), sure: x.sure.has(s) }; }
     if (!r.maybe) return false;
     if (r.sure) {
       const full = self.realize(dom, bounds, 0);
@@ -891,9 +973,14 @@ Engine.prototype.level2 = function (ti, s, P, cls, bounds, G, test, accept) {
       if (++sovNodes > (self.opts.sovBudget || 3000)) throw "budget";
     }
     const m = dom[gi];
+    const mark = trail.length, h = L.H[gi], a = L.A[gi];
     for (const part of splitDomain(L, m)) {
       dom[gi] = part;
-      if (rec()) return true;
+      stack.length = 0;
+      if (has[h]) stack.push(h);
+      if (has[a]) stack.push(a);
+      if (propagate(L, dom, lbA, ubA, has, stack, trail) && rec()) return true;
+      while (trail.length > mark) { const old = trail.pop(); dom[trail.pop()] = old; }
     }
     dom[gi] = m;
     return false;
@@ -1008,7 +1095,7 @@ function topKSets(group, topFn, k) {
 const TIE_CAP = 400;
 
 // NHL seeds for ti with the tied group G at ti's points.
-Engine.prototype.nhlTieSeeds = function (ti, cls, G, ctx) {
+Engine.prototype.nhlTieSeeds = function (ti, cls, G, ctx, s) {
   const L = this.L, c = L.conf[ti], own = L.div[ti], divs = L.confDivs[c];
   const above = new Map(divs.map(d => [d, 0])), grp = new Map(divs.map(d => [d, []]));
   for (const [t, k] of cls) { if (k === ABOVE) above.set(L.div[t], above.get(L.div[t]) + 1); }
@@ -1035,7 +1122,7 @@ Engine.prototype.nhlTieSeeds = function (ti, cls, G, ctx) {
     const place = aOwn + p + 1;
     if (place <= 3) add(place, po.sure.has(p)); else beyond = true;
   }
-  if (!beyond) return { sure, maybe };
+  if (!beyond || s <= 3) return { sure, maybe };
   let na = 0;
   for (const d of divs) na += Math.max(0, above.get(d) - 3);
   // which tied clubs take the remaining top-three spots in each division
@@ -1065,44 +1152,92 @@ Engine.prototype.nhlTieSeeds = function (ti, cls, G, ctx) {
 
 // NFL seeds for ti with tied group G (all at ti's points). Returns
 // {sure: seeds reached with every comparison settled, maybe: all reachable}.
-Engine.prototype.nflTieSeeds = function (ti, cls, G, ctx) {
+// Only the part that can produce seed s is evaluated (the caller looks at
+// nothing else): seeds 1-4 need ti to top its division, and then depend only
+// on which club tops each other division, not on the full division orders;
+// seeds 5+ need ti not to be a division winner. The wild-card ladder result
+// for a set of clubs depends only on the best-ranked club of each division,
+// so it is memoised on that set across all division orders.
+Engine.prototype.nflTieSeeds = function (ti, cls, G, ctx, s) {
   const L = this.L, c = L.conf[ti], own = L.div[ti], divs = L.confDivs[c];
   const above = new Map(divs.map(d => [d, 0])), grp = new Map(divs.map(d => [d, []]));
   for (const [t, k] of cls) if (k === ABOVE) above.set(L.div[t], above.get(L.div[t]) + 1);
   for (const t of G) grp.get(L.div[t]).push(t);
   const sure = new Set(), maybe = new Set();
   const add = (sd, ok) => { maybe.add(sd); if (ok) sure.add(sd); };
+  const top4 = s <= 4;
+  if (top4 && above.get(own) > 0) return { sure, maybe };
   let aw = 0, na = 0;
   for (const d of divs) if (above.get(d) > 0) { aw++; na += above.get(d) - 1; }
-  let total = 1;
-  const altsU = divs.map(d => {
-    if (!grp.get(d).length) return [[[], false]];
+  const gbit = new Map(G.map((t, i) => [t, 1 << i]));
+  const wcMemo = new Map();
+  const two = x => nflWc2(ctx, x);
+  const again = x => ladder(ctx, x, 0, WCM_STEPS, two, again);
+  // same result as nflWcTop(ctx, x, divRank)
+  const wc = (x, divRank) => {
+    if (x.length === 1) return { tops: x, unc: false };
+    const d0 = L.div[x[0]];
+    let same = true, red = x;
+    for (let i = 1; i < x.length; i++) if (L.div[x[i]] !== d0) { same = false; break; }
+    if (!same && x.length > 2) {
+      const best = {};
+      for (const t of x) { const d = L.div[t]; if (!(d in best) || divRank.get(t) < divRank.get(best[d])) best[d] = t; }
+      red = Object.values(best);
+    }
+    let key = 0;
+    for (const t of red) key |= gbit.get(t);
+    let r = wcMemo.get(key);
+    if (r === undefined) {
+      r = same ? nflDivTop(ctx, red) : red.length === 2 ? nflWc2(ctx, red) : again(red);
+      wcMemo.set(key, r);
+    }
+    return r;
+  };
+  if (top4) {
+    // only the division winners matter: one alternative per division still
+    // open at P (the clubs that can top it); the order below them is not
+    // needed, so neither is its certainty
+    const alts = [];
+    let unc = false;
+    for (const d of divs) {
+      const g = grp.get(d);
+      if (above.get(d) > 0 || !g.length) continue;
+      const r = nflDivTop(ctx, g);
+      if (r.unc) unc = true;
+      if (d === own) { if (!r.tops.includes(ti)) return { sure, maybe }; alts.push([ti]); }
+      else alts.push(r.tops);
+    }
+    if (s - 1 - aw < 0 || s - 1 - aw >= alts.length) return { sure, maybe };
+    product(alts, winners => {
+      const r = tiPositions(winners, x => wc(x, null), ti);
+      for (const p of r.maybe) add(1 + aw + p, !unc && r.sure.has(p));
+    }, 1e9);
+    return { sure, maybe };
+  }
+  let total = 1, unc = false;
+  const ranks = divs.map(d => {
+    if (!grp.get(d).length) return null;
     const r = rankGroup(ctx, grp.get(d), x => nflDivTop(ctx, x), null);
     total *= r.orders.length;
-    return r.orders.map(o => [o, r.unc]);
+    if (r.unc) unc = true;
+    return r;
   });
   if (total > TIE_CAP) {     // too many division orders: over-approximate
-    if (above.get(own) === 0) { let nw = 0; for (const d of divs) if (above.get(d) === 0 && grp.get(d).length) nw++; for (let p = 0; p < nw; p++) maybe.add(1 + aw + p); }
     for (let p = 0; p < G.length; p++) { const sd = 5 + na + p; maybe.add(sd <= 7 ? sd : L.MISS); }
     return { sure, maybe };
   }
+  const altsU = ranks.map(r => r ? r.orders : [[]]);
   product(altsU, picks => {
-    const unc = picks.some(p => p[1]);
-    const od = new Map(divs.map((d, i) => [d, picks[i][0]]));
-    const divRank = new Map();
-    for (const o of od.values()) o.forEach((t, i) => divRank.set(t, i));
+    const od = new Map(divs.map((d, i) => [d, picks[i]]));
     const winAtP = new Map();
     for (const d of divs) if (above.get(d) === 0 && od.get(d).length) winAtP.set(d, od.get(d)[0]);
-    const wc = x => nflWcTop(ctx, x, divRank);
-    if (above.get(own) === 0 && winAtP.get(own) === ti) {
-      const r = tiPositions([...winAtP.values()], wc, ti);
-      for (const p of r.maybe) add(1 + aw + p, !unc && r.sure.has(p));
-    } else {
-      const pool = [];
-      for (const d of divs) for (const t of od.get(d)) if (winAtP.get(d) !== t) pool.push(t);
-      const r = tiPositions(pool, wc, ti);
-      for (const p of r.maybe) { const sd = 5 + na + p; add(sd <= 7 ? sd : L.MISS, !unc && r.sure.has(p)); }
-    }
+    if (above.get(own) === 0 && winAtP.get(own) === ti) return;
+    const divRank = new Map();
+    for (const o of od.values()) o.forEach((t, i) => divRank.set(t, i));
+    const pool = [];
+    for (const d of divs) for (const t of od.get(d)) if (winAtP.get(d) !== t) pool.push(t);
+    const r = tiPositions(pool, x => wc(x, divRank), ti);
+    for (const p of r.maybe) { const sd = 5 + na + p; add(sd <= 7 ? sd : L.MISS, !unc && r.sure.has(p)); }
   }, TIE_CAP);
   return { sure, maybe };
 };
@@ -1206,8 +1341,8 @@ function domainsFromSchedule(L, games, forced) {
       if (L.nfl) m = g.winner === "home" ? 1 : g.winner === "away" ? 2 : 4;
       else { const d = { REG: 0, OT: 1, SO: 2 }[g.dec || "REG"]; m = 1 << ((g.winner === "home" ? 0 : 3) + d); }
     } else if (forced && forced.has(gi)) {
-      const w = forced.get(gi);
-      m = L.nfl ? (w === "home" ? 1 : 2) : (w === "home" ? 7 : 56);
+      const w = forced.get(gi);   // an outcome mask, or 'home' / 'away' (winner)
+      m = typeof w === "number" ? w : L.nfl ? (w === "home" ? 1 : 2) : (w === "home" ? 7 : 56);
     }
     dom[gi] = m;
   });
